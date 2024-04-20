@@ -10,6 +10,8 @@ const host = 'localhost';
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const fs = require('fs')
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 var options = {
   customCss: fs.readFileSync(("./swagger.css"), 'utf8')
 };
@@ -20,6 +22,16 @@ const port = process.env.PORT || 3000
 //assigning the variable app to express
 const app = express()
 const cors = require('cors');
+
+// Configurar el transporte de correo
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'testerjohhnydp2@gmail.com',
+    pass: 'a3OGt63o2fl'
+  }
+});
+
 //middleware
 app.use(express.json())
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
