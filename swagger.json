@@ -26,6 +26,72 @@
         }
     ],
     "paths": {
+        "/api/users/invite": {
+            "post": {
+                "tags": [
+                    "user-controller"
+                ],
+                "operationId": "inviteUsingPOST",
+                "summary": "Invite User",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Invite User.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "User",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string",
+                                    "example": "test@test.com"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is wrong"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
         "/api/login": {
             "post": {
                 "tags": [
