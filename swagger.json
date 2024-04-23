@@ -23,10 +23,80 @@
         {
             "name": "user-controller",
             "description": "User Controller"
+        },
+        {
+            "name": "client-controller",
+            "description": "Client Controller"
         }
     ],
     "paths": {
-        "/api/login": {
+        "/api/user/invite": {
+            "post": {
+                "tags": [
+                    "user-controller"
+                ],
+                "operationId": "inviteUsingPOST",
+                "summary": "Invite User",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Invite User.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "User",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string",
+                                    "example": "test@test.com"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is wrong"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/user/login": {
             "post": {
                 "tags": [
                     "login-endpoint"
@@ -91,7 +161,7 @@
                 }
             }
         },
-        "/api/users?query={userEmail}": {
+        "/api/user/users?query={userEmail}": {
             "get": {
                 "tags": [
                     "user-controller"
@@ -149,7 +219,7 @@
                 }
             }
         },
-        "/api/users/{userEmail}": {
+        "/api/user/users/{userEmail}": {
             "put": {
                 "tags": [
                     "user-controller"
@@ -286,7 +356,7 @@
                 }
             }
         },
-        "/api/users/signup": {
+        "/api/user/signup": {
             "post": {
                 "tags": [
                     "user-controller"
@@ -362,6 +432,90 @@
                     }
                 }
             }
+        },
+        "/api/client/signup": {
+            "post": {
+                "tags": [
+                    "client-controller"
+                ],
+                "operationId": "signupUsingPOST",
+                "summary": "Create Client",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Create client.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "Client",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "nombre": {
+                                    "type": "string",
+                                    "example": "Irving"
+                                },
+                                "email": {
+                                    "type": "string",
+                                    "example": "test@test.com"
+                                },
+                                "apellidoPaterno": {
+                                    "type": "string",
+                                    "example": "Palma"
+                                },
+                                "apellidoMaterno": {
+                                    "type": "string",
+                                    "example": "Salas"
+                                },
+                                "telefono": {
+                                    "type": "string"
+                                },
+                                "contrasenia": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Client"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is duplicate. You don't have permission to perform this operation!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -384,6 +538,44 @@
                 "role": {
                     "type": "string",
                     "example": "user"
+                },
+                "createdAT": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:45.281Z"
+                },
+                "updatedAt": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:46.865Z"
+                }
+            }
+        },
+        "Client": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Irving"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "test@test.com"
+                },
+                "telefono": {
+                    "type": "string",
+                    "example": "913567890"
+                },
+                "apellidoPaterno": {
+                    "type": "string",
+                    "example": "Palma"
+                },
+                "apellidoMaterno": {
+                    "type": "string",
+                    "example": "Salas"
                 },
                 "createdAT": {
                     "type":"string",

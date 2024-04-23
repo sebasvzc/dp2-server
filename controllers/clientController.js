@@ -9,30 +9,30 @@ const WebSocket = require("ws");
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 
 // Assigning users to the variable User
-const User = db.users;
+const Client = db.clients;
 
 const broadcast = (clients, method, message) => {
     if(clients){
-    clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            console.log('[SERVER] broadcast(',method,'): ', JSON.stringify(message));
-            const data = {
-                id: message.id,
-                userName: message.userName,
-                email: message.email,
-                password: message.password,
-                role: message.role,
-                updatedAt: message.updatedAt,
-                createdAt: message.createdAt,
-                method: method
-            }
-            client.send(JSON.stringify(data), (err) => {
-                if(err){
-                  console.log(`[SERVER] error:${err}`);
+        clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                console.log('[SERVER] broadcast(',method,'): ', JSON.stringify(message));
+                const data = {
+                    id: message.id,
+                    userName: message.userName,
+                    email: message.email,
+                    password: message.password,
+                    role: message.role,
+                    updatedAt: message.updatedAt,
+                    createdAt: message.createdAt,
+                    method: method
                 }
-              });
-        }
-    })
+                client.send(JSON.stringify(data), (err) => {
+                    if(err){
+                        console.log(`[SERVER] error:${err}`);
+                    }
+                });
+            }
+        })
     }
 }
 
@@ -75,31 +75,34 @@ const login = async (req, res) => {
 //signing a user up
 //hashing users password before its saved to the database
 const signup = async (req, res) => {
+    console.log("viendo Signup")
     try {
-        const { userName, email, password, role } = req.body;
+        const { nombre, email, apellidoPaterno, apellidoMaterno, telefono,contrasenia } = req.body;
         const data = {
-            userName,
+            nombre,
             email,
-            password,
-            role
+            apellidoPaterno,
+            apellidoMaterno,
+            telefono,
+            contrasenia
         };
         //saving the user
-        const user = await User.create(data);
+        const client = await Client.create(data);
         //if user details is captured
         //generate token with the user's id and the secretKey in the env file
         // set cookie with the token generated
-        if (user) {
+        if (client) {
             let token = jwt.sign(
-                { name: user.username, password: user.password, email: user.email, role: user.role },
+                { id: client.id},
                 REFRESH_TOKEN_SECRET,
                 { expiresIn: REFRESH_TOKEN_EXPIRY }
             );
             res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-            console.log("user", JSON.stringify(user, null, 2));
+            console.log("client", JSON.stringify(client, null, 2));
             console.log(token);
             //send users details
             //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send(user);
+            return res.status(200).send(client);
         } else {
             return res.status(400).send("Invalid request body");
         }
@@ -114,15 +117,13 @@ const comprobarTokenRegistroUsuario = async (req, res) => {
 
         console.log(req.body)
         const { tokenReg} = req.body;
-
         jwt.verify(tokenReg, 'secretKey', (err, decoded) => {
-
             if (err) {
                 console.log(err)
                 if (err.name === 'TokenExpiredError') {
                     console.log('Access denied. Token expired.');
+
                 } else {
-                    console.log('Access denied. Invalid token.')
                     return res.status(403).send('Access denied. Invalid token.');
                 }
             } else {
@@ -241,5 +242,4 @@ module.exports = {
     getUser,
     updateUser,
     deleteUser,
-    comprobarTokenRegistroUsuario
 };

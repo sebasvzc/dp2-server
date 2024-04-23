@@ -1,7 +1,7 @@
-//user model
+//client model
 module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define( "user", {
-        userName: {
+    const Client = sequelize.define( "client", {
+        nombre: {
             type: DataTypes.STRING,
             allowNull: false
         },
@@ -11,14 +11,22 @@ module.exports = (sequelize, DataTypes) => {
             isEmail: true, //checks for email format
             allowNull: false
         },
-        password: {
+        apellidoPaterno: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        role: {
+        telefono: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        apellidoMaterno: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        contrasenia: {
             type: DataTypes.STRING,
             allowNull: false
         }
     }, {timestamps: true} )
-    return User
+    return Client
 }
