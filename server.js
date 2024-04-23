@@ -11,7 +11,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const fs = require('fs')
 const nodemailer = require('nodemailer');
-
+const router = require('./routes/indexRoute');
 var options = {
   customCss: fs.readFileSync(("./swagger.css"), 'utf8')
 };
@@ -23,19 +23,11 @@ const port = process.env.PORT || 3000
 const app = express()
 const cors = require('cors');
 
-// Configurar el transporte de correo
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port:465,
-  secure: true,
-  auth:{
-    user:"testerjohhnydp2@gmail.com",
-    pass:"xjgypqgxtgakdxos"
-  }
-});
+
 
 //middleware
 app.use(express.json())
+
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerDocument, options));
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
@@ -57,8 +49,8 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   next();
 });
-const userRoutes = require('./routes/userRoutes');
-app.use('/api', userRoutes(transporter,crypto))
+const userRoutes = require('./routes/user/userRoutes');
+app.use('/api',router )
 const server = createServer(app);
 //listening to server connection
 server.listen(port, function (error) {
