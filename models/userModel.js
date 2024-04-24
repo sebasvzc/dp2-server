@@ -1,7 +1,7 @@
 //user model
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define( "user", {
-        userName: {
+        nombre: {
             type: DataTypes.STRING,
             allowNull: false
         },
@@ -11,11 +11,15 @@ module.exports = (sequelize, DataTypes) => {
             isEmail: true, //checks for email format
             allowNull: false
         },
-        password: {
+        apellido: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        role: {
+        contrasenia: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        rol: {
             type: DataTypes.STRING,
             allowNull: false
         }

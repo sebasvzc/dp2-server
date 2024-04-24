@@ -10,7 +10,7 @@ const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_
 
 // Assigning users to the variable User
 const User = db.users;
-
+const UserInv = db.usersInv;
 const broadcast = (clients, method, message) => {
     if(clients){
     clients.forEach((client) => {
@@ -75,47 +75,12 @@ const login = async (req, res) => {
 //signing a user up
 //hashing users password before its saved to the database
 const signup = async (req, res) => {
-    try {
-        const { userName, email, password, role } = req.body;
-        const data = {
-            userName,
-            email,
-            password,
-            role
-        };
-        //saving the user
-        const user = await User.create(data);
-        //if user details is captured
-        //generate token with the user's id and the secretKey in the env file
-        // set cookie with the token generated
-        if (user) {
-            let token = jwt.sign(
-                { name: user.username, password: user.password, email: user.email, role: user.role },
-                REFRESH_TOKEN_SECRET,
-                { expiresIn: REFRESH_TOKEN_EXPIRY }
-            );
-            res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
-            console.log("user", JSON.stringify(user, null, 2));
-            console.log(token);
-            //send users details
-            //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send(user);
-        } else {
-            return res.status(400).send("Invalid request body");
-        }
-    } catch (error) {
-        console.log('signup - [Error]: ', error);
-    }
-}
-const comprobarTokenRegistroUsuario = async (req, res) => {
 
     try {
-        console.log("entre a comprobar")
-
-        console.log(req.body)
+        console.log("entre a registrar nuevo usuariop")
         const { tokenReg} = req.body;
 
-        jwt.verify(tokenReg, 'secretKey', (err, decoded) => {
+        jwt.verify(tokenReg, 'secretKey', async (err, decoded) => {
 
             if (err) {
                 console.log(err)
@@ -126,7 +91,104 @@ const comprobarTokenRegistroUsuario = async (req, res) => {
                     return res.status(403).send('Access denied. Invalid token.');
                 }
             } else {
-                console.log(decoded.email)
+                const now = Date.now();
+                if (now > decoded.expiresIn) {
+                    console.log('Access denied. Token expired.');
+                    return res.status(403).send('Access denied. Token expired.');
+                } else {
+
+                    const { nombre, email,apellido, password, rol } = req.body;
+                    const emailcheck = await UserInv.findOne({
+                        where: {
+                            email: email,
+                        },
+                    });
+                    if(!emailcheck){
+                        return res.status(401).send('No esta ese email en los invitados');
+                    }
+                    if(emailcheck.active===1){
+                        const data = {
+                            nombre,
+                            email,
+                            apellido,
+                            contrasenia: password,
+                            rol
+                        };
+                        //saving the user
+                        const user = await User.create(data);
+                        //if user details is captured
+                        //generate token with the user's id and the secretKey in the env file
+                        // set cookie with the token generated
+                        if (user) {
+
+                            console.log("user", JSON.stringify(user, null, 2));
+                            await UserInv.update(
+                                {
+                                    active: 0
+                                },
+                                {
+                                    where: { email: email }
+                                }
+                            );
+                            //send users details
+                            //broadcast(req.app.locals.clients, 'signup', user);
+                            return res.status(200).send(user);
+                        }
+                        else {
+                            return res.status(400).send("Invalid request body");
+                        }
+                        } else {
+                            return res.status(400).send("Ya has creado un usuario con ese email");
+                        }
+                }
+            }
+        });
+
+
+    } catch (error) {
+        console.log('signup - [Error]: ', error);
+    }
+}
+const comprobarTokenRegistroUsuario = async (req, res) => {
+
+    try {
+        console.log("entre a comprobar")
+
+        
+        const { tokenReg} = req.body;
+
+        jwt.verify(tokenReg, 'secretKey', async (err, decoded) => {
+
+            if (err) {
+                console.log(err)
+                if (err.name === 'TokenExpiredError') {
+                    console.log('Access denied. Token expired.');
+                } else {
+                    console.log('Access denied. Invalid token.')
+                    return res.status(403).send('Access denied. Invalid token.');
+                }
+            } else {
+                const now = Date.now();
+                if (now > decoded.expiresIn) {
+                    console.log('Access denied. Token expired.');
+                    return res.status(403).send('Access denied. Token expired.');
+                } else {
+                    const emailcheck = await UserInv.findOne({
+                        where: {
+                            email: decoded.email
+                        },
+                    });
+                    console.log(emailcheck)
+                    if(!emailcheck){
+                        return res.status(401).send('No esta ese email en los invitados');
+                    }
+                    if(emailcheck.active===1){
+                        console.log(decoded.email);
+                    }else{
+                        return res.status(401).send('No esta ese email en los invitados');
+                    }
+
+                }
             }
         });
     } catch (error) {
