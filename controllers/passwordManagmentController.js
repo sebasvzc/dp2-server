@@ -6,11 +6,6 @@ const forgotPassword = async (req, res) => {
     console.log("intentando controller forgot pasword");
     try {
         const { email } = req.body;
-        const client = await Client.findOne({ where: { email: email } });
-
-        if (!client) {
-            return res.status(404).send("Cliente no encontrado");
-        }
 
         // Llamar al procedimiento almacenado para generar el código de recuperación de contraseña
         const query = `CALL generarCodigoContraseniaCliente(@id, @codigo, '${email}')`;
