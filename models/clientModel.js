@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
         contrasenia: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        activo: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false
         }
     }, {timestamps: true} )
     return Client
