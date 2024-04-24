@@ -31,5 +31,6 @@ db.sequelize = sequelize
 db.usersInv = require('./userInviteModel') (sequelize, DataTypes)
 db.users = require('./userModel') (sequelize, DataTypes)
 db.clients = require('./clientModel') (sequelize, DataTypes)
+db.passwordManagments = require('./passwordManagmentModel') (sequelize, DataTypes)
 //exporting the module
 module.exports = db
