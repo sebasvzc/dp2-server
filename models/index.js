@@ -28,6 +28,7 @@ db.Sequelize = Sequelize
 db.sequelize = sequelize
 
 //connecting to model
+db.usersInv = require('./userInviteModel') (sequelize, DataTypes)
 db.users = require('./userModel') (sequelize, DataTypes)
 db.clients = require('./clientModel') (sequelize, DataTypes)
 //exporting the module
