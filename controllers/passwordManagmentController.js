@@ -3,6 +3,7 @@ const db = require("../models");
 const crypto = require("crypto");
 
 const forgotPassword = async (req, res) => {
+    console.log("intentando controller forgot pasword");
     try {
         const { email } = req.body;
         const client = await Client.findOne({ where: { email: email } });

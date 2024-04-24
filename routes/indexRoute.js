@@ -4,7 +4,7 @@ var router = express.Router();
 var userRouter = require('./user/userRoutes');
 var clientRouter = require('./client/clientRoutes');
 const userRoutes = require("./user/userRoutes");
-const passManagerRoutes = require("./passwordManagment/passwordManagmentRoute");
+var passManagerRoutes = require('./passwordManagment/passwordManagmentRoute');
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 // Configurar el transporte de correo
