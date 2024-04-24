@@ -1,11 +1,11 @@
 //recuperar contraseña (tabla intermedia)
 module.exports = (sequelize, DataTypes) => {
     const PasswordManagment = sequelize.define( "passwordManagment", {
-        fidUser: {
+        fidClient: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: 'users',  // nombre de la tabla en la base de datos (en plural)
+                model: 'clients',  // nombre de la tabla en la base de datos (en plural)
                 key: 'id'        // nombre de la columna en la tabla User
             }
         },
@@ -18,11 +18,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         }
     }, {timestamps: true} )
-    // Definir la relación con el modelo User
+    // Definir la relación con el modelo Client
     PasswordManagment.associate = models => {
-        PasswordManagment.belongsTo(models.User, {
-            foreignKey: 'fidUser',
-            as: 'user'
+        PasswordManagment.belongsTo(models.Client, {
+            foreignKey: 'fidClient',
+            as: 'client'
         });
     };
     return PasswordManagment
