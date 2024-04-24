@@ -4,5 +4,6 @@ var passManagerController = require('../../controllers/passwordManagmentControll
 var passManagerRouter = express.Router();
 
 passManagerRouter.post('/olvidoPassword', passManagerController.forgotPassword);
+passManagerRouter.post('/cambiarPassword', passManagerController.changePassword)
 
 module.exports = passManagerRouter;

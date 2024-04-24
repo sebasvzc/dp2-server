@@ -3,7 +3,7 @@ const db = require("../models");
 const crypto = require("crypto");
 
 const forgotPassword = async (req, res) => {
-    console.log("intentando controller forgot pasword");
+    //console.log("intentando controller forgot pasword");
     try {
         const { email } = req.body;
 
@@ -33,6 +33,30 @@ const forgotPassword = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    //console.log("intentando controller change pasword");
+    try {
+        const { idCliente } = req.body;
+        const { nuevaContrasenia } = req.body;
+        const { codigoValidacion } = req.body;
+
+        // Llamar al procedimiento almacenado para cambiar de contraseña
+        const query = `CALL solicitudCambioContraseniaCliente('${idCliente}', '${nuevaContrasenia}', '${codigoValidacion}', @estado)`;
+        await db.sequelize.query(query);
+
+        // Obtener los valores devueltos por el procedimiento
+        const [results] = await db.sequelize.query('SELECT @estado');
+        const estado = results[0]['@estado'];
+        console.log("estado: " + estado + " | 1: correcto - 0: código incorrecto");
+
+        res.status(200).send({ estado });
+    } catch (error) {
+        console.log('changePassword - [Error]: ', error);
+        res.status(500).send("Error al usar el codigo para cambiar la contraseña");
+    }
+};
+
 module.exports = {
-    forgotPassword
+    forgotPassword, 
+    changePassword
 };
