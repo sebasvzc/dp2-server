@@ -21,7 +21,7 @@ const forgotPassword = async (req, res) => {
 
         if(id == 0){
             console.log("cliente no encontrado");
-            res.status(400).send("cliente no encontrado");
+            res.status(400).send({ id, codigo });
         }
         else{
             // Enviar el código de recuperación de contraseña por correo electrónico
