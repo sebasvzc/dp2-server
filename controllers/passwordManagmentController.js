@@ -27,7 +27,7 @@ const forgotPassword = async (req, res) => {
         else{
             // Enviar el código de recuperación de contraseña por correo electrónico
             const mailOptions = {
-                from: 'testerjohhnydp2@gmail.com',
+                from: 'noreplay.plazasanmiguel@gmail.com',
                 to: email,
                 subject: 'Recuperación de contraseña - Plaza San Miguel App',
                 text: `Tu código de recuperación de contraseña es: ${codigo}` + '\n\nPlaza San Miguel'
