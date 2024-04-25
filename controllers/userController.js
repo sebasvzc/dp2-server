@@ -38,14 +38,18 @@ const broadcast = (clients, method, message) => {
 
 //login authentication
 const login = async (req, res) => {
+    console.log("user-login")
     try {
         const { email, password } = req.body;
         //find a user by their email
         const user = await User.findOne({ where: { email: email } });
+        console.log(user)
         //if user email is found, compare password
         if (user) {
-            const isSame = password == user.password ? true : false;
+            console.log("si encontre uysuario")
+            const isSame = password === user.contrasenia;
             if (isSame) {
+                console.log("si es igual")
                 const accessToken = jwt.sign(
                     { userName: user.userName, email: user.email, role: user.role },
                     ACCESS_TOKEN_SECRET,
