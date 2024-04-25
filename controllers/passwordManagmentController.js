@@ -1,7 +1,8 @@
 const { Client } = require("../models");
 const db = require("../models");
 const crypto = require("crypto");
-const nodemailer = require('nodemailer');
+
+const transporter = require('../config/mailConfig');
 
 const forgotPassword = async (req, res) => {
     console.log("intentando controller forgot pasword");
@@ -25,35 +26,26 @@ const forgotPassword = async (req, res) => {
         }
         else{
             // Enviar el código de recuperación de contraseña por correo electrónico
-            // Enviar el código de recuperación de contraseña por correo electrónico
-            const transporter = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                port: 465,
-                secure: true,
-                auth: {
-                    user: "testerjohhnydp2@gmail.com",
-                    pass: "xjgypqgxtgakdxos"
-                }
-            });
             const mailOptions = {
                 from: 'testerjohhnydp2@gmail.com',
                 to: email,
                 subject: 'Recuperación de contraseña - Plaza San Miguel App',
                 text: `Tu código de recuperación de contraseña es: ${codigo}` + '\n\nPlaza San Miguel'
             };
+            
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error('Error sending email:', error);
+                } else {
+                    console.log('Email sent:', info.response);
+                }
+            });
     
             await transporter.sendMail(mailOptions);
             res.status(200).send({ id, codigo });
         }
         
-        /*const mailOptions = {
-            from: 'testerjohhnydp2@gmail.com',
-            to: email,
-            subject: 'Recuperación de contraseña',
-            text: `Tu código de recuperación de contraseña es: ${codigo}`
-        };
 
-        await transporter.sendMail(mailOptions);*/
 
         
     } catch (error) {
