@@ -40,8 +40,6 @@ const forgotPassword = async (req, res) => {
                     console.log('Email sent:', info.response);
                 }
             });
-    
-            await transporter.sendMail(mailOptions);
             res.status(200).send({ id, codigo });
         }
         
