@@ -64,7 +64,7 @@ module.exports = (transporter,crypto) => {
                 console.log("userInv", JSON.stringify(user, null, 2));
                 //send users details
                 //broadcast(req.app.locals.clients, 'signup', user);
-                return res.status(200).send(user);
+                return res.status(200).send({success:"true", message: 'Invitación enviada correctamente.'});
             } else {
                 return res.status(400).send("Invalid request body");
             }

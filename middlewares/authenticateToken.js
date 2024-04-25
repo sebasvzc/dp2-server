@@ -14,7 +14,7 @@ function authenticateToken(req, res, next) {
     jwt.verify(tokenSinBearer, ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
-                console.log('Access denied. Token expired.');
+                console.log('Access denied. Access Token expired.');
                 verifyRefreshToken(refreshTokenSinBearer, req, res, next);
             } else {
                 return res.status(403).send('Access denied. Invalid token.');
@@ -30,7 +30,7 @@ function verifyRefreshToken(refreshToken, req, res, next) {
     jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
-                console.log('Access denied. Token expired and RefreshTokenExpired.');
+                console.log('Access denied. Access Token expired and RefreshTokenExpired.');
                 return res.status(403).send('Access denied. Token and RefreshToken expired.');
             } else {
                 console.log('Error verifying refreshToken:', err);
