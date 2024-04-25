@@ -1,6 +1,7 @@
 const { Client } = require("../models");
 const db = require("../models");
 const crypto = require("crypto");
+const nodemailer = require('nodemailer');
 
 const forgotPassword = async (req, res) => {
     //console.log("intentando controller forgot pasword");
@@ -16,7 +17,35 @@ const forgotPassword = async (req, res) => {
         const id = results[0]['@id'];
         const codigo = results[0]['@codigo'];
         console.log("id: "+id+" codigo: "+codigo);
-        // Enviar el código de recuperación de contraseña por correo electrónico
+        
+
+        if(id == 0){
+            console.log("cliente no encontrado");
+            res.status(400).send("cliente no encontrado");
+        }
+        else{
+            // Enviar el código de recuperación de contraseña por correo electrónico
+            // Enviar el código de recuperación de contraseña por correo electrónico
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                auth: {
+                    user: "testerjohhnydp2@gmail.com",
+                    pass: "xjgypqgxtgakdxos"
+                }
+            });
+            const mailOptions = {
+                from: 'testerjohhnydp2@gmail.com',
+                to: email,
+                subject: 'Recuperación de contraseña - Plaza San Miguel App',
+                text: `Tu código de recuperación de contraseña es: ${codigo}` + '\n\nPlaza San Miguel'
+            };
+    
+            await transporter.sendMail(mailOptions);
+            res.status(200).send({ id, codigo });
+        }
+        
         /*const mailOptions = {
             from: 'testerjohhnydp2@gmail.com',
             to: email,
@@ -26,7 +55,7 @@ const forgotPassword = async (req, res) => {
 
         await transporter.sendMail(mailOptions);*/
 
-        res.status(200).send({ id, codigo });
+        
     } catch (error) {
         console.log('forgotPassword - [Error]: ', error);
         res.status(500).send("Error al recuperar la contraseña");
