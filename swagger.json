@@ -165,7 +165,7 @@
                 }
             }
         },
-        "/api/user/users?query={userEmail}": {
+        "/api/user/listusers?query={userEmail}": {
             "get": {
                 "tags": [
                     "user-controller"

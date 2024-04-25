@@ -211,7 +211,7 @@ const getUser = async (req, res) => {
             const users = await User.findAll({
                 attributes: { exclude: ['password'] },
                 where: {
-                    role: {[Op.not]: 'admin'}
+                    rol: {[Op.not]: 'admin'}
                 }
             });
             if (users) {
