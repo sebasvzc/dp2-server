@@ -521,6 +521,71 @@
                 }
             }
         },
+        "/api/client/login": {
+            "post": {
+                "tags": [
+                    "login-endpoint"
+                ],
+                "operationId": "ClientloginUsingPOST",
+                "summary": "Login method to get user JWT data",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Login method used to authenticate user and get JWT token data.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "login",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string",
+                                    "example": "test@test.com"
+                                },
+                                "password": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "token": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                },
+                                "refreshToken": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 401
+                                },
+                                "message": {
+                                    "type": "string", "example": "Authentication failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/password/olvidoPassword": {
             "post": {
                 "tags": [

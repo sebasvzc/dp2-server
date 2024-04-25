@@ -11,7 +11,7 @@ const clientRouter = express.Router()
 //passing the middleware function to the signup
 
 clientRouter.post('/signup', clientAuth.saveClient, signup);
-    //router.post('/login', login);
+clientRouter.post('/login', login);
     //router.get('/listusers', authenticateToken, getUser);
 
     //router.put('/users/:email', updateUser);

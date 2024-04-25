@@ -41,18 +41,22 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         //find a user by their email
-        const user = await User.findOne({ where: { email: email } });
+        const client = await Client.findOne({ where: { email: email } });
         //if user email is found, compare password
-        if (user) {
-            const isSame = password == user.password ? true : false;
+        if (client) {
+
+            // console.log(password);
+            // console.log(client.contrasenia);
+            const isSame = password === client.contrasenia;
             if (isSame) {
+                console.log("El usuario si existe y su contrasenia esta bien")
                 const accessToken = jwt.sign(
-                    { userName: user.userName, email: user.email, role: user.role },
+                    { email: client.email },
                     ACCESS_TOKEN_SECRET,
                     { expiresIn: ACCESS_TOKEN_EXPIRY }
                 );
                 const refreshToken = jwt.sign(
-                    { userName: user.userName, email: user.email, role: user.role },
+                    {email: client.email},
                     REFRESH_TOKEN_SECRET,
                     { expiresIn: REFRESH_TOKEN_EXPIRY }
                 );
@@ -61,9 +65,11 @@ const login = async (req, res) => {
                     refreshToken: refreshToken
                 });
             } else {
+                console.log("El usuario existe pero no es su contraseña")
                 return res.status(401).send("Authentication failed");
             }
         } else {
+            console.log("Auth failed, nop hay usuario relacionadao")
             return res.status(401).send("Authentication failed");
         }
     } catch (error) {
