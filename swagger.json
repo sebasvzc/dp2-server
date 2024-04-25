@@ -531,11 +531,11 @@
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Olvide password metodo que envia correo",
+                "description": "Olvide password: metodo que envia correo con código",
                 "parameters": [
                     {
                         "in": "body",
-                        "name": "passwordOlive",
+                        "name": "passwordOlvide",
                         "description": "Request body as following",
                         "required": true,
                         "schema": {
@@ -544,6 +544,76 @@
                                 "email": {
                                     "type": "string",
                                     "example": "test@test.com"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "token": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                },
+                                "refreshToken": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 401
+                                },
+                                "message": {
+                                    "type": "string", "example": "Authentication failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/password/cambiarPassword":{
+            "post": {
+                "tags": [
+                    "password-controller"
+                ],
+                "operationId": "passwordCambiarPOST",
+                "summary": "Cambiar password metodo",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Cambiar password: método que modifica el password con el codigo de verificacion",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "passwordCambio",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "idCliente": {
+                                    "type": "integer",
+                                    "example": "1"
+                                },
+                                "nuevaContrasenia":{
+                                    "type": "string",
+                                    "example": "reactivosPassword"
+                                },
+                                "codigoValidacion":{
+                                    "type": "string",
+                                    "example": "ABCD1234"
                                 }
                             }
                         }
