@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 
 const forgotPassword = async (req, res) => {
-    //console.log("intentando controller forgot pasword");
+    console.log("intentando controller forgot pasword");
     try {
         const { email } = req.body;
 
