@@ -18,7 +18,7 @@ module.exports = (transporter,crypto) => {
         const { email } = req.body;
         const tokenData = {
             email,
-            expiresIn: Date.now() + (5 * 60 * 1000), // 5 minutos en milisegundos
+            expiresIn: Date.now() + (60 * 60 * 1000), // 5 minutos en milisegundos
         };
         const token = sign(tokenData, 'secretKey');
         const link = `http://localhost:3030/register?token=${token}`;
