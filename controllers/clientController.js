@@ -62,15 +62,16 @@ const login = async (req, res) => {
                 );
                 res.status(200).send({
                     token: accessToken,
-                    refreshToken: refreshToken
+                    refreshToken: refreshToken,
+                    code:"0"
                 });
             } else {
                 console.log("El usuario existe pero no es su contraseña")
-                return res.status(401).send("Authentication failed");
+                return res.status(401).send({message:"Authentication failed: El usuario existe pero no es su contraseña", code:"2"});
             }
         } else {
             console.log("Auth failed, nop hay usuario relacionadao")
-            return res.status(401).send("Authentication failed");
+            return res.status(401).send({message:"Authentication failed: El usuario no existe", code:"1"});
         }
     } catch (error) {
         console.log('login - [Error]: ', error);
