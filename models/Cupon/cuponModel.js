@@ -1,6 +1,6 @@
 //tabla cupon
 module.exports = (sequelize, DataTypes) => {
-    const PasswordManagment = sequelize.define( "passwordManagment", {
+    const Cupon = sequelize.define( "cupon", {
         fidLocatario: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: 'categorias',  // nombre de la tabla en la base de datos (en plural)
+                model: 'categoria',  // nombre de la tabla en la base de datos
                 key: 'id'        // nombre de la columna en la tabla User
             }
         },
@@ -36,15 +36,15 @@ module.exports = (sequelize, DataTypes) => {
     }, {timestamps: true} )
     // Definir la relación con el modelo Locatario
     //RELACIÓN CON LA LLAVE FORANEA
-    PasswordManagment.associate = models => {
-        PasswordManagment.belongsTo(models.Locatario, {
+    Cupon.associate = models => {
+        Cupon.belongsTo(models.Locatario, {
             foreignKey: 'fidLocatario',
             as: 'locatario'
         });
-        PasswordManagment.belongsTo(models.Categoria, {
+        Cupon.belongsTo(models.Categoria, {
             foreignKey: 'fidCategoria',
             as: 'categoria'
         });
     };
-    return PasswordManagment
+    return Cupon
 }
