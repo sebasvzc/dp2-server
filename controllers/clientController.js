@@ -5,6 +5,7 @@ require('dotenv').config();
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const WebSocket = require("ws");
+const crypto = require("crypto");
 
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 
@@ -42,12 +43,14 @@ const login = async (req, res) => {
         const { email, password } = req.body;
         //find a user by their email
         const client = await Client.findOne({ where: { email: email } });
+        // Encriptar la contraseña proporcionada con MD5
+        const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
         //if user email is found, compare password
         if (client) {
 
             // console.log(password);
             // console.log(client.contrasenia);
-            const isSame = password === client.contrasenia;
+            const isSame = hashedPassword === client.contrasenia;
             if (isSame) {
                 console.log("El usuario si existe y su contrasenia esta bien")
                 const accessToken = jwt.sign(
