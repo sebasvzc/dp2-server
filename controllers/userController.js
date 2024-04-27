@@ -47,26 +47,33 @@ const login = async (req, res) => {
         //if user email is found, compare password
         if (user) {
             console.log("si encontre uysuario")
-            const isSame = password === user.contrasenia;
-            if (isSame) {
-                console.log("si es igual")
-                const accessToken = jwt.sign(
-                    { userName: user.userName, email: user.email, role: user.role },
-                    ACCESS_TOKEN_SECRET,
-                    { expiresIn: ACCESS_TOKEN_EXPIRY }
-                );
-                const refreshToken = jwt.sign(
-                    { userName: user.userName, email: user.email, role: user.role },
-                    REFRESH_TOKEN_SECRET,
-                    { expiresIn: REFRESH_TOKEN_EXPIRY }
-                );
-                res.status(200).send({
-                    token: accessToken,
-                    refreshToken: refreshToken
-                });
-            } else {
-                return res.status(401).send("Authentication failed");
+            if(user.activo===1){
+                console.log("usuario activo")
+                const isSame = password === user.contrasenia;
+                if (isSame) {
+                    console.log("si es igual")
+                    const accessToken = jwt.sign(
+                        { userName: user.userName, email: user.email, role: user.role },
+                        ACCESS_TOKEN_SECRET,
+                        { expiresIn: ACCESS_TOKEN_EXPIRY }
+                    );
+                    const refreshToken = jwt.sign(
+                        { userName: user.userName, email: user.email, role: user.role },
+                        REFRESH_TOKEN_SECRET,
+                        { expiresIn: REFRESH_TOKEN_EXPIRY }
+                    );
+                    res.status(200).send({
+                        token: accessToken,
+                        refreshToken: refreshToken
+                    });
+                } else {
+                    return res.status(401).send("Authentication failed");
+                }
+            }else{
+                console.log("usuario se encuentra deshabilitado")
+                return res.status(401).send({code:"2",message:"usuario se encuentra deshabilitado"});
             }
+
         } else {
             return res.status(401).send("Authentication failed");
         }
@@ -201,7 +208,7 @@ const comprobarTokenRegistroUsuario = async (req, res) => {
 }
 const getUser = async (req, res) => {
     var queryType = req.query.query;
-    console.log(req.query.query)
+    // console.log(req.query.query)
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
     const offset = (page - 1) * pageSize;
@@ -236,7 +243,7 @@ const getUser = async (req, res) => {
             }
         } else {
             console.log("Estoy viendo algo que no es all")
-            console.log(queryType)
+
             const usersAndCount = await Promise.all([
                 User.findAll({
                     attributes: { exclude: ['password'] },
@@ -262,8 +269,8 @@ const getUser = async (req, res) => {
             ]);
             const [users, totalCount] = usersAndCount;
             if (users) {
-                console.log(users)
-                console.log(users)
+                // console.log(users)
+                // console.log(users)
                 return res.status(200).json({ users, newToken: req.newToken,totalUsers:totalCount });
             } else {
                 return res.status(200).send("Email no encontrado");

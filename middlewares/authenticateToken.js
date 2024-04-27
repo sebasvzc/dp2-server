@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const db = require("../models");
+const User = db.users;
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 // Middleware de autenticación
 function authenticateToken(req, res, next) {
@@ -11,7 +13,7 @@ function authenticateToken(req, res, next) {
     const refreshTokenSinBearer = refreshToken.substring(7);
 
 
-    jwt.verify(tokenSinBearer, ACCESS_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(tokenSinBearer, ACCESS_TOKEN_SECRET, async (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
                 console.log('Access denied. Access Token expired.');
@@ -20,14 +22,35 @@ function authenticateToken(req, res, next) {
                 return res.status(403).send('Access denied. Invalid token.');
             }
         } else {
-            req.user = decoded;
-            next();
+            // console.log("email para hallar:", decoded.email)
+            const findUser = await User.findOne({
+                where: {
+                    email: decoded.email
+                },
+                attributes: {exclude: ['password']}
+            });
+            if(findUser){
+                if(findUser.activo===1){
+
+                    req.user = decoded;
+                    next();
+                }else{
+                    console.log('Access denied. User not active in db.');
+                    return res.status(403).send('Access denied. User not active in db.');
+                }
+
+            }else{
+                console.log('Access denied. User not found in db.');
+                return res.status(403).send('Access denied. User not found in db.');
+
+            }
+
         }
     });
 }
 
 function verifyRefreshToken(refreshToken, req, res, next) {
-    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, async (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
                 console.log('Access denied. Access Token expired and RefreshTokenExpired.');
@@ -39,14 +62,36 @@ function verifyRefreshToken(refreshToken, req, res, next) {
         }
 
         const newAccessToken = jwt.sign(
-            { userName: decoded.userName, email: decoded.email, role: decoded.role },
+            {userName: decoded.userName, email: decoded.email, role: decoded.role},
             ACCESS_TOKEN_SECRET,
-            { expiresIn: ACCESS_TOKEN_EXPIRY }
+            {expiresIn: ACCESS_TOKEN_EXPIRY}
         );
 
-        req.newToken = newAccessToken;
-        req.user = decoded;
-        next();
+
+        // console.log("email para hallar:", decoded.email)
+        const findUser = await User.findOne({
+            where: {
+                email: decoded.email
+            },
+            attributes: {exclude: ['password']}
+        });
+        if(findUser){
+            if(findUser.activo===1){
+                req.newToken = newAccessToken;
+                req.user = decoded;
+                next();
+            }else{
+                console.log('Access denied. User not active in db.');
+                return res.status(403).send('Access denied. User not active in db.');
+            }
+
+        }else{
+            console.log('Access denied. User not found in db.');
+            return res.status(403).send('Access denied. User not found in db.');
+
+        }
+        // console.log("email ecnontrado:", findUser.email)
+
     });
 }
 

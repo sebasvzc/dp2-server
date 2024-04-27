@@ -81,7 +81,7 @@ module.exports = (transporter,crypto) => {
     router.post('/login', login);
     router.post('/deshabilitar', deshabilitar);
     router.post('/habilitar', habilitar);
-    router.get('/listusers'/*, authenticateToken */,getUser);
+    router.get('/listusers', authenticateToken ,getUser);
     router.post('/comprobarTokenRegistro', comprobarTokenRegistroUsuario);
     //router.put('/users/:email', updateUser);
     //router.delete('/users/:email', deleteUser);
