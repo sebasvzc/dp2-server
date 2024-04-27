@@ -242,7 +242,10 @@ const getUser = async (req, res) => {
                     attributes: { exclude: ['password'] },
                     where: {
                         rol: {[Op.not]: 'admin'},
-                        email: queryType
+                        [Op.or]: [
+                            { email: { [Op.like]: `%${queryType}%` } },
+                            { nombre: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
+                        ]
                     },
                     offset: offset,
                     limit: pageSize
@@ -250,7 +253,10 @@ const getUser = async (req, res) => {
                 User.count({
                     where: {
                         rol: {[Op.not]: 'admin'},
-                        email: queryType
+                        [Op.or]: [
+                            { email: { [Op.like]: `%${queryType}%` } },
+                            { nombre: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
+                        ]
                     }
                 })
             ]);
