@@ -3,6 +3,17 @@ const { google } = require('googleapis');
 const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
 
+/*
+
+COMO ENVIAR CORREOS:
+const correo = require('esta ruta')
+
+correo.enviarCorreo(destino, asunto, texto)
+
+NOTA: La función le agrega una firma al final del texto
+
+*/
+
 const oauth2Client = new OAuth2Client(
     process.env.CLIENT_ID_NM,
     process.env.CLIENT_SECRET_NM,
@@ -30,4 +41,33 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-module.exports = transporter;
+///////////////////////////////////////////////////////////////////////
+
+
+exports.enviarCorreo = async (destino, asunto, texto) => {
+    try {
+        // Obteniendo el token de acceso
+        const token = await accessToken();
+
+        // Detalles del correo
+        const mailOptions = {
+            from: 'noreplay.plazasanmiguel@gmail.com',
+            to: destino,
+            subject: asunto,
+            text: texto
+        };
+
+        // Envío del correo
+        const info = await transporter.sendMail({
+            ...mailOptions,
+            auth: {
+                accessToken: token
+            }
+        });
+        console.log('Correo enviado NuevoNodemailer:', info.response);
+    } catch (error) {
+        console.log('Error al enviar el correo NuevoNodemailer:', error);
+    }
+}
+
+//module.exports = transporter;
