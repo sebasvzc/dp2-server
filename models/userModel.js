@@ -22,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
         rol: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        activo: {
+        type: DataTypes.TINYINT(1),
+            allowNull: false
         }
     }, {timestamps: true} )
     return User

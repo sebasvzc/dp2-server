@@ -165,7 +165,7 @@
                 }
             }
         },
-        "/api/user/listusers?query={userEmail}": {
+        "/api/user/listusers?query={userEmail}&page={page}&pageSize={pageSize}": {
             "get": {
                 "tags": [
                     "user-controller"
@@ -183,6 +183,18 @@
                         "in": "path",
                         "type": "string",
                         "description": "Email of the user"
+                    },{
+                        "name": "page",
+                        "required": true,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Pagina solicitada"
+                    },{
+                        "name": "pageSize",
+                        "required": true,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Tamanio de pagina solicitada"
                     }
                 ],
                 "responses": {

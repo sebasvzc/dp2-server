@@ -201,33 +201,64 @@ const comprobarTokenRegistroUsuario = async (req, res) => {
 }
 const getUser = async (req, res) => {
     var queryType = req.query.query;
+    console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
     console.log('getUser - query: ', req.query.query);
     if (!queryType) {
         console.log("Requested item wasn't found!, ?query=xxxx is required!");
         return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
     }
     try {
-        if (queryType == 'all') {
-            const users = await User.findAll({
-                attributes: { exclude: ['password'] },
-                where: {
-                    rol: {[Op.not]: 'admin'}
-                }
-            });
+        if (queryType === 'all') {
+            const usersAndCount = await Promise.all([
+                User.findAll({
+                    attributes: { exclude: ['password'] },
+                    where: {
+                        rol: {[Op.not]: 'admin'}
+
+                    },
+                    offset: offset,
+                    limit: pageSize
+                }),
+                User.count({
+                    where: {
+                        rol: {[Op.not]: 'admin'}
+                    }
+                })
+            ]);
+            const [users, totalCount] = usersAndCount;
             if (users) {
-                return res.status(200).json({ users, newToken: req.newToken });
+                return res.status(200).json({ users, newToken: req.newToken,totalUsers:totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
         } else {
-            const user = await User.findOne({
-                where: {
-                    email: queryType//{[Op.like]: queryType+'%'}
-                },
-                attributes: { exclude: ['password'] }
-            });
-            if (user) {
-                return res.status(200).json({ users, newToken: req.newToken });
+            console.log("Estoy viendo algo que no es all")
+            console.log(queryType)
+            const usersAndCount = await Promise.all([
+                User.findAll({
+                    attributes: { exclude: ['password'] },
+                    where: {
+                        rol: {[Op.not]: 'admin'},
+                        email: queryType
+                    },
+                    offset: offset,
+                    limit: pageSize
+                }),
+                User.count({
+                    where: {
+                        rol: {[Op.not]: 'admin'},
+                        email: queryType
+                    }
+                })
+            ]);
+            const [users, totalCount] = usersAndCount;
+            if (users) {
+                console.log(users)
+                console.log(users)
+                return res.status(200).json({ users, newToken: req.newToken,totalUsers:totalCount });
             } else {
                 return res.status(200).send("Email no encontrado");
             }
@@ -237,6 +268,68 @@ const getUser = async (req, res) => {
     }
 }
 
+const habilitar = async (req, res) => {
+
+
+    try {
+
+        console.log('updateUser - updateItem: ', req.body.selected);
+        for (let i = 0; i < req.body.selected.length; i++) {
+            const selectedItem = req.body.selected[i];
+            console.log('Item seleccionado:', selectedItem);
+            const user = await User.findOne({
+                where: {
+                    id: selectedItem
+                }
+            });
+            if (!user) {
+                return res.status(409).send("El id de usuario "+selectedItem+" no se encontro en la bd");
+            }
+            await User.update(
+                {
+                    activo: 1
+                },
+                {
+                    where: { id: selectedItem }
+                }
+            );
+        }
+        return res.status(200).send({message:"Usuarios habilitados correctamente", code:0});
+    } catch (error) {
+        console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
+const deshabilitar = async (req, res) => {
+
+
+    try {
+
+        console.log('updateUser - updateItem: ', req.body.selected);
+        for (let i = 0; i < req.body.selected.length; i++) {
+            const selectedItem = req.body.selected[i];
+            console.log('Item seleccionado:', selectedItem);
+            const user = await User.findOne({
+                where: {
+                    id: selectedItem
+                }
+            });
+            if (!user) {
+                return res.status(409).send("El id de usuario "+selectedItem+" no se encontro en la bd");
+            }
+            await User.update(
+                {
+                    activo: 0
+                },
+                {
+                    where: { id: selectedItem }
+                }
+            );
+        }
+        return res.status(200).send({message:"Usuarios deshabilitados correctamente", code:0});
+    } catch (error) {
+        console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
 const updateUser = async (req, res) => {
     var updateItem = req.params.email;
     console.log('updateUser - updateItem: ', updateItem);
@@ -307,5 +400,7 @@ module.exports = {
     getUser,
     updateUser,
     deleteUser,
-    comprobarTokenRegistroUsuario
+    comprobarTokenRegistroUsuario,
+    deshabilitar,
+    habilitar
 };

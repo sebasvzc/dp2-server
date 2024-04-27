@@ -2,13 +2,14 @@
 const express = require('express')
 const userController = require('../../controllers/userController')
 const userInvController = require('../../controllers/userInviteController')
-const { signup, login, getUser,comprobarTokenRegistroUsuario, updateUser, deleteUser } = userController
+const { signup, login, getUser,comprobarTokenRegistroUsuario,deshabilitar,habilitar, updateUser, deleteUser } = userController
 const { createUserInv} = userInvController
 const userAuth = require('../../middlewares/userAuth')
 const authenticateToken  = require('../../middlewares/authenticateToken')
 const {sign} = require("jsonwebtoken");
 const router = express.Router()
 const db = require("../../models");
+
 const UserInv = db.usersInv;
 const User = db.users;
 //signup endpoint
@@ -78,7 +79,9 @@ module.exports = (transporter,crypto) => {
 
     router.post('/signup', userAuth.saveUser, signup);
     router.post('/login', login);
-    router.get('/listusers', authenticateToken, getUser);
+    router.post('/deshabilitar', deshabilitar);
+    router.post('/habilitar', habilitar);
+    router.get('/listusers'/*, authenticateToken */,getUser);
     router.post('/comprobarTokenRegistro', comprobarTokenRegistroUsuario);
     //router.put('/users/:email', updateUser);
     //router.delete('/users/:email', deleteUser);
