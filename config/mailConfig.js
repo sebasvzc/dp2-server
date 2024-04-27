@@ -48,13 +48,13 @@ exports.enviarCorreo = async (destino, asunto, texto) => {
     try {
         // Obteniendo el token de acceso
         const token = await accessToken();
-
+        //var txt =  texto + '\n\nPlaza San Miguel'
         // Detalles del correo
         const mailOptions = {
             from: 'noreplay.plazasanmiguel@gmail.com',
             to: destino,
             subject: asunto,
-            text: texto
+            html: texto + '<br><br>Plaza San Miguel'
         };
 
         // Envío del correo
