@@ -2,7 +2,7 @@ const { Client } = require("../models");
 const db = require("../models");
 const crypto = require("crypto");
 
-const transporter = require('../config/mailConfig');
+const envioCorreo = require('../config/mailConfig');
 
 const forgotPassword = async (req, res) => {
     console.log("intentando controller forgot pasword");
@@ -26,7 +26,9 @@ const forgotPassword = async (req, res) => {
         }
         else{
             // Enviar el código de recuperación de contraseña por correo electrónico
-            const mailOptions = {
+            var asunto = 'Recuperación de contraseña - Plaza San Miguel App';
+            var texto = `Tu código de recuperación de contraseña es: <b>${codigo}</b>`;
+            /*const mailOptions = {
                 from: 'noreplay.plazasanmiguel@gmail.com',
                 to: email,
                 subject: 'Recuperación de contraseña - Plaza San Miguel App',
@@ -39,7 +41,9 @@ const forgotPassword = async (req, res) => {
                 } else {
                     console.log('Email sent:', info.response);
                 }
-            });
+            });*/
+
+            envioCorreo.enviarCorreo(email, asunto, texto);
             res.status(200).send({ id, codigo });
         }
         
