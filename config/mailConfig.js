@@ -3,6 +3,17 @@ const { google } = require('googleapis');
 const { OAuth2Client } = require('google-auth-library');
 const nodemailer = require('nodemailer');
 
+/*
+
+COMO ENVIAR CORREOS:
+const correo = require('esta ruta')
+
+correo.enviarCorreo(destino, asunto, texto)
+
+NOTA: La función le agrega una firma al final del texto
+
+*/
+
 const oauth2Client = new OAuth2Client(
     process.env.CLIENT_ID_NM,
     process.env.CLIENT_SECRET_NM,
