@@ -30,4 +30,33 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-module.exports = transporter;
+///////////////////////////////////////////////////////////////////////
+
+
+exports.enviarCorreo = async (destino, asunto, texto) => {
+    try {
+        // Obteniendo el token de acceso
+        const token = await accessToken();
+
+        // Detalles del correo
+        const mailOptions = {
+            from: 'noreplay.plazasanmiguel@gmail.com',
+            to: destino,
+            subject: asunto,
+            text: texto
+        };
+
+        // Envío del correo
+        const info = await transporter.sendMail({
+            ...mailOptions,
+            auth: {
+                accessToken: token
+            }
+        });
+        console.log('Correo enviado NuevoNodemailer:', info.response);
+    } catch (error) {
+        console.log('Error al enviar el correo NuevoNodemailer:', error);
+    }
+}
+
+//module.exports = transporter;
