@@ -35,5 +35,6 @@ db.passwordManagments = require('./passwordManagmentModel') (sequelize, DataType
 db.categorias = require('./Cupon/categoriaCuponModel') (sequelize, DataTypes)
 db.locatarios = require('./Cupon/locatarioModel') (sequelize, DataTypes)
 db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
+db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
 //exporting the module
 module.exports = db
