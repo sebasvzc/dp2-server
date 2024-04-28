@@ -119,13 +119,13 @@ const forgotPasswordWeb = async (req, res) => {
 const changePasswordWeb = async (req, res) => {
     //console.log("intentando controller change pasword");
     try {
-        const { idCliente } = req.body;
+        const { idUsuario } = req.body;
         const { nuevaContrasenia } = req.body;
         const { codigoValidacion } = req.body;
         const hash = crypto.createHash('md5').update(nuevaContrasenia).digest('hex');
 
         // Llamar al procedimiento almacenado para cambiar de contraseña
-        const query = `CALL solicitudCambioContraseniaUsuario('${idCliente}', '${hash}', '${codigoValidacion}', @estado)`;
+        const query = `CALL solicitudCambioContraseniaUsuario('${idUsuario}', '${hash}', '${codigoValidacion}', @estado)`;
         await db.sequelize.query(query);
 
         // Obtener los valores devueltos por el procedimiento
