@@ -729,6 +729,138 @@
                     }
                 }
             }
+        },
+        "/api/password/olvidoPasswordWeb": {
+            "post": {
+                "tags": [
+                    "password-controller"
+                ],
+                "operationId": "passwordOlvideWebPOST",
+                "summary": "Olvide password metodo para el sistema web",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Olvide password web: metodo que envia correo con código",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "passwordOlvideWeb",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string",
+                                    "example": "test@test.com"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "token": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                },
+                                "refreshToken": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 401
+                                },
+                                "message": {
+                                    "type": "string", "example": "Authentication failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/password/cambiarPasswordWeb":{
+            "post": {
+                "tags": [
+                    "password-controller"
+                ],
+                "operationId": "passwordCambiarWebPOST",
+                "summary": "Cambiar password metodo para el sistema web",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Cambiar password web: método que modifica el password con el codigo de verificacion",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "passwordCambioWeb",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "idUsuario": {
+                                    "type": "integer",
+                                    "example": "1"
+                                },
+                                "nuevaContrasenia":{
+                                    "type": "string",
+                                    "example": "reactivosPassword"
+                                },
+                                "codigoValidacion":{
+                                    "type": "string",
+                                    "example": "ABCD1234"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "token": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                },
+                                "refreshToken": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 401
+                                },
+                                "message": {
+                                    "type": "string", "example": "Authentication failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
