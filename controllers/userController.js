@@ -343,6 +343,48 @@ const deshabilitar = async (req, res) => {
         console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+
+const modificar = async (req, res) => {
+    var updateItem = req.body.editedUser;
+    console.log('updateUser - updateItem: ', updateItem);
+    const {id, nombre, apellido, email, password,activo,rol } = req.body.editedUser;
+    try {
+        const user = await User.findOne({
+            where: {
+                id: id
+            }
+        });
+        if (!user) {
+            console.log("Requested "+updateItem+" wasn't found!")
+            return res.status(409).send("Requested "+updateItem+" wasn't found!");
+        }
+        const checkSameUser = await User.findOne({
+            where: {
+                email: email
+            }
+        });
+        if (checkSameUser && id!== checkSameUser.id) {
+            console.log("Requested "+email+" esta duplicado, por favor no colocar un email ya existente")
+            return res.status(403).send("Requested "+email+" esta duplicado, por favor no colocar un email ya existente");
+        }
+        await User.update(
+            {
+                nombre: nombre,
+                apellido: apellido,
+                email: email,
+                contrasenia: password,
+                activo: activo,
+                rol: rol
+            },
+            {
+                where: { id: id }
+            }
+        );
+        return res.status(200).send({message:"Usuario modificado correctametne"});
+    } catch (error) {
+        console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
 const updateUser = async (req, res) => {
     var updateItem = req.params.email;
     console.log('updateUser - updateItem: ', updateItem);
@@ -415,5 +457,6 @@ module.exports = {
     deleteUser,
     comprobarTokenRegistroUsuario,
     deshabilitar,
-    habilitar
+    habilitar,
+    modificar
 };
