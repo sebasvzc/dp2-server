@@ -4,6 +4,11 @@ const crypto = require("crypto");
 
 const envioCorreo = require('../config/mailConfig');
 
+function validatePassword(password) {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    return regex.test(password);
+}
+
 const forgotPassword = async (req, res) => {
     console.log("intentando controller forgot pasword");
     try {
@@ -62,6 +67,12 @@ const changePassword = async (req, res) => {
         const { idCliente } = req.body;
         const { nuevaContrasenia } = req.body;
         const { codigoValidacion } = req.body;
+
+        if (!validatePassword(nuevaContrasenia)) {
+            return res.status(400).send({
+                message: "La contraseña debe tener al menos 8 caracteres y contener al menos una letra mayúscula, una minúscula y un número."
+            });
+        }
 
         // Llamar al procedimiento almacenado para cambiar de contraseña
         const query = `CALL solicitudCambioContraseniaCliente('${idCliente}', '${nuevaContrasenia}', '${codigoValidacion}', @estado)`;
@@ -122,6 +133,14 @@ const changePasswordWeb = async (req, res) => {
         const { idUsuario } = req.body;
         const { nuevaContrasenia } = req.body;
         const { codigoValidacion } = req.body;
+
+        //validacion
+        if (!validatePassword(nuevaContrasenia)) {
+            return res.status(400).send({
+                message: "La contraseña debe tener al menos 8 caracteres y contener al menos una letra mayúscula, una minúscula y un número."
+            });
+        }
+
         const hash = crypto.createHash('md5').update(nuevaContrasenia).digest('hex');
 
         // Llamar al procedimiento almacenado para cambiar de contraseña
