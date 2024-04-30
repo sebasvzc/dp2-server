@@ -32,9 +32,10 @@ db.usersInv = require('./userInviteModel') (sequelize, DataTypes)
 db.users = require('./userModel') (sequelize, DataTypes)
 db.clients = require('./clientModel') (sequelize, DataTypes)
 db.passwordManagments = require('./passwordManagmentModel') (sequelize, DataTypes)
-db.categorias = require('./Cupon/categoriaCuponModel') (sequelize, DataTypes)
-db.locatarios = require('./Cupon/locatarioModel') (sequelize, DataTypes)
-db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
+db.categoriaTiendas = require('./Cupon/categoriaTienda') (sequelize, DataTypes)
+//db.categorias = require('./Cupon/categoriaCuponModel') (sequelize, DataTypes)
+//db.locatarios = require('./Cupon/locatarioModel') (sequelize, DataTypes)
+//db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
 db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
 //exporting the module
 module.exports = db
