@@ -35,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         },
+        puntos: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false

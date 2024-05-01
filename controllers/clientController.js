@@ -247,11 +247,20 @@ const deleteUser = async (req, res) => {
 }
 
 const getMisCupones = async (req, res) => {
-    const { idCliente } = req.body
-    const misCupones = await db.cuponXClientes.findAll({
-        where: {fidCliente: idCliente}
+    const {page = 0, size = 5} = req.query;
+    const { idCliente } = req.body;
+
+    var options = {
+        limit: +size,
+        offset: (+page) * (+size)
+    }
+
+    const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll({
+        where: { fidCliente: idCliente },
+        ...options
     });
-    res.json(misCupones);
+    
+    res.json({ total: count, cupones: misCupones });
 }
 
 module.exports = {
