@@ -252,11 +252,20 @@ const getMisCupones = async (req, res) => {
 
     var options = {
         limit: +size,
-        offset: (+page) * (+size)
+        offset: (+page) * (+size),
+        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado'],
+        include: [
+            {
+                model: db.cupones
+            }
+        ]
     }
 
     const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll({
-        where: { fidCliente: idCliente },
+        where: { 
+            fidCliente: idCliente,
+            activo: 1
+        },
         ...options
     });
     

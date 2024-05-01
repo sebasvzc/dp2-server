@@ -77,6 +77,9 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'fidTipoCupon',
             as: 'tipoCupon'
         });
+        Cupon.hasMany(models.CuponXCliente, {
+            foreignKey: 'fidCupon'
+        })
     };
     return Cupon
 }
