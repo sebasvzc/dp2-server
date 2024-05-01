@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
             isEmail: true, //checks for email format
             allowNull: false
         },
-        apellidoPaterno: {
+        telefono: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        telefono: {
+        apellidoPaterno: {
             type: DataTypes.STRING,
             allowNull: false
         },
@@ -25,6 +25,14 @@ module.exports = (sequelize, DataTypes) => {
         },
         contrasenia: {
             type: DataTypes.STRING,
+            allowNull: false
+        },
+        genero: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        fechaNacimiento: {
+            type: DataTypes.DATE,
             allowNull: false
         },
         activo: {
