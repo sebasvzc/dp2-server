@@ -1,9 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
     const CuponXCliente = sequelize.define( "cuponXCliente", {
-        nombre: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
         fidCupon: {
             type: DataTypes.INTEGER,
             allowNull: false,

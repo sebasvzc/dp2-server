@@ -246,10 +246,19 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const getMisCupones = async (req, res) => {
+    const { idCliente } = req.body
+    const misCupones = await db.cuponXClientes.findAll({
+        where: {fidCliente: idCliente}
+    });
+    res.json(misCupones);
+}
+
 module.exports = {
     login,
     signup,
     getUser,
     updateUser,
     deleteUser,
+    getMisCupones
 };
