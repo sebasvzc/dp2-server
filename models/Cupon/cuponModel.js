@@ -69,15 +69,15 @@ module.exports = (sequelize, DataTypes) => {
     // Definir la relación con el modelo Locatario
     //RELACIÓN CON LA LLAVE FORANEA
     Cupon.associate = models => {
-        Cupon.belongsTo(models.Locatario, {
+        Cupon.belongsTo(models.locatario, {
             foreignKey: 'fidLocatario',
             as: 'locatario'
         });
-        Cupon.belongsTo(models.TipoCupon, {
+        Cupon.belongsTo(models.tipoCupon, {
             foreignKey: 'fidTipoCupon',
             as: 'tipoCupon'
         });
-        Cupon.hasMany(models.CuponXCliente, {
+        Cupon.hasMany(models.cuponXCliente, {
             foreignKey: 'fidCupon'
         })
     };

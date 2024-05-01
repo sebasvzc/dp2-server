@@ -35,10 +35,10 @@ module.exports = (sequelize, DataTypes) => {
     }, {timestamps: true} )
     //RELACIÓN CON LA LLAVE FORANEA
     CuponXCliente.associate = models => {
-        CuponXCliente.belongsTo(models.Cupon, {
+        CuponXCliente.belongsTo(models.cupon, {
             foreignKey: 'fidCupon'
         });
-        CuponXCliente.belongsTo(models.Client, {
+        CuponXCliente.belongsTo(models.client, {
             foreignKey: 'fidCliente'
         });
     };

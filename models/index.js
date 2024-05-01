@@ -1,6 +1,8 @@
 //importing modules
 require('dotenv').config();
-
+const fs = require('fs');
+const path = require('path');
+const basename = path.basename(__filename);
 const { DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_DAILECT, DB_PORT } = process.env;
 const { Sequelize, DataTypes } = require('sequelize')
 
@@ -24,10 +26,30 @@ sequelize.authenticate().then(() => {
 })
 
 const db = {}
+
+
+// Function to recursively load models
+fs
+    .readdirSync(__dirname)
+    .filter(file => {
+        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+    })
+    .forEach(file => {
+        const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+        db[model.name] = model;
+    });
+
+    Object.keys(db).forEach(modelName => {
+    if (db[modelName].associate) {
+        db[modelName].associate(db);
+    }
+});
 db.Sequelize = Sequelize
 db.sequelize = sequelize
+sequelize.sync(); // actualiza la base de datos cuando hay cambios en las tablas
 
 //connecting to model
+
 db.usersInv = require('./userInviteModel') (sequelize, DataTypes)
 db.users = require('./userModel') (sequelize, DataTypes)
 db.clients = require('./clientModel') (sequelize, DataTypes)
@@ -42,13 +64,8 @@ db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, Da
 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
-/*db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon"});
-db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon"});*/
-Object.keys(db).forEach((modelName) => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
-    }
-});
+db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon"});
+db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon"});
 
 
 //exporting the module

@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     }, {timestamps: true} )
     //RELACIÓN CON LA LLAVE FORANEA
     Locatario.associate = models => {
-        Locatario.belongsTo(models.CategoriaTienda, {
+        Locatario.belongsTo(models.categoriaTienda, {
             foreignKey: 'fidCategoriaTienda',
             as: 'categoriaTienda'
         });
