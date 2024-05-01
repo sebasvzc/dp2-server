@@ -247,8 +247,8 @@ const deleteUser = async (req, res) => {
 }
 
 const getMisCupones = async (req, res) => {
-    const {page = 0, size = 5} = req.query;
-    const { idCliente } = req.body;
+    const { page = 0, size = 5 } = req.query;
+    const { idCliente, usado, categorias } = req.body;
 
     var options = {
         limit: +size,
@@ -256,20 +256,44 @@ const getMisCupones = async (req, res) => {
         attributes: ['id', 'fidCupon', 'fechaCompra', 'usado'],
         include: [
             {
-                model: db.cupones
+                model: db.cupones,
+                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'rutaFoto'],
+                include: [
+                    {
+                        model: db.locatarios,
+                        attributes: ['nombre', 'descripcion', 'locacion'],
+                        include: [
+                            {
+                                model: db.categoriaTiendas,
+                                attributes: ['nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                                
+                            }
+                        ]
+                    }
+                ]
             }
-        ]
+        ],
+        where: {
+            fidCliente: idCliente,
+            usado: usado,
+            activo: 1
+        }
     }
 
-    const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll({
-        where: { 
-            fidCliente: idCliente,
-            activo: 1
-        },
-        ...options
-    });
-    
-    res.json({ total: count, cupones: misCupones });
+    if (!categorias || categorias.length === 0) {
+        options.include[0].include[0].include[0].where = {}; // Vaciar el objeto where
+    } else {
+        options.include[0].include[0].include[0].where = {
+            id: categorias
+        };
+    }
+
+    const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll(options);
+
+    // Filtrar los resultados para excluir aquellos con locatario null
+    const filteredCupones = misCupones.filter(cupon => cupon.cupon.locatario !== null);
+
+    res.json({ total: filteredCupones.length, cupones: filteredCupones });
 }
 
 module.exports = {

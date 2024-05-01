@@ -29,7 +29,7 @@ const db = {}
 
 
 // Function to recursively load models
-fs
+/*fs
     .readdirSync(__dirname)
     .filter(file => {
         return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
@@ -40,10 +40,10 @@ fs
     });
 
     Object.keys(db).forEach(modelName => {
-    if (db[modelName].associate) {
-        db[modelName].associate(db);
-    }
-});
+        if (db[modelName].associate) {
+            db[modelName].associate(db);
+        }
+    });*/
 db.Sequelize = Sequelize
 db.sequelize = sequelize
 sequelize.sync(); // actualiza la base de datos cuando hay cambios en las tablas
@@ -64,9 +64,17 @@ db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, Da
 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
+db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda'});
+db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda'});
+
+db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario"});
+db.locatarios.hasMany(db.cupones,{foreignKey: "fidLocatario"});
+
 db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon"});
 db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon"});
 
+db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient"});
+db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient"});
 
 //exporting the module
 module.exports = db

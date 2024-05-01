@@ -44,8 +44,10 @@ module.exports = (sequelize, DataTypes) => {
     //RELACIÓN CON LA LLAVE FORANEA
     Locatario.associate = models => {
         Locatario.belongsTo(models.categoriaTienda, {
-            foreignKey: 'fidCategoriaTienda',
-            as: 'categoriaTienda'
+            foreignKey: 'fidCategoriaTienda'
+        });
+        Locatario.hasMany(models.cupon,{
+            foreignKey: 'fidLocatario'
         });
     };
     return Locatario
