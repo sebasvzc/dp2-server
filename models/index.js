@@ -39,5 +39,17 @@ db.tipoCupons = require('./Cupon/tipoCuponModel') (sequelize, DataTypes)
 db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
 db.cuponXClientes = require('./Cupon/cuponXClienteModel') (sequelize, DataTypes)
 db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
+
+//relaciones
+//VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
+/*db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon"});
+db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon"});*/
+Object.keys(db).forEach((modelName) => {
+    if (db[modelName].associate) {
+        db[modelName].associate(db);
+    }
+});
+
+
 //exporting the module
 module.exports = db
