@@ -266,7 +266,7 @@ const getMisCupones = async (req, res) => {
                     {
                         model: db.locatarios,
                         association: 'locatario',
-                        attributes: ['nombre', 'descripcion', 'locacion','rutaFoto'],
+                        attributes: ['id','nombre', 'descripcion', 'locacion','rutaFoto'],
                         required: true,
                         include: [
                             {
@@ -334,12 +334,12 @@ const getMisCupones = async (req, res) => {
         cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
         cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
         cuponCostoPuntos: cupon.cupon.costoPuntos,
-        cuponRutaFoto: cupon.cupon.rutaFoto,
+        cuponRutaFoto: "https://appdp2.s3.amazonaws.com/cupon" +cupon.fidCupon+  ".jpg",
             
         locatarioNombre: cupon.cupon.locatario.nombre,
         locatarioDescripcion: cupon.cupon.locatario.descripcion,
         locatarioLocacion: cupon.cupon.locatario.locacion,
-        locatarioRutaFoto: cupon.cupon.locatario.rutaFoto,
+        locatarioRutaFoto: "https://appdp2.s3.amazonaws.com/tienda" + cupon.cupon.locatario.id +  ".jpg",
                 
         categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
     }));
