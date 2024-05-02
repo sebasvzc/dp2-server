@@ -319,7 +319,8 @@ const getMisCupones = async (req, res) => {
 
     // Filtrar los resultados para excluir aquellos con locatario null
     //const filteredCupones = misCupones.filter(cupon => cupon.cupon.locatario !== null);
-
+    console.log('data conseguida');
+    console.log({total:count, cupones: misCupones })
     res.json({total:count, cupones: misCupones });
 }
 
