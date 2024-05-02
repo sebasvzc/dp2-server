@@ -1,6 +1,8 @@
 //importing modules
 require('dotenv').config();
-
+const fs = require('fs');
+const path = require('path');
+const basename = path.basename(__filename);
 const { DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_DAILECT, DB_PORT } = process.env;
 const { Sequelize, DataTypes } = require('sequelize')
 
@@ -24,18 +26,55 @@ sequelize.authenticate().then(() => {
 })
 
 const db = {}
+
+
+// Function to recursively load models
+/*fs
+    .readdirSync(__dirname)
+    .filter(file => {
+        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+    })
+    .forEach(file => {
+        const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+        db[model.name] = model;
+    });
+
+    Object.keys(db).forEach(modelName => {
+        if (db[modelName].associate) {
+            db[modelName].associate(db);
+        }
+    });*/
 db.Sequelize = Sequelize
 db.sequelize = sequelize
+sequelize.sync(); // actualiza la base de datos cuando hay cambios en las tablas
 
 //connecting to model
+
 db.usersInv = require('./userInviteModel') (sequelize, DataTypes)
 db.users = require('./userModel') (sequelize, DataTypes)
 db.clients = require('./clientModel') (sequelize, DataTypes)
 db.passwordManagments = require('./passwordManagmentModel') (sequelize, DataTypes)
-db.categoriaTiendas = require('./Cupon/categoriaTienda') (sequelize, DataTypes)
+db.categoriaTiendas = require('./Cupon/categoriaTiendaModel') (sequelize, DataTypes)
 //db.categorias = require('./Cupon/categoriaCuponModel') (sequelize, DataTypes)
-//db.locatarios = require('./Cupon/locatarioModel') (sequelize, DataTypes)
-//db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
+db.locatarios = require('./Cupon/locatarioModel') (sequelize, DataTypes)
+db.tipoCupons = require('./Cupon/tipoCuponModel') (sequelize, DataTypes)
+db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
+db.cuponXClientes = require('./Cupon/cuponXClienteModel') (sequelize, DataTypes)
 db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
+
+//relaciones
+//VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
+db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
+db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
+
+db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario", as: 'locatario'});
+db.locatarios.hasMany(db.cupones,{foreignKey: "fidLocatario", as: 'locatario'});
+
+db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon", as: 'cupon'});
+db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon", as: 'cupon'});
+
+db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient", as:'cliente'});
+db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient", as:'cliente'});
+
 //exporting the module
 module.exports = db

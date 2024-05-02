@@ -246,10 +246,83 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const getMisCupones = async (req, res) => {
+    const { page = 0, size = 5 } = req.query;
+    let { idCliente, usado, categorias, orderBy, orden } = req.body;
+
+    var options = {
+        limit: +size,
+        offset: (+page) * (+size),
+        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado'],
+        required: true,
+        include: [
+            {
+                model: db.cupones,
+                association: 'cupon',
+                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'rutaFoto'],
+                required: true,
+                include: [
+                    {
+                        model: db.locatarios,
+                        association: 'locatario',
+                        attributes: ['nombre', 'descripcion', 'locacion'],
+                        required: true,
+                        include: [
+                            {
+                                model: db.categoriaTiendas,
+                                association: 'categoriaTienda',
+                                required: true,
+                                attributes: ['nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        where: {
+            fidCliente: idCliente,
+            usado: usado,
+            activo: 1
+        }
+    }
+
+    if (!categorias || categorias.length === 0) {
+        options.include[0].include[0].include[0].where = {}; // Vaciar el objeto where
+    } else {
+        options.include[0].include[0].include[0].where = {id: categorias};
+    }
+
+
+    if(orden !== "ASC" && orden != "DESC"){
+        orden = "ASC";
+    }
+
+    if (orderBy === 'fechaCompra') {
+        console.log('hola')
+        options.order = [['fechaCompra', orden]];
+    } else{
+        if (orderBy === 'fechaExpiracion') {
+            options.order = [[db.Sequelize.literal("`cupon.fechaExpiracion`") , orden]];
+        } else{
+            if (orderBy === 'categoria') {
+                options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
+            }
+        } 
+    } 
+
+    const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll(options);
+
+    // Filtrar los resultados para excluir aquellos con locatario null
+    //const filteredCupones = misCupones.filter(cupon => cupon.cupon.locatario !== null);
+
+    res.json({cupones: misCupones });
+}
+
 module.exports = {
     login,
     signup,
     getUser,
     updateUser,
     deleteUser,
+    getMisCupones
 };
