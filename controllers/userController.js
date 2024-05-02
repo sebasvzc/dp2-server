@@ -5,6 +5,7 @@ require('dotenv').config();
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const WebSocket = require("ws");
+const crypto = require("crypto");
 
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 
@@ -49,7 +50,7 @@ const login = async (req, res) => {
             console.log("si encontre uysuario")
             if(user.activo===1){
                 console.log("usuario activo")
-                const isSame = password === user.contrasenia;
+                const isSame =  crypto.createHash('md5').update(password).digest('hex') === user.contrasenia;
                 if (isSame) {
                     console.log("si es igual")
                     const accessToken = jwt.sign(
@@ -122,8 +123,9 @@ const signup = async (req, res) => {
                             nombre,
                             email,
                             apellido,
-                            contrasenia: password,
-                            rol
+                            contrasenia: crypto.createHash('md5').update(password).digest('hex'),
+                            rol: "Empleado",
+                            activo:1
                         };
                         //saving the user
                         const user = await User.create(data);
@@ -413,7 +415,7 @@ const modificar = async (req, res) => {
                 nombre: nombre,
                 apellido: apellido,
                 email: email,
-                contrasenia: password,
+                contrasenia:  crypto.createHash('md5').update(password).digest('hex'),
                 activo: activo,
                 rol: rol
             },

@@ -9,7 +9,7 @@ const authenticateToken  = require('../../middlewares/authenticateToken')
 const {sign} = require("jsonwebtoken");
 const router = express.Router()
 const db = require("../../models");
-
+const envioCorreo = require('../../config/mailConfig');
 const UserInv = db.usersInv;
 const User = db.users;
 //signup endpoint
@@ -24,11 +24,7 @@ module.exports = (transporter,crypto) => {
         const token = sign(tokenData, 'secretKey');
         const link = `http://localhost:3030/register?token=${token}`;
 
-        transporter.sendMail({
-            to: email,
-            subject: 'Invitación a registrarse',
-            html: `¡Hola! Has sido invitado a registrarte. Haz clic <a href="${link}">aquí</a> para registrarte. Este enlace es válido por 24 horas.`
-        });
+
 
         try {
 
@@ -63,6 +59,9 @@ module.exports = (transporter,crypto) => {
             // set cookie with the token generated
             if (user) {
                 console.log("userInv", JSON.stringify(user, null, 2));
+                var asunto = 'Invitación de registro de usuario - Plaza San Miguel Web';
+                var texto = `¡Hola! Has sido invitado a registrarte. Haz clic <a href="${link}">aquí</a> para registrarte. Este enlace es válido por 24 horas.`
+                envioCorreo.enviarCorreo(email, asunto, texto);
                 //send users details
                 //broadcast(req.app.locals.clients, 'signup', user);
                 return res.status(200).send({success:"true", message: 'Invitación enviada correctamente.'});
