@@ -317,11 +317,36 @@ const getMisCupones = async (req, res) => {
 
     const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll(options);
 
-    // Filtrar los resultados para excluir aquellos con locatario null
-    //const filteredCupones = misCupones.filter(cupon => cupon.cupon.locatario !== null);
+    /*
     console.log('data conseguida');
     console.log({total:count, cupones: misCupones })
-    res.json({total:count, cupones: misCupones });
+    res.json({total:count, cupones: misCupones });*/
+    // Formatear los datos para eliminar los campos [Object] y [cupones]
+    const formattedCupones = misCupones.map(cupon => ({
+        id: cupon.id,
+        fidCupon: cupon.fidCupon,
+        fechaCompra: cupon.fechaCompra,
+        usado: cupon.usado,
+
+        cuponCodigo: cupon.cupon.codigo,
+        cuponSumilla: cupon.cupon.sumilla,
+        cuponDescripcionCompleta: cupon.cupon.descripcionCompleta,
+        cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
+        cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
+        cuponCostoPuntos: cupon.cupon.costoPuntos,
+        cuponRutaFoto: cupon.cupon.rutaFoto,
+            
+        locatarioNombre: cupon.cupon.locatario.nombre,
+        locatarioDescripcion: cupon.cupon.locatario.descripcion,
+        locatarioLocacion: cupon.cupon.locatario.locacion,
+        locatarioRutaFoto: cupon.cupon.locatario.rutaFoto,
+                
+        categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
+    }));
+
+    console.log('data conseguida');
+    //console.log({total: count, cupones: formattedCupones});
+    res.json({total: count, cupones: formattedCupones})
 }
 
 module.exports = {
