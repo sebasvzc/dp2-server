@@ -252,6 +252,7 @@ const deleteUser = async (req, res) => {
 }
 
 const getMisCupones = async (req, res) => {
+    console.log("Req ", req.query, req.body)
     const { page = 0, size = 5 } = req.query;
     let { idCliente, usado, categorias, orderBy, orden } = req.body;
 
@@ -270,7 +271,7 @@ const getMisCupones = async (req, res) => {
                     {
                         model: db.locatarios,
                         association: 'locatario',
-                        attributes: ['nombre', 'descripcion', 'locacion','rutaFoto'],
+                        attributes: ['id','nombre', 'descripcion', 'locacion','rutaFoto'],
                         required: true,
                         include: [
                             {
@@ -321,10 +322,36 @@ const getMisCupones = async (req, res) => {
 
     const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll(options);
 
-    // Filtrar los resultados para excluir aquellos con locatario null
-    //const filteredCupones = misCupones.filter(cupon => cupon.cupon.locatario !== null);
+    /*
+    console.log('data conseguida');
+    console.log({total:count, cupones: misCupones })
+    res.json({total:count, cupones: misCupones });*/
+    // Formatear los datos para eliminar los campos [Object] y [cupones]
+    const formattedCupones = misCupones.map(cupon => ({
+        id: cupon.id,
+        fidCupon: cupon.fidCupon,
+        fechaCompra: cupon.fechaCompra,
+        usado: cupon.usado,
 
-    res.json({total:count, cupones: misCupones });
+        cuponCodigo: cupon.cupon.codigo,
+        cuponSumilla: cupon.cupon.sumilla,
+        cuponDescripcionCompleta: cupon.cupon.descripcionCompleta,
+        cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
+        cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
+        cuponCostoPuntos: cupon.cupon.costoPuntos,
+        cuponRutaFoto: "https://appdp2.s3.amazonaws.com/cupon" +cupon.fidCupon+  ".jpg",
+            
+        locatarioNombre: cupon.cupon.locatario.nombre,
+        locatarioDescripcion: cupon.cupon.locatario.descripcion,
+        locatarioLocacion: cupon.cupon.locatario.locacion,
+        locatarioRutaFoto: "https://appdp2.s3.amazonaws.com/tienda" + cupon.cupon.locatario.id +  ".jpg",
+                
+        categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
+    }));
+
+    console.log('data conseguida');
+    //console.log({total: count, cupones: formattedCupones});
+    res.json({total: count, cupones: formattedCupones})
 }
 
 module.exports = {
