@@ -95,7 +95,7 @@ const signup = async (req, res) => {
             apellidoPaterno,
             apellidoMaterno,
             telefono,
-            contrasenia,
+            contrasenia:crypto.createHash('md5').update(contrasenia).digest('hex'),
             genero,
             fechaNacimiento,
             activo:1,
