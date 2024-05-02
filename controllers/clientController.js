@@ -265,7 +265,7 @@ const getMisCupones = async (req, res) => {
                     {
                         model: db.locatarios,
                         association: 'locatario',
-                        attributes: ['nombre', 'descripcion', 'locacion'],
+                        attributes: ['nombre', 'descripcion', 'locacion','rutaFoto'],
                         required: true,
                         include: [
                             {
@@ -315,7 +315,7 @@ const getMisCupones = async (req, res) => {
     // Filtrar los resultados para excluir aquellos con locatario null
     //const filteredCupones = misCupones.filter(cupon => cupon.cupon.locatario !== null);
 
-    res.json({cupones: misCupones });
+    res.json({total:count, cupones: misCupones });
 }
 
 module.exports = {
