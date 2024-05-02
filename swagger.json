@@ -490,6 +490,14 @@
                                 },
                                 "contrasenia": {
                                     "type": "string"
+                                },
+                                "genero": {
+                                    "type": "string",
+                                    "example": "Masculino"
+                                },
+                                "fechaNacimiento": {
+                                    "type": "Date",
+                                    "example": "05/06/1997"
                                 }
                             }
                         }

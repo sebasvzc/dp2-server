@@ -66,6 +66,7 @@ const login = async (req, res) => {
                 res.status(200).send({
                     token: accessToken,
                     refreshToken: refreshToken,
+                    clienteId: client.id,
                     code:"0"
                 });
             } else {
@@ -87,14 +88,18 @@ const login = async (req, res) => {
 const signup = async (req, res) => {
     console.log("viendo Signup")
     try {
-        const { nombre, email, apellidoPaterno, apellidoMaterno, telefono,contrasenia } = req.body;
+        const { nombre, email, apellidoPaterno, apellidoMaterno, telefono,contrasenia, genero, fechaNacimiento} = req.body;
         const data = {
             nombre,
             email,
             apellidoPaterno,
             apellidoMaterno,
             telefono,
-            contrasenia
+            contrasenia,
+            genero,
+            fechaNacimiento,
+            activo:1,
+            puntos:0
         };
         //saving the user
         const client = await Client.create(data);
