@@ -3,7 +3,7 @@
 </head>
 <button id="signupButton" onclick="signup()">signup</button>
 <script>
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('ws://3.220.179.149/api');
 ws.onopen = () => {
   console.log('Now connected');
 };
@@ -15,7 +15,7 @@ ws.onmessage = event => {
 }
 
 function signup() {
-    let path = "http://localhost:3000/api/users/signup";
+    let path = "http://3.220.179.149/api/api/users/signup";
 
     let data = {"userName": "user89", "email": "user89@test.com", "password": "abc123", "role": "user"};
 
