@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     // Definir la relación con el modelo Client
     //RELACIÓN CON LA LLAVE FORANEA
     PasswordManagment.associate = models => {
-        PasswordManagment.belongsTo(models.Client, {
+        PasswordManagment.belongsTo(models.client, {
             foreignKey: 'fidClient',
             as: 'client'
         });

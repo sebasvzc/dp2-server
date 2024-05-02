@@ -1,6 +1,10 @@
 //tabla cupon
 module.exports = (sequelize, DataTypes) => {
     const Cupon = sequelize.define( "cupon", {
+        codigo: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         fidLocatario: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -9,11 +13,11 @@ module.exports = (sequelize, DataTypes) => {
                 key: 'id'        // nombre de la columna en la tabla User
             }
         },
-        fidCategoria: {
+        fidTipoCupon: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: 'categoria',  // nombre de la tabla en la base de datos
+                model: 'tipoCupons',  // nombre de la tabla en la base de datos (en plural)
                 key: 'id'        // nombre de la columna en la tabla User
             }
         },
@@ -29,6 +33,34 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         },
+        terminosCondiciones: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        esLimitado: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false
+        },
+        costoPuntos: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        cantidadInicial: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        cantidadDisponible: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        ordenPriorizacion: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        rutaFoto: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
@@ -37,14 +69,15 @@ module.exports = (sequelize, DataTypes) => {
     // Definir la relación con el modelo Locatario
     //RELACIÓN CON LA LLAVE FORANEA
     Cupon.associate = models => {
-        Cupon.belongsTo(models.Locatario, {
-            foreignKey: 'fidLocatario',
-            as: 'locatario'
+        Cupon.belongsTo(models.locatario, {
+            foreignKey: 'fidLocatario'
         });
-        Cupon.belongsTo(models.Categoria, {
-            foreignKey: 'fidCategoria',
-            as: 'categoria'
+        Cupon.belongsTo(models.tipoCupon, {
+            foreignKey: 'fidTipoCupon'
         });
+        Cupon.hasMany(models.cuponXCliente, {
+            foreignKey: 'fidCupon'
+        })
     };
     return Cupon
 }
