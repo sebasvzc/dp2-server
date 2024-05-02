@@ -64,17 +64,17 @@ db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, Da
 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
-db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda'});
-db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda'});
+db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
+db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
 
-db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario"});
-db.locatarios.hasMany(db.cupones,{foreignKey: "fidLocatario"});
+db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario", as: 'locatario'});
+db.locatarios.hasMany(db.cupones,{foreignKey: "fidLocatario", as: 'locatario'});
 
-db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon"});
-db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon"});
+db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon", as: 'cupon'});
+db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon", as: 'cupon'});
 
-db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient"});
-db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient"});
+db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient", as:'cliente'});
+db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient", as:'cliente'});
 
 //exporting the module
 module.exports = db
