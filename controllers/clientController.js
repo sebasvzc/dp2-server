@@ -247,6 +247,7 @@ const deleteUser = async (req, res) => {
 }
 
 const getMisCupones = async (req, res) => {
+    console.log("Req ", req.query, req.body)
     const { page = 0, size = 5 } = req.query;
     let { idCliente, usado, categorias, orderBy, orden } = req.body;
 
