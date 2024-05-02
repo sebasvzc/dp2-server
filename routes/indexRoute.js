@@ -5,6 +5,7 @@ var userRouter = require('./user/userRoutes');
 var clientRouter = require('./client/clientRoutes');
 const userRoutes = require("./user/userRoutes");
 var passManagerRoutes = require('./passwordManagment/passwordManagmentRoute');
+var catTiendaRoutes = require('./tiendas/categoriaTiendasRoute')
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 // Configurar el transporte de correo
@@ -20,5 +21,6 @@ const transporter = nodemailer.createTransport({
 router.use('/user', userRoutes(transporter,crypto));
 router.use('/client', clientRouter);
 router.use('/password', passManagerRoutes);
+router.use('/categoriaTienda', catTiendaRoutes);
 
 module.exports = router;
