@@ -259,7 +259,7 @@ const getMisCupones = async (req, res) => {
             {
                 model: db.cupones,
                 association: 'cupon',
-                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'rutaFoto'],
+                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos','rutaFoto'],
                 required: true,
                 include: [
                     {
@@ -306,6 +306,10 @@ const getMisCupones = async (req, res) => {
         } else{
             if (orderBy === 'categoria') {
                 options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
+            }else{
+                if (orderBy === 'puntos') {
+                        options.order = [[db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
+                    }
             }
         } 
     } 
