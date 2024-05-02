@@ -123,7 +123,8 @@ const signup = async (req, res) => {
                             email,
                             apellido,
                             contrasenia: password,
-                            rol
+                            rol: "Empleado",
+                            activo:1
                         };
                         //saving the user
                         const user = await User.create(data);
