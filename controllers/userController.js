@@ -53,12 +53,12 @@ const login = async (req, res) => {
                 if (isSame) {
                     console.log("si es igual")
                     const accessToken = jwt.sign(
-                        { userName: user.userName, email: user.email, role: user.role },
+                        { id:user.id,userName: user.userName, email: user.email, role: user.role },
                         ACCESS_TOKEN_SECRET,
                         { expiresIn: ACCESS_TOKEN_EXPIRY }
                     );
                     const refreshToken = jwt.sign(
-                        { userName: user.userName, email: user.email, role: user.role },
+                        { id:user.id,userName: user.userName, email: user.email, role: user.role },
                         REFRESH_TOKEN_SECRET,
                         { expiresIn: REFRESH_TOKEN_EXPIRY }
                     );
@@ -205,6 +205,47 @@ const comprobarTokenRegistroUsuario = async (req, res) => {
     } catch (error) {
         console.log( error);
     }
+}
+const getUserData = async (req, res) => {
+    const token = req.headers['authorization'];
+    const refreshToken = req.headers['refresh-token'];
+    console.log(token)
+    console.log(refreshToken)
+    // console.log(req.query.query)
+    const tokenSinBearer = token.substring(7); // Comienza desde el índice 7 para omitir "Bearer "
+    const refreshTokenSinBearer = refreshToken.substring(7);
+    jwt.verify(tokenSinBearer, ACCESS_TOKEN_SECRET, async (err, decoded) => {
+
+        if (err) {
+            if (err.name === 'TokenExpiredError') {
+                console.log('Access denied. Access Token expired.');
+
+                return res.status(403).send('Access denied. Invalid token.');
+            }
+        }else{
+            const findUser = await User.findOne({
+                where: {
+                    id: decoded.id,
+
+                },
+                attributes: {exclude: ['password']}
+            });
+            if(findUser){
+                if(findUser.activo===1){
+                    return res.status(200).send(findUser);
+                }else{
+                    console.log('Access denied. User not active in db.');
+                    return res.status(403).send('Access denied. User not active in db.');
+                }
+
+            }else{
+                console.log('Access denied. User not found in db.');
+                return res.status(403).send('Access denied. User not found in db.');
+
+            }
+        }
+    });
+
 }
 const getUser = async (req, res) => {
     var queryType = req.query.query;
@@ -458,5 +499,5 @@ module.exports = {
     comprobarTokenRegistroUsuario,
     deshabilitar,
     habilitar,
-    modificar
+    modificar,getUserData
 };
