@@ -251,6 +251,69 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const disableClient = async (req, res) => {
+    const {idCliente} = req.body;
+    try {
+        // Primero, encontramos al cliente para asegurarnos de que existe
+        const client = await db.clients.findOne({
+            where: { id: idCliente }
+        });
+
+        // Si el cliente no existe, devolvemos un error
+        if (!client) {
+            return res.status(404).send({estado:"El cliente " + idCliente + " no existe"});
+        }
+
+        // Verificar si el cliente ya está desactivado
+        if (client.activo === 0) {
+            return res.status(400).send({estado:"El cliente " + idCliente + " ya está baneado."});
+        }
+
+        // Actualizar el atributo 'activo' del cliente de 1 a 0
+        
+        await db.clients.update({ activo: 0 }, {
+            where: { id: idCliente }
+        });
+        // Enviar una respuesta exitosa
+        return res.status(200).send({estado:"El cliente " + idCliente + " ha sido baneado"});
+
+    } catch (error) {
+        return res.status(500).send({estado:"Ha ocurrido un error intentando deshabilitar al cliente"});
+    }
+}
+
+const ableClient = async (req, res) => {
+    const {idCliente} = req.body;
+    try {
+        // Primero, encontramos al cliente para asegurarnos de que existe
+        const client = await db.clients.findOne({
+            where: { id: idCliente }
+        });
+
+        // Si el cliente no existe, devolvemos un error
+        if (!client) {
+            return res.status(404).send({estado:"El cliente " + idCliente + " no existe"});
+        }
+
+        // Verificar si el cliente ya está desactivado
+        if (client.activo === 1) {
+            return res.status(400).send({estado:"El cliente " + idCliente + " ya está activo."});
+        }
+
+        // Actualizar el atributo 'activo' del cliente de 1 a 0
+
+        await db.clients.update({ activo: 0 }, {
+            where: { id: idCliente }
+        });
+
+        // Enviar una respuesta exitosa
+        return res.status(200).send({estado:"El cliente " + idCliente + " ha sido activado"});
+
+    } catch (error) {
+        return res.status(500).send({estado:"Ha ocurrido un error intentando habilitar al cliente"});
+    }
+}
+
 const getMisCupones = async (req, res) => {
     console.log("Req ", req.query, req.body)
     const { page = 0, size = 5 } = req.query;
@@ -331,22 +394,22 @@ const getMisCupones = async (req, res) => {
         id: cupon.id,
         fidCupon: cupon.fidCupon,
         fechaCompra: cupon.fechaCompra,
-        usado: cupon.usado,
+        //usado: cupon.usado,
 
-        cuponCodigo: cupon.cupon.codigo,
+        //cuponCodigo: cupon.cupon.codigo,
         cuponSumilla: cupon.cupon.sumilla,
         cuponDescripcionCompleta: cupon.cupon.descripcionCompleta,
         cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
-        cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
-        cuponCostoPuntos: cupon.cupon.costoPuntos,
+        //cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
+        //cuponCostoPuntos: cupon.cupon.costoPuntos,
         cuponRutaFoto: "https://appdp2.s3.amazonaws.com/cupon" +cupon.fidCupon+  ".jpg",
             
         locatarioNombre: cupon.cupon.locatario.nombre,
-        locatarioDescripcion: cupon.cupon.locatario.descripcion,
-        locatarioLocacion: cupon.cupon.locatario.locacion,
+        //locatarioDescripcion: cupon.cupon.locatario.descripcion,
+        //locatarioLocacion: cupon.cupon.locatario.locacion,
         locatarioRutaFoto: "https://appdp2.s3.amazonaws.com/tienda" + cupon.cupon.locatario.id +  ".jpg",
                 
-        categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
+        //categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
     }));
 
     console.log('data conseguida');
@@ -360,5 +423,7 @@ module.exports = {
     getUser,
     updateUser,
     deleteUser,
+    disableClient,
+    ableClient,
     getMisCupones
 };

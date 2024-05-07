@@ -8,6 +8,7 @@ var passManagerRoutes = require('./passwordManagment/passwordManagmentRoute');
 var catTiendaRoutes = require('./tiendas/categoriaTiendasRoute')
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
+const cuponRouter = require('./cupones/cuponRoute');
 // Configurar el transporte de correo
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -22,5 +23,6 @@ router.use('/user', userRoutes(transporter,crypto));
 router.use('/client', clientRouter);
 router.use('/password', passManagerRoutes);
 router.use('/categoriaTienda', catTiendaRoutes);
+router.use('/cupones', cuponRouter);
 
 module.exports = router;
