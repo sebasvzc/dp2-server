@@ -31,6 +31,10 @@
         {
             "name": "password-controller",
             "description": "Password Controller"
+        },
+        {
+            "name": "cupon-controller",
+            "description": "Cupon Controller"
         }
     ],
     "paths": {
@@ -936,6 +940,95 @@
                     }
                 }
             }
+        },
+        "/api/cupones/listarcupones?query={sumilladescrip}&page={page}&pageSize={pageSize}": {
+            "get": {
+                "tags": [
+                    "cupon-controller"
+                ],
+                "operationId": "getCuponsUsingGET",
+                "summary": "Get cupon / cupones",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al Cupon basado en el parametro. \"20% de dscto\" para unos o \"all\" para traer todos los cupones.",
+                "parameters": [
+                    {
+                        "name": "sumilladescrip",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "Sumilla o Descripción del cupon"
+                    },{
+                        "name": "page",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Pagina solicitada"
+                    },{
+                        "name": "pageSize",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Tamanio de pagina solicitada"
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Cupon"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -996,6 +1089,84 @@
                 "apellidoMaterno": {
                     "type": "string",
                     "example": "Salas"
+                },
+                "createdAT": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:45.281Z"
+                },
+                "updatedAt": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:46.865Z"
+                }
+            }
+        },
+        "Cupon": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "fidLocatario": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "fidTipoCupon": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "sumilla": {
+                    "type": "string",
+                    "example": "20% DE DESCUENTO"
+                },
+                "descripcionCompleta": {
+                    "type": "string",
+                    "example": "Ten 20% de descuento en la compra de un corndog en Chung chun"
+                },
+                "fechaExpiracion": {
+                    "type":"string",
+                    "example": "2024-06-30 00:00:00"
+                },
+                "terminosCondiciones": {
+                    "type": "string",
+                    "example": "Válido solo en Chung chun de Plaza San Miguel, no acumulable con otras promociones"
+                },
+                "esLimitado": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "costoPuntos": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 120
+                },
+                "cantidadInicial": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 100
+                },
+                "cantidadDisponible": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 80
+                },
+                "ordenPriorizacion": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 3
+                },
+                "rutaFoto": {
+                    "type": "string",
+                    "example": "www.vsda"
+                },
+                "activo": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
                 },
                 "createdAT": {
                     "type":"string",
