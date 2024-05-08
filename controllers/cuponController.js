@@ -3,6 +3,9 @@ require('dotenv').config();
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+const User = db.users;
+const Cupon = db.cupones;
+
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon } = req.body;
@@ -47,7 +50,69 @@ const detalleCupon = async (req, res) => {
         res.status(500).json({ success: false, message: 'Hubo un error al procesar la solicitud' });
     }
 }
+const getCupones = async (req, res) => {
+    var queryType = req.query.query;
+    // console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
+    console.log('getUser - query: ', req.query.query);
+    if (!queryType) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        if (queryType === 'all') {
+            const cuponesAndCount = await Promise.all([
+                Cupon.findAll({
+                    offset: offset,
+                    limit: pageSize
+                }),
+                Cupon.count({})
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(400).send("Invalid request body");
+            }
+        } else {
+            console.log("Estoy viendo algo que no es all")
 
+            const cuponesAndCount = await Promise.all([
+                Cupon.findAll({
+                    where: {
+                        [Op.or]: [
+                            { sumilla: { [Op.like]: `%${queryType}%` } },
+                            { descripcionCompleta: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
+                        ]
+                    },
+                    offset: offset,
+                    limit: pageSize
+                }),
+                Cupon.count({
+                    where: {
+                        [Op.or]: [
+                            { sumilla: { [Op.like]: `%${queryType}%` } },
+                            { descripcionCompleta: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
+                        ]
+                    }
+                })
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                // console.log(users)
+                // console.log(users)
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(200).send("Cupones no encontrados con esa busqueda");
+            }
+        }
+    } catch (error) {
+        console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
 module.exports = {
-    detalleCupon
+    detalleCupon,
+    getCupones
 }
