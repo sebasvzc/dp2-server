@@ -64,6 +64,14 @@ module.exports = (sequelize, DataTypes) => {
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
+        },
+        usuarioCreacion:{
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        usuarioActualizacion:{
+            type: DataTypes.STRING,
+            allowNull: true
         }
     }, {timestamps: true} )
     // Definir la relación con el modelo Locatario
