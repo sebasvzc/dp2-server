@@ -18,5 +18,7 @@ clientRouter.post('/extraerData', getClientData);
 
     //router.put('/users/:email', updateUser);
     //router.delete('/users/:email', deleteUser);
+clientRouter.post('/deshabilitarCliente',clienController.disableClient);
+clientRouter.post('/habilitarCliente',clienController.ableClient);
 
 module.exports = clientRouter;
