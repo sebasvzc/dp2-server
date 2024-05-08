@@ -13,6 +13,7 @@ const clientRouter = express.Router()
 clientRouter.post('/signup', clientAuth.saveClient, signup);
 clientRouter.post('/login', login);
 clientRouter.post('/misCupones', clienController.getMisCupones)
+clientRouter.get('/cuponesObtenidos/:id_cliente', clienController.getCuponesEstado);
     //router.get('/listusers', authenticateToken, getUser);
 
     //router.put('/users/:email', updateUser);

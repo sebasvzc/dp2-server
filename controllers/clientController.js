@@ -6,8 +6,28 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const WebSocket = require("ws");
 const crypto = require("crypto");
-
+const mysql = require('mysql2/promise');
+const pool = mysql.createPool({
+    host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
+      port: 3306,
+      user: 'administrador',
+      password: 'contrasenia',
+      database: 'plaza'
+      });
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
+const AWS = require('aws-sdk');
+
+// Configura las credenciales de AWS
+AWS.config.update({
+  accessKeyId: 'ASIA3VZIIXMJACW5OUNF',
+  secretAccessKey: 'x5sFzDeKuvc9Upi4h/MkKZrUZyJpeY5fKg0yvNUJ',
+  sessionToken: 'IQoJb3JpZ2luX2VjEI///////////wEaCXVzLXdlc3QtMiJGMEQCIF4Mxl35JhuJ32YVERJd0Eicc2qVaiOIB3dvoAFi3TEXAiAPtt+oRo9ez9lopGAClsu7uhhlx0ZH6u9FSO5sc5jDBCq5Agjo//////////8BEAAaDDgwMjcwNjQ3MTY5OCIMDhVb0KBWVJznipIAKo0CC/YucqqyKL/bY1lqxnOKQDcMgzuQT/Rt0De/KbWSqsxKo0fZk9AO3p7W+YVrKcUjdT9mxXydYl8X0kpZrSW8eaotENTTOuCNgGupYEqZVGvZgX/l/41uN57kJaabSeU+FRLQVs/HD45b4xR/HIxOhvS0NLsDnLNaMbvsCJ/cNV77nwkWAX3bjxicAiBrfbyeARoz+tJuN01RdfgLJKlF8d34Q/dOIJXoGwqreYAXidkRY5jN7mK0kzcqWfdpZsqUPgC70+Wo5/tIjAIXp04s/S+PpIvO18EAlAs7o58aBGels0bKT1AIiR0nSnvUi6uzIM2ki0U/EEVLDvAHff8BUkOq5oJ67wqF2pQrn7Iwor7ssQY6ngHNqUxTZl3aWdPsFF7T15Y+kI6o9gxIOBJkpJK7LUrbZrfO/vfNcbugRMIyuA16WceH2cGjfE3DMv37jlLEEvPWge/JjRmtyoJfOj/H5Pa18hp6/y/7+3dNl8dc3TisSXdMXtr9LCI/KuhzrqL5ZSvpRVZfds2LNK0iriI2qk0hwntK2tFr6khPky+xQKk+jI0ejJiNnlVP7EAxpbSkMw==',
+  region: 'us-east-1' // La región donde está tu bucket
+});
+
+// Crea un nuevo objeto S3
+const s3 = new AWS.S3();
+
 
 // Assigning users to the variable User
 const Client = db.clients;
@@ -327,7 +347,25 @@ const getMisCupones = async (req, res) => {
     console.log({total:count, cupones: misCupones })
     res.json({total:count, cupones: misCupones });*/
     // Formatear los datos para eliminar los campos [Object] y [cupones]
-    const formattedCupones = misCupones.map(cupon => ({
+    const formattedCupones = misCupones.map(cupon => {
+
+        const key = `tienda${cupon.cupon.locatario.id}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const url = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+
+        const key2 = `cupon${cupon.fidCupon}.jpg`;
+        const url2 = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key2,
+            Expires: 8600
+    });
+    return{
         id: cupon.id,
         fidCupon: cupon.fidCupon,
         fechaCompra: cupon.fechaCompra,
@@ -339,19 +377,88 @@ const getMisCupones = async (req, res) => {
         cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
         cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
         cuponCostoPuntos: cupon.cupon.costoPuntos,
-        cuponRutaFoto: "https://appdp2.s3.amazonaws.com/cupon" +cupon.fidCupon+  ".jpg",
+        cuponRutaFoto: url2,
             
         locatarioNombre: cupon.cupon.locatario.nombre,
         locatarioDescripcion: cupon.cupon.locatario.descripcion,
         locatarioLocacion: cupon.cupon.locatario.locacion,
-        locatarioRutaFoto: "https://appdp2.s3.amazonaws.com/tienda" + cupon.cupon.locatario.id +  ".jpg",
+        locatarioRutaFoto: url,
                 
         categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
-    }));
+    };
+    });
 
     console.log('data conseguida');
     //console.log({total: count, cupones: formattedCupones});
     res.json({total: count, cupones: formattedCupones})
+};
+
+
+
+
+
+const getCuponesEstado = async (req, res,next) => {
+    let connection;
+    try{
+        const {id_cliente, estadoCupon} = req.params
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL cuponesXclienteUsados(?,?,@cantidad)`,[1,"Disponible"])
+        
+        const [row] = await connection.query('SELECT @cantidad AS cantidad')
+        const cantidad = row[0].cantidad
+
+        const [cuponesObtenidos] = result;
+   
+        const respuesta = {
+            total: cantidad,
+            cupones: cuponesObtenidos.map(cupon => {
+                const key = `tienda${cupon.fidLocatario}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const url = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+
+                const key2 = `cupon${cupon.fidCupon}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const url2 = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key2,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+              return {
+                id: cupon.id,
+                fidCupon: cupon.fidCupon,
+                cupon: {
+                  codigo: cupon.codigo,
+                  urltienda: url,
+                  urlcupon: url2,
+                  fidLocatario: cupon.fidLocatario,
+                  imagenTienda: cupon.imagenTienda,
+                  ubicacionTienda: cupon.ubicacionTienda,
+                  sumilla: cupon.sumilla,
+                  descripcionCompleta: cupon.descripcionCompleta,
+                  fechaExpiracion: cupon.fechaExpiracion,
+                  terminosCondiciones: cupon.terminosCondiciones,
+                  costoPuntos: cupon.costoPuntos,
+                  rutaFoto: cupon.rutaFoto
+                }
+              };
+            })
+          };
+        res.status(200).json(respuesta);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
 }
 
 module.exports = {
@@ -360,5 +467,6 @@ module.exports = {
     getUser,
     updateUser,
     deleteUser,
+    getCuponesEstado,
     getMisCupones
 };
