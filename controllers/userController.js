@@ -230,7 +230,7 @@ const getUserData = async (req, res) => {
                     id: decoded.id,
 
                 },
-                attributes: {exclude: ['password']}
+                attributes: {exclude: ['contrasenia']}
             });
             if(findUser){
                 if(findUser.activo===1){
@@ -415,7 +415,6 @@ const modificar = async (req, res) => {
                 nombre: nombre,
                 apellido: apellido,
                 email: email,
-                contrasenia:  crypto.createHash('md5').update(password).digest('hex'),
                 activo: activo,
                 rol: rol
             },

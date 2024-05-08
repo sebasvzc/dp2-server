@@ -54,12 +54,12 @@ const login = async (req, res) => {
             if (isSame) {
                 console.log("El usuario si existe y su contrasenia esta bien")
                 const accessToken = jwt.sign(
-                    { email: client.email },
+                    { email: client.email,id: client.id  },
                     ACCESS_TOKEN_SECRET,
                     { expiresIn: ACCESS_TOKEN_EXPIRY }
                 );
                 const refreshToken = jwt.sign(
-                    {email: client.email},
+                    {email: client.email,id: client.id },
                     REFRESH_TOKEN_SECRET,
                     { expiresIn: REFRESH_TOKEN_EXPIRY }
                 );
@@ -67,6 +67,7 @@ const login = async (req, res) => {
                     token: accessToken,
                     refreshToken: refreshToken,
                     clienteId: client.id,
+                    puntos: client.puntos,
                     code:"0"
                 });
             } else {
@@ -81,7 +82,48 @@ const login = async (req, res) => {
         console.log('login - [Error]: ', error);
     }
 }
+const getClientData = async (req, res) => {
+    const token = req.headers['authorization'];
+    const refreshToken = req.headers['refresh-token'];
+    console.log(token)
+    console.log(refreshToken)
+    // console.log(req.query.query)
+    const tokenSinBearer = token.substring(7); // Comienza desde el índice 7 para omitir "Bearer "
+    const refreshTokenSinBearer = refreshToken.substring(7);
+    jwt.verify(tokenSinBearer, ACCESS_TOKEN_SECRET, async (err, decoded) => {
 
+        if (err) {
+            if (err.name === 'TokenExpiredError') {
+                console.log('Access denied. Access Token expired.');
+
+                return res.status(403).send('Access denied. Invalid token.');
+            }
+        }else{
+            const findClient = await Client.findOne({
+                where: {
+                    id: decoded.id,
+
+                },
+                attributes: {exclude: ['contrasenia']}
+            });
+            if(findClient){
+
+                if(findClient.activo){
+                    return res.status(200).send(findClient);
+                }else{
+                    console.log('Access denied. Client not active in db.');
+                    return res.status(403).send('Access denied. Client not active in db.');
+                }
+
+            }else{
+                console.log('Access denied. Client not found in db.');
+                return res.status(403).send('Access denied. Client not found in db.');
+
+            }
+        }
+    });
+
+}
 
 //signing a user up
 //hashing users password before its saved to the database
@@ -360,5 +402,6 @@ module.exports = {
     getUser,
     updateUser,
     deleteUser,
-    getMisCupones
+    getMisCupones,
+    getClientData
 };

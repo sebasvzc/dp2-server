@@ -1,7 +1,7 @@
 //importing modules
 const express = require('express')
 const clienController = require('../../controllers/clientController')
-const { signup, login, getUser, updateUser, deleteUser } = clienController
+const { signup, login,getClientData, getUser, updateUser, deleteUser } = clienController
 const clientAuth = require('../../middlewares/clientAuth')
 const authenticateToken  = require('../../middlewares/authenticateToken')
 const {sign} = require("jsonwebtoken");
@@ -13,6 +13,7 @@ const clientRouter = express.Router()
 clientRouter.post('/signup', clientAuth.saveClient, signup);
 clientRouter.post('/login', login);
 clientRouter.post('/misCupones', clienController.getMisCupones)
+clientRouter.post('/extraerData', getClientData);
     //router.get('/listusers', authenticateToken, getUser);
 
     //router.put('/users/:email', updateUser);

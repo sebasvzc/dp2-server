@@ -606,6 +606,73 @@
                 }
             }
         },
+        "/api/client/extraerData": {
+            "post": {
+                "tags": [
+                    "client-controller"
+                ],
+                "operationId": "ClientDataUsingPOST",
+                "summary": "Metodo para extraer la información de un Cliente",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Metodo para extraer la información de un Cliente a través de un token JWT",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "token": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                },
+                                "refreshToken": {
+                                    "type": "string",
+                                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 401
+                                },
+                                "message": {
+                                    "type": "string", "example": "Authentication failed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/password/olvidoPassword": {
             "post": {
                 "tags": [
