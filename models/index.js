@@ -61,7 +61,11 @@ db.tipoCupons = require('./Cupon/tipoCuponModel') (sequelize, DataTypes)
 db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
 db.cuponXClientes = require('./Cupon/cuponXClienteModel') (sequelize, DataTypes)
 db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
-db.tipoEventos = require('./Evento/tipoEventoModel') (sequelize, DataTypes) 
+db.tipoEventos = require('./Evento/tipoEventoModel') (sequelize, DataTypes)
+db.lugares = require('./Evento/lugarModel') (sequelize, DataTypes) 
+db.eventos = require('./Evento/eventoModel') (sequelize, DataTypes) 
+db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTypes) 
+
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
@@ -75,6 +79,8 @@ db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon", as: 'cupon'});
 
 db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient", as:'cliente'});
 db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient", as:'cliente'});
+
+
 
 //exporting the module
 module.exports = db

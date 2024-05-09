@@ -57,6 +57,9 @@ module.exports = (sequelize, DataTypes) => {
         Locatario.hasMany(models.cupon,{
             foreignKey: 'fidLocatario'
         });
+        Locatario.hasMany(models.evento,{
+            foreignKey: 'fidTienda'
+        });
     };
     return Locatario
 }

@@ -52,5 +52,12 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         }
     }, {timestamps: true} )
+
+    Client.associate = models => {
+        Client.hasMany(models.eventoXCliente,{
+            foreignKey: 'fidCliente'
+        });
+    };
+
     return Client
 }

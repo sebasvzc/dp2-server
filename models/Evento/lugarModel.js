@@ -1,11 +1,15 @@
 module.exports = (sequelize, DataTypes) => {
-    const TipoEvento = sequelize.define( "tipoEvento", {
+    const Lugar = sequelize.define( "lugar", {
         nombre: {
             type: DataTypes.STRING,
             allowNull: false
         },
-        descripcion: {
+        ubicacion: {
             type: DataTypes.STRING,
+            allowNull: false
+        },
+        aforo: {
+            type: DataTypes.INTEGER,
             allowNull: false
         },
         activo: {
@@ -21,13 +25,15 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         }
     }, {timestamps: true} )
-    TipoEvento.associate = models => {
-        TipoEvento.hasMany(models.evento,{
-            foreignKey: 'fidTipoEvento'
+
+    Lugar.associate = models => {
+        Lugar.hasMany(models.evento,{
+            foreignKey: 'fidLugar'
         });
     };
-    return TipoEvento
 
-    
 
+
+
+    return Lugar
 }
