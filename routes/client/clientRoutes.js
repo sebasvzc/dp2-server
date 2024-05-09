@@ -27,6 +27,6 @@ clientRouter.post('/habilitarCliente',clienController.ableClient);
 clientRouter.post('/modificarCliente',clienController.modificarClient);
 clientRouter.post('/listarClientesActivos',clienController.listarClientesActivos);
 clientRouter.post('/eventosHoy',clienController.getEventosHoy);
-clientRouter.post('/eventoDetalle/:id_cliente',clienController.getEventoDetalle);
+clientRouter.post('/eventoDetalle/:id_evento',clienController.getEventoDetalle);
 
 module.exports = clientRouter;

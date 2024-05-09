@@ -707,9 +707,9 @@ const getEventosHoy = async (req, res,next) => {
 const getEventoDetalle = async (req, res,next) => {
     let connection;
     try{
-        const {id_cliente} = req.params
+        const {id_evento} = req.params
         connection = await pool.getConnection();
-        const [result] = await connection.query(`CALL detalleEvento(?)`,[id_cliente])
+        const [result] = await connection.query(`CALL detalleEvento(?)`,[id_evento])
         
         const eventoDetallado   = result[0][0];
         
