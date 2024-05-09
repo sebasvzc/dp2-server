@@ -7,7 +7,7 @@ const Op = Sequelize.Op;
 
 const User = db.users;
 const Cupon = db.cupones;
-
+const Locatario = db.locatarios;
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon } = req.body;
@@ -115,7 +115,80 @@ const getCupones = async (req, res) => {
     }
 }
 
+const getCuponesClientes = async (req, res) => {
+    var queryType = req.query.query;
+    // console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 10; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
+    const categoria = req.query.categoria ? req.query.categoria.split(',').map(item => {
+        const number = Number(item.trim()); // Convertir el elemento a número eliminando espacios en blanco alrededor
+        return !isNaN(number) ? number : null; // Verificar si la conversión fue exitosa
+    }).filter(item => item !== null) : [];
+    console.log(categoria);
+    console.log('getUser - query: ', req.query.query);
+    if (!queryType) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        if (queryType === 'all') {
+            const cuponesAndCount = await Promise.all([
+                Cupon.findAll({
+                    offset: offset,
+                    limit: pageSize
+                }),
+                Cupon.count({})
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(400).send("Invalid request body");
+            }
+        } else {
+            console.log("Estoy viendo algo que no es all")
+            const whereCondition = {
+                [Op.and]: [
+                    {
+                        [Op.or]: [
+                            { sumilla: { [Op.like]: `%${queryType}%` } },
+                            { descripcionCompleta: { [Op.like]: `%${queryType}%` } }
+                        ]
+                    }
+                ]
+            };
 
+            if (categoria.length > 0) {
+                whereCondition[Op.and].push({
+                    '$locatario.fidCategoriaTienda$': { [Op.or]: categoria }
+                });
+            }
+            const cuponesAndCount = await Promise.all([
+                Cupon.findAll({
+                    where: whereCondition,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    offset: offset,
+                    limit: pageSize
+                }),
+                Cupon.count({
+                    where: whereCondition,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                })
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                // console.log(users)
+                // console.log(users)
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(200).send("Cupones no encontrados con esa busqueda");
+            }
+        }
+    } catch (error) {
+        console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
 const habilitar = async (req, res) => {
     console.log(req.body)
     try {
@@ -278,5 +351,6 @@ module.exports = {
     deshabilitar,
     habilitar,
     crear,
-    modificar
+    modificar,
+    getCuponesClientes
 }
