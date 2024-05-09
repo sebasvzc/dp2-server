@@ -19,9 +19,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJMUZ5EZMB',
-  secretAccessKey: 'hWTzZh2QelqLDiPL4Or02M/G1HyWN2xTSRdTwGz8',
-  sessionToken: 'IQoJb3JpZ2luX2VjEKP//////////wEaCXVzLXdlc3QtMiJHMEUCICCaIVOn0pQ4+6Q8D5PsYd+eOF6r9tuvNsDq3OUNXZJTAiEAkap8PI7hx9YysvKORqxG871/m4DGHDq6JvJvC9fsohoquQII/P//////////ARAAGgw4MDI3MDY0NzE2OTgiDNEJdKSMRQnK0PUI9yqNAupdPE6DLiNGN6g3FcyhlP4CLo9TW2MrQ92jZta8tAtLOKNn75lnyEx3YenOTgaktViC4ZhgBThK7q7XjXSxlVSAoXhUzVQKZmpp/6fKBwTuYNIpAa+/yGBiWRxXFMF4Mtp+MTUBi0uAAV6Fkq7cWl3veCJPI3tGcjvzQ62KYe0BFJbKhjJQYD5qrQyL0x0KzfhqaotWYOMzbEOCFYjcts6t0hNlJswSMMXQVsEjfVrshBOmOhlbZnBojfI5AH2pUItCshKtx2NPikekMYu9AsbTy3N0/hAkXZIPjTaO2oW0qhe16TVRKyw7SUY00VJ6PUTPDK+erxOIdKbc1KYm9g7MPzs+z8Bi4eXsCPNrMLTn8LEGOp0B/cQjbMlZyuhIL04zW7KPyd7eLoan/Jx6hy+zLtgb8rQO6s3nQUEXpjpDWa7cvitOHJgO6iktWjJfEMKOcX8z/Keu+VWlickgCZV2ZFUkz7L6sYvZPoj9g73a2KoLJOFaMHflrezIugv/dXJ3nZr09LCLhC9Qy7IddHUfOjnUZ7X46b+qsLmDkKHRZk43LiHVDSrGoiTspYYc2gzpSQ==',
+  accessKeyId: 'ASIA3VZIIXMJDDN2DKVV',
+  secretAccessKey: 'FZYO1YTjjCkhh/FtTuX6l9H/FZ7FYvuG74ysVVJ4',
+  sessionToken: 'IQoJb3JpZ2luX2VjEKf//////////wEaCXVzLXdlc3QtMiJFMEMCIFYcNluRyIOsfU8Y+m5NBYI3ErjaAeJlfhY0A3qBRfnbAh9lzGtbIp2yb2cP5EcIcTIUCL6ysJln4VrngfLJtBB+KrACCBAQABoMODAyNzA2NDcxNjk4IgzJGPo8bLinffOMTmoqjQLhxxHsJ/JhQl2QeV2zkBkSALhf9CWyDxMPBPaTfmr+/K8ZcZBDsyqpBipdH89+dZMfSRd+cHSbta/OSYTlAiFwppUI1VRXhFNJJxheh+epUrqwa3dLyGiCNPJUiUBZk2zlsDTsbL+EZeS/Wb3nWUivAkPXID9J3HBz4iVQM9QcdWRNlddB43UnipsaUrP/FOuxdI7gwUe7QYKkwwpyHdY6xXmQ1iVBNTorbyzRnRXpJjkPt1g6/Ydt9eta88wHpiYQI7HVN/XHW9rSR3pJXcCgMfPbJg62JPJRu2LzIu09YEDIrV2sFPkjmCg0Qk5/OG455QOb9W+s828nq7DWf4EWTgz1ZJ/U996URMNUsjD56fGxBjqfAeQvfKV8XFHZaILkoghnakp22ey1x1KoHIeLlMYHGywm8NT2Xp9JdtSM78ctyHosW/+FVuTZG3WmzI9KL6T5rfgMGbuFR3X3gurA5QqcLCuUcHYR1iLFoSxzvRfO5xSnXisxlE9uYEmF7e+0qB6aGtOFv3i4R7XTvzmAVNndZySwn8BP4UeSlWHfq5VElT4rX1X0vW35mDr0QLhBBDgOAQ==',
   region: 'us-east-1' // La región donde está tu bucket
 });
 
@@ -644,6 +644,68 @@ const listarClientesActivos = async (req, res) => {
     }
 }
 
+
+const getEventosHoy = async (req, res,next) => {
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 3; // Tamaño de página, default 3
+    const offset = (page - 1) * pageSize; // Calcular el offset
+    let connection;
+    try{
+        const {} = req.params
+        connection = await pool.getConnection();
+        const [total] = await connection.query(`CALL eventosHoyTotal(@cantidad)`)
+        
+        const [row] = await connection.query('SELECT @cantidad AS cantidad')
+        const cantidad = row[0].cantidad
+
+        const [result] = await connection.query(`CALL eventosHoyPaginacion(?,?)`,[pageSize,offset])
+        const totalPages = Math.ceil(cantidad / pageSize);
+        const [eventosObtenidos] = result;
+   
+        const respuesta = {
+            totalEncontrados: cantidad,
+            totalPaginas: totalPages,
+            cupones: eventosObtenidos.map(evento => {
+                const key = `evento${evento.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+
+                const key2 = `tienda${evento.idTienda}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlTienda = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key2,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+              return {
+                idEvento: evento.idEvento,
+                nombreEvento: evento.nombreEvento,
+                nombreTienda:evento.nombreTienda,
+                puntosOtorgados:evento.puntosOtorgados,
+                urlEvento: urlEvento,
+                urlTienda:urlTienda
+              };
+            })
+          };
+        res.status(200).json(respuesta);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
 module.exports = {
     login,
     signup,
@@ -659,6 +721,7 @@ module.exports = {
     modificarClient,
     listarClientesActivos,
 
+    getEventosHoy,
 
     getCuponesEstado
 
