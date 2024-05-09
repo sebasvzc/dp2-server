@@ -19,9 +19,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJDDN2DKVV',
-  secretAccessKey: 'FZYO1YTjjCkhh/FtTuX6l9H/FZ7FYvuG74ysVVJ4',
-  sessionToken: 'IQoJb3JpZ2luX2VjEKf//////////wEaCXVzLXdlc3QtMiJFMEMCIFYcNluRyIOsfU8Y+m5NBYI3ErjaAeJlfhY0A3qBRfnbAh9lzGtbIp2yb2cP5EcIcTIUCL6ysJln4VrngfLJtBB+KrACCBAQABoMODAyNzA2NDcxNjk4IgzJGPo8bLinffOMTmoqjQLhxxHsJ/JhQl2QeV2zkBkSALhf9CWyDxMPBPaTfmr+/K8ZcZBDsyqpBipdH89+dZMfSRd+cHSbta/OSYTlAiFwppUI1VRXhFNJJxheh+epUrqwa3dLyGiCNPJUiUBZk2zlsDTsbL+EZeS/Wb3nWUivAkPXID9J3HBz4iVQM9QcdWRNlddB43UnipsaUrP/FOuxdI7gwUe7QYKkwwpyHdY6xXmQ1iVBNTorbyzRnRXpJjkPt1g6/Ydt9eta88wHpiYQI7HVN/XHW9rSR3pJXcCgMfPbJg62JPJRu2LzIu09YEDIrV2sFPkjmCg0Qk5/OG455QOb9W+s828nq7DWf4EWTgz1ZJ/U996URMNUsjD56fGxBjqfAeQvfKV8XFHZaILkoghnakp22ey1x1KoHIeLlMYHGywm8NT2Xp9JdtSM78ctyHosW/+FVuTZG3WmzI9KL6T5rfgMGbuFR3X3gurA5QqcLCuUcHYR1iLFoSxzvRfO5xSnXisxlE9uYEmF7e+0qB6aGtOFv3i4R7XTvzmAVNndZySwn8BP4UeSlWHfq5VElT4rX1X0vW35mDr0QLhBBDgOAQ==',
+  accessKeyId: 'ASIA3VZIIXMJPHBKNVGC',
+  secretAccessKey: '9jfmYg6jkSmFabe9gc0UDk8Q3d6ShrOqHdMcHizA',
+  sessionToken: 'IQoJb3JpZ2luX2VjELT//////////wEaCXVzLXdlc3QtMiJGMEQCIG3PGLm9wdQswPWevdBYrzPeUKiQU3GEKVkP+/8aduqtAiBVGV+AMbNis9PqvdxW/006eeLYNqGCs7DSGMwPEI9GQiqwAggdEAAaDDgwMjcwNjQ3MTY5OCIMCJ5bURbKY5Q7Sjz2Ko0C4TIyPCoDlD/kZSdz8OsDkVYWL0Xgw44dSksxQp/2iNf1fMUvfjjCwT0W0wLPU20Ba3PiOqoMixxLhd62bEyCJ92fwbohbkXHQq186eNfwZ0xOFiwMmJjVHSkFGppTmywwHO1bvVlrfUDMa80a748an3IsGdlW3M55DbFRREDPbNpk97IRNS5f98IshvxMcSpIc6srSsMTdJQWDhgf4bGFebavDKHkwKzzjbiXTvgCdMLSZM1TOlWmfnUq9Ocm513yacxk5SQP9suTbbsmvCrUy9v0OAQiiVF02KfCIIaxTJHo5LjcBXnN5oKXvDghGJuh+p4auw2JIm8UetoR+eXRvupqhOFonrnY2N9R2cwgMf0sQY6ngGFk1rBnvMG3DU3UGSSKTE5epxvlZnuJ32wPqUOSv+OuxEPve8wa/YOgzBeZGt8jxclDTTO7JJSR7TmdkqvaOmlhWpTU0sNDnyzfALG/iiu2L0IumX2pf2CT3MgBnEgYEwsD/xk8g7CgG6St2ScApdC6N+lT9YLuZeqsGU117XaouUjB6spMoaEBrz5ollOSrc6yDkTVcigtzhmycmuEg==',
   region: 'us-east-1' // La región donde está tu bucket
 });
 
@@ -483,7 +483,7 @@ const getMisCupones = async (req, res) => {
                 options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
             }else{
                 if (orderBy === 'puntos') {
-                        options.order = [[db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
+                        options.order = [[ db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
                     }
             }
         } 
