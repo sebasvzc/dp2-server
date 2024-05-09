@@ -646,8 +646,8 @@ const listarClientesActivos = async (req, res) => {
 
 
 const getEventosHoy = async (req, res,next) => {
-    const page = parseInt(req.query.page) || 1; // Página actual, default 1
-    const pageSize = parseInt(req.query.pageSize) || 3; // Tamaño de página, default 3
+    const page = parseInt(req.body.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.body.pageSize) || 3; // Tamaño de página, default 3
     const offset = (page - 1) * pageSize; // Calcular el offset
     let connection;
     try{
