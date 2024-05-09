@@ -112,7 +112,68 @@ const getCupones = async (req, res) => {
         console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
     }
 }
+
+
+const habilitar = async (req, res) => {
+    try {
+        console.log('updateCupon - updateItem: ', req.body.selected);
+        for (let i = 0; i < req.body.selected.length; i++) {
+            const selectedItem = req.body.selected[i];
+            console.log('Item seleccionado:', selectedItem);
+            const user = await Cupon.findOne({
+                where: {
+                    id: selectedItem
+                }
+            });
+            if (!user) {
+                return res.status(409).send("El id del cupon  "+selectedItem+" no se encontro en la bd");
+            }
+            await Cupon.update(
+                {
+                    activo: 1
+                },
+                {
+                    where: { id: selectedItem }
+                }
+            );
+        }
+        return res.status(200).send({message:"Cupones habilitados correctamente", code:0});
+    } catch (error) {
+        console.log('updateCupon - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
+const deshabilitar = async (req, res) => {
+    try {
+        console.log('updateCupon - updateItem: ', req.body.selected);
+        console.log(req.body.selected.length);
+        for (let i = 0; i < req.body.selected.length; i++) {
+            const selectedItem = req.body.selected[i];
+            console.log('Item seleccionado:', selectedItem);
+            const user = await Cupon.findOne({
+                where: {
+                    id: selectedItem
+                }
+            });
+            if (!user) {
+                return res.status(409).send("El id del cupon "+selectedItem+" no se encontro en la bd");
+            }
+            await Cupon.update(
+                {
+                    activo: 0
+                },
+                {
+                    where: { id: selectedItem }
+                }
+            );
+        }
+        return res.status(200).send({message:"Cupones deshabilitados correctamente", code:0});
+    } catch (error) {
+        console.log('updateCupon- updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
 module.exports = {
     detalleCupon,
-    getCupones
+    getCupones,
+    deshabilitar,
+    habilitar
 }
