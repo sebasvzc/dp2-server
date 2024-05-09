@@ -612,8 +612,8 @@ const getCuponesEstado = async (req, res,next) => {
 }
 
 const listarClientesActivos = async (req, res) => {
-    const page = parseInt(req.body.page) || 1; // Página actual, default 1
-    const pageSize = parseInt(req.body.pageSize) || 6; // Tamaño de página, default 10
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
     const offset = (page - 1) * pageSize; // Calcular el offset
 
     try {
