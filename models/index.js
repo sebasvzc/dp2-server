@@ -61,7 +61,7 @@ db.tipoCupons = require('./Cupon/tipoCuponModel') (sequelize, DataTypes)
 db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
 db.cuponXClientes = require('./Cupon/cuponXClienteModel') (sequelize, DataTypes)
 db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
-
+db.tipoEventos = require('./Evento/tipoEventoModel') (sequelize, DataTypes) 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
