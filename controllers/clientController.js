@@ -356,6 +356,32 @@ const ableClient = async (req, res) => {
     }
 }
 
+const modificarClient = async (req, res) => {
+    const {idCliente, ...camposActualizados } = req.body;
+    try {
+        // Primero, encontramos al cliente para asegurarnos de que existe
+        const client = await db.clients.findOne({
+            where: { id: idCliente }
+        });
+
+        // Si el cliente no existe, devolvemos un error
+        if (!client) {
+            return res.status(404).send({estado:"El cliente " + idCliente + " no existe"});
+        }
+
+        // Actualizar el atributo 'activo' del cliente de 1 a 0
+        await db.clients.update(camposActualizados, {
+            where: { id: idCliente }
+        });
+
+        // Enviar una respuesta exitosa
+        return res.status(200).send({estado:"El cliente " + idCliente + " ha sido modificado"});
+
+    } catch (error) {
+        return res.status(500).send({estado:"Ha ocurrido un error intentando modificar al cliente"});
+    }
+}
+
 const getMisCupones = async (req, res) => {
     console.log("Req ", req.query, req.body)
     const { page = 0, size = 5 } = req.query;
@@ -459,6 +485,39 @@ const getMisCupones = async (req, res) => {
     res.json({total: count, cupones: formattedCupones})
 }
 
+const listarClientesActivos = async (req, res) => {
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize; // Calcular el offset
+
+    try {
+        // Encontrar todos los clientes cuyo campo activo sea igual a 1,
+        // excluyendo ciertos campos y aplicando paginación
+        const clientes = await db.clients.findAll({
+            where: { activo: 1 },
+            attributes: { exclude: ['contrasenia', 'activo', 'createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion'] },
+            limit: pageSize,
+            offset: offset
+        });
+
+        // Contar la cantidad total de clientes activos
+        const totalClientes = await db.clients.count({ where: { activo: 1 } });
+
+        // Calcular el número total de páginas
+        const totalPages = Math.ceil(totalClientes / pageSize);
+
+        // Enviar la lista de clientes activos junto con la información de paginación como respuesta
+        return res.status(200).json({
+            clientes,
+            totalPages
+        });
+
+    } catch (error) {
+        // En caso de error, enviar un mensaje de error al cliente
+        return res.status(500).send({ estado: "Ha ocurrido un error intentando listar los clientes activos" });
+    }
+}
+
 module.exports = {
     login,
     signup,
@@ -468,6 +527,7 @@ module.exports = {
     getClientData,
     disableClient,
     ableClient,
-    getMisCupones
-
+    getMisCupones,
+    modificarClient,
+    listarClientesActivos
 };
