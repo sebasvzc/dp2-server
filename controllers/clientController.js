@@ -675,7 +675,6 @@ const getEventosHoy = async (req, res,next) => {
                     Expires: 8600 // Tiempo de expiración en segundos
                 });
 
-
                 const key2 = `tienda${evento.idTienda}.jpg`;
 
                 // Genera la URL firmada para el objeto en el bucket appdp2
@@ -705,6 +704,40 @@ const getEventosHoy = async (req, res,next) => {
     }
 }
 
+const getEventoDetalle = async (req, res,next) => {
+    let connection;
+    try{
+        const {id_cliente} = req.params
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL detalleEvento(?)`,[id_cliente])
+        
+        const eventoDetallado   = result[0][0];
+        console.log("soy evento detallado");
+        console.log(eventoDetallado);
+        
+                const key = `evento${eventoDetallado.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                eventoDetallado.urlEvento =  urlEvento 
+               
+            
+        res.status(200).json(eventoDetallado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
 
 module.exports = {
     login,
@@ -722,7 +755,7 @@ module.exports = {
     listarClientesActivos,
 
     getEventosHoy,
-
+    getEventoDetalle,
     getCuponesEstado
 
 };
