@@ -24,5 +24,7 @@ clientRouter.get('/cuponesObtenidos/:id_cliente', clienController.getCuponesEsta
     //router.delete('/users/:email', deleteUser);
 clientRouter.post('/deshabilitarCliente',clienController.disableClient);
 clientRouter.post('/habilitarCliente',clienController.ableClient);
+clientRouter.post('/modificarCliente',clienController.modificarClient);
+clientRouter.post('/listarClientesActivos',clienController.listarClientesActivos);
 
 module.exports = clientRouter;
