@@ -955,7 +955,7 @@
                 "parameters": [
                     {
                         "name": "sumilladescrip",
-                        "required": true,
+                        "required": false,
                         "in": "path",
                         "type": "string",
                         "description": "Sumilla o Descripción del cupon"
@@ -1202,6 +1202,283 @@
                             }
                         },
                         "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/cupones/crear": {
+            "post": {
+                "tags": [
+                    "cupon-controller"
+                ],
+                "operationId": "crearCuponUsingPOST",
+                "summary": "Create Cupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Crea el cupon.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "Cupon",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "codigo": {
+                                    "type": "string",
+                                    "example": "CUP017"
+                                },
+                                "fidLocatario": {
+                                    "type": "string",
+                                    "example": "1"
+                                },
+                                "fidTipoCupon": {
+                                    "type": "string",
+                                    "example": "1"
+                                },
+                                "sumilla": {
+                                    "type": "string",
+                                    "example": "20% DE DESCUENTO"
+                                },
+                                "descripcionCompleta": {
+                                    "type": "string",
+                                    "example": "Ten 20% de descuento en la compra de un corndog en Chung chun"
+                                },
+                                "fechaExpiracion": {
+                                    "type": "Date",
+                                    "example": "06/30/2024"
+                                },
+                                "terminosCondiciones": {
+                                    "type": "string",
+                                    "example": "Válido solo en Chung chun de Plaza San Miguel, no acumulable con otras promociones"
+                                },
+                                "esLimitado": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "costoPuntos": {
+                                    "type": "integer",
+                                    "example": 20
+                                },
+                                "cantidadInicial": {
+                                    "type": "integer",
+                                    "example": 50
+                                },
+                                "cantidadDisponible": {
+                                    "type": "integer",
+                                    "example": 44
+                                },
+                                "ordenPriorizacion": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "rutaFoto": {
+                                    "type": "string",
+                                    "example": "www"
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Cupon"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is duplicate. You don't have permission to perform this operation!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/cupones/modificar": {
+            "post": {
+                "tags": [
+                    "cupon-controller"
+                ],
+                "operationId": "modificarCuponUsingPOST",
+                "summary": "Modificar Cupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Modifica los atributos el cupon.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "Cupon",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "editedCupon": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "example": "18"
+                                        },
+                                        "codigo": {
+                                            "type": "string",
+                                            "example": "CUP017"
+                                        },
+                                        "fidLocatario": {
+                                            "type": "string",
+                                            "example": "1"
+                                        },
+                                        "fidTipoCupon": {
+                                            "type": "string",
+                                            "example": "1"
+                                        },
+                                        "sumilla": {
+                                            "type": "string",
+                                            "example": "20% DE DESCUENTO"
+                                        },
+                                        "descripcionCompleta": {
+                                            "type": "string",
+                                            "example": "Ten 20% de descuento en la compra de un corndog en Chung chun"
+                                        },
+                                        "fechaExpiracion": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "example": "06/30/2024"
+                                        },
+                                        "terminosCondiciones": {
+                                            "type": "string",
+                                            "example": "Válido solo en Chung chun de Plaza San Miguel, no acumulable con otras promociones"
+                                        },
+                                        "esLimitado": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "costoPuntos": {
+                                            "type": "integer",
+                                            "example": 20
+                                        },
+                                        "cantidadInicial": {
+                                            "type": "integer",
+                                            "example": 50
+                                        },
+                                        "cantidadDisponible": {
+                                            "type": "integer",
+                                            "example": 44
+                                        },
+                                        "ordenPriorizacion": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "rutaFoto": {
+                                            "type": "string",
+                                            "example": "www"
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Cupon"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is duplicate. You don't have permission to perform this operation!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
                     }
                 }
             }

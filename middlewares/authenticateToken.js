@@ -4,6 +4,7 @@ const User = db.users;
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 // Middleware de autenticación
 function authenticateToken(req, res, next) {
+    console.log(req.body)
     const token = req.headers['authorization'];
     const refreshToken = req.headers['refresh-token'];
     if (!token || !refreshToken) {
