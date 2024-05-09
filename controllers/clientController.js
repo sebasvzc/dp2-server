@@ -612,22 +612,36 @@ const getCuponesEstado = async (req, res,next) => {
 }
 
 const listarClientesActivos = async (req, res) => {
+    const { active, searchText } = req.body; // Obtener desde el cuerpo
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
     const offset = (page - 1) * pageSize; // Calcular el offset
 
     try {
-        // Encontrar todos los clientes cuyo campo activo sea igual a 1,
-        // excluyendo ciertos campos y aplicando paginación
+        const whereConditions = {};
+
+        if (active!=undefined && (active == 1 || active == 0)) {
+            whereConditions.activo = active; // Se incluyen clientes basados en el estado activo solicitado
+        }
+        
+        if (searchText) {
+            whereConditions[Op.or] = [
+                { nombre: { [Op.like]: `%${searchText}%` } },
+                { apellidoPaterno: { [Op.like]: `%${searchText}%` } },
+                { apellidoMaterno: { [Op.like]: `%${searchText}%` } }
+            ];
+        }
+
+        // Encontrar todos los clientes según los criterios de búsqueda y paginación
         const clientes = await db.clients.findAll({
-            where: { activo: 1 },
-            attributes: { exclude: ['contrasenia', 'activo', 'createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion'] },
+            where: whereConditions,
+            attributes: { exclude: ['contrasenia', 'createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion'] },
             limit: pageSize,
             offset: offset
         });
 
-        // Contar la cantidad total de clientes activos
-        const totalClientes = await db.clients.count({ where: { activo: 1 } });
+        // Contar la cantidad total de clientes según los criterios
+        const totalClientes = await db.clients.count({ where: whereConditions });
 
         // Calcular el número total de páginas
         const totalPages = Math.ceil(totalClientes / pageSize);
@@ -737,6 +751,36 @@ const getEventoDetalle = async (req, res,next) => {
     }
 }
 
+const listarClients = async (req, res) => {
+    const { active, searchText } = req.query;
+
+    try {
+        const whereConditions = {};
+
+        if (active !== undefined) {
+            whereConditions.activo = active;
+        }
+        if (searchText) {
+            whereConditions[Op.or] = [
+                { nombre: { [Op.like]: `%${searchText}%` } },
+                { apellidoPaterno: { [Op.like]: `%${searchText}%` } },
+                { apellidoMaterno: { [Op.like]: `%${searchText}%` } }
+            ];
+        }
+
+        const clients = await Client.findAll({
+            where: whereConditions,
+            attributes: { 
+                exclude: ['createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion']
+            }
+        });
+
+        res.json(clients);
+    } catch (error) {
+        console.error('Error al listar los clientes:', error);
+        res.status(500).send('Error interno del servidor');
+    }
+};
 
 
 module.exports = {
