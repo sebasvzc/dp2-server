@@ -712,8 +712,6 @@ const getEventoDetalle = async (req, res,next) => {
         const [result] = await connection.query(`CALL detalleEvento(?)`,[id_cliente])
         
         const eventoDetallado   = result[0][0];
-        console.log("soy evento detallado");
-        console.log(eventoDetallado);
         
                 const key = `evento${eventoDetallado.idEvento}.jpg`;
 
