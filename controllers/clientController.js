@@ -404,7 +404,7 @@ const modificarClient = async (req, res) => {
 
 const getMisCupones = async (req, res) => {
     console.log("Req ", req.query, req.body)
-    const { page = 0, size = 5 } = req.query;
+    const { busqueda, page = 0, size = 5 } = req.query;
     let { idCliente, usado, categorias, orderBy, orden } = req.body;
 
     var options = {
@@ -440,6 +440,24 @@ const getMisCupones = async (req, res) => {
             fidCliente: idCliente,
             usado: usado,
             activo: 1
+        }
+    }
+
+    if(busqueda != ""){
+        //...buscar por texto en "sumilla" en cupon
+        options.include[0].include[0].where = {
+            [Op.or]: [
+                {
+                    '$cupon.sumilla$': {
+                        [Op.like]: `%${busqueda}%` // Buscar sumilla que contenga el texto especificado
+                    }
+                },
+                {
+                    nombre: {
+                        [Op.like]: `%${busqueda}%` // Buscar nombre de locatario que contenga el texto especificado
+                    }
+                }
+            ]
         }
     }
 
