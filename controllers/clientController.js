@@ -19,9 +19,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJMUZ5EZMB',
-  secretAccessKey: 'hWTzZh2QelqLDiPL4Or02M/G1HyWN2xTSRdTwGz8',
-  sessionToken: 'IQoJb3JpZ2luX2VjEKP//////////wEaCXVzLXdlc3QtMiJHMEUCICCaIVOn0pQ4+6Q8D5PsYd+eOF6r9tuvNsDq3OUNXZJTAiEAkap8PI7hx9YysvKORqxG871/m4DGHDq6JvJvC9fsohoquQII/P//////////ARAAGgw4MDI3MDY0NzE2OTgiDNEJdKSMRQnK0PUI9yqNAupdPE6DLiNGN6g3FcyhlP4CLo9TW2MrQ92jZta8tAtLOKNn75lnyEx3YenOTgaktViC4ZhgBThK7q7XjXSxlVSAoXhUzVQKZmpp/6fKBwTuYNIpAa+/yGBiWRxXFMF4Mtp+MTUBi0uAAV6Fkq7cWl3veCJPI3tGcjvzQ62KYe0BFJbKhjJQYD5qrQyL0x0KzfhqaotWYOMzbEOCFYjcts6t0hNlJswSMMXQVsEjfVrshBOmOhlbZnBojfI5AH2pUItCshKtx2NPikekMYu9AsbTy3N0/hAkXZIPjTaO2oW0qhe16TVRKyw7SUY00VJ6PUTPDK+erxOIdKbc1KYm9g7MPzs+z8Bi4eXsCPNrMLTn8LEGOp0B/cQjbMlZyuhIL04zW7KPyd7eLoan/Jx6hy+zLtgb8rQO6s3nQUEXpjpDWa7cvitOHJgO6iktWjJfEMKOcX8z/Keu+VWlickgCZV2ZFUkz7L6sYvZPoj9g73a2KoLJOFaMHflrezIugv/dXJ3nZr09LCLhC9Qy7IddHUfOjnUZ7X46b+qsLmDkKHRZk43LiHVDSrGoiTspYYc2gzpSQ==',
+  accessKeyId: 'ASIA3VZIIXMJPHBKNVGC',
+  secretAccessKey: '9jfmYg6jkSmFabe9gc0UDk8Q3d6ShrOqHdMcHizA',
+  sessionToken: 'IQoJb3JpZ2luX2VjELT//////////wEaCXVzLXdlc3QtMiJGMEQCIG3PGLm9wdQswPWevdBYrzPeUKiQU3GEKVkP+/8aduqtAiBVGV+AMbNis9PqvdxW/006eeLYNqGCs7DSGMwPEI9GQiqwAggdEAAaDDgwMjcwNjQ3MTY5OCIMCJ5bURbKY5Q7Sjz2Ko0C4TIyPCoDlD/kZSdz8OsDkVYWL0Xgw44dSksxQp/2iNf1fMUvfjjCwT0W0wLPU20Ba3PiOqoMixxLhd62bEyCJ92fwbohbkXHQq186eNfwZ0xOFiwMmJjVHSkFGppTmywwHO1bvVlrfUDMa80a748an3IsGdlW3M55DbFRREDPbNpk97IRNS5f98IshvxMcSpIc6srSsMTdJQWDhgf4bGFebavDKHkwKzzjbiXTvgCdMLSZM1TOlWmfnUq9Ocm513yacxk5SQP9suTbbsmvCrUy9v0OAQiiVF02KfCIIaxTJHo5LjcBXnN5oKXvDghGJuh+p4auw2JIm8UetoR+eXRvupqhOFonrnY2N9R2cwgMf0sQY6ngGFk1rBnvMG3DU3UGSSKTE5epxvlZnuJ32wPqUOSv+OuxEPve8wa/YOgzBeZGt8jxclDTTO7JJSR7TmdkqvaOmlhWpTU0sNDnyzfALG/iiu2L0IumX2pf2CT3MgBnEgYEwsD/xk8g7CgG6St2ScApdC6N+lT9YLuZeqsGU117XaouUjB6spMoaEBrz5ollOSrc6yDkTVcigtzhmycmuEg==',
   region: 'us-east-1' // La región donde está tu bucket
 });
 
@@ -483,7 +483,7 @@ const getMisCupones = async (req, res) => {
                 options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
             }else{
                 if (orderBy === 'puntos') {
-                        options.order = [[db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
+                        options.order = [[ db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
                     }
             }
         } 
@@ -644,6 +644,101 @@ const listarClientesActivos = async (req, res) => {
     }
 }
 
+
+const getEventosHoy = async (req, res,next) => {
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 3; // Tamaño de página, default 3
+    const offset = (page - 1) * pageSize; // Calcular el offset
+    let connection;
+    try{
+        const {} = req.params
+        connection = await pool.getConnection();
+        const [total] = await connection.query(`CALL eventosHoyTotal(@cantidad)`)
+        
+        const [row] = await connection.query('SELECT @cantidad AS cantidad')
+        const cantidad = row[0].cantidad
+
+        const [result] = await connection.query(`CALL eventosHoyPaginacion(?,?)`,[pageSize,offset])
+        const totalPages = Math.ceil(cantidad / pageSize);
+        const [eventosObtenidos] = result;
+   
+        const respuesta = {
+            totalEncontrados: cantidad,
+            totalPaginas: totalPages,
+            cupones: eventosObtenidos.map(evento => {
+                const key = `evento${evento.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                const key2 = `tienda${evento.idTienda}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlTienda = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key2,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+              return {
+                idEvento: evento.idEvento,
+                nombreEvento: evento.nombreEvento,
+                nombreTienda:evento.nombreTienda,
+                puntosOtorgados:evento.puntosOtorgados,
+                urlEvento: urlEvento,
+                urlTienda:urlTienda
+              };
+            })
+          };
+        res.status(200).json(respuesta);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+const getEventoDetalle = async (req, res,next) => {
+    let connection;
+    try{
+        const {id_evento} = req.params
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL detalleEvento(?)`,[id_evento])
+        
+        const eventoDetallado   = result[0][0];
+        
+                const key = `evento${eventoDetallado.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                eventoDetallado.urlEvento =  urlEvento 
+                eventoDetallado.fechaInicio= eventoDetallado.fechaInicio.toISOString().split('T')[0];
+                eventoDetallado.fechaFin=eventoDetallado.fechaFin.toISOString().split('T')[0];
+                eventoDetallado.fechaInicio=`${eventoDetallado.fechaInicio.split('-')[2]}-${eventoDetallado.fechaInicio.split('-')[1]}-${eventoDetallado.fechaInicio.split('-')[0]}`;
+                eventoDetallado.fechaFin=`${eventoDetallado.fechaFin.split('-')[2]}-${eventoDetallado.fechaFin.split('-')[1]}-${eventoDetallado.fechaFin.split('-')[0]}`;
+        res.status(200).json(eventoDetallado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
+
 module.exports = {
     login,
     signup,
@@ -659,7 +754,8 @@ module.exports = {
     modificarClient,
     listarClientesActivos,
 
-
+    getEventosHoy,
+    getEventoDetalle,
     getCuponesEstado
 
 };

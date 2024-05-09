@@ -8,7 +8,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        fecha: {
+        fechaInicio: {
+            type: DataTypes.DATE,
+            allowNull: false
+        },
+        fechaFin: {
             type: DataTypes.DATE,
             allowNull: false
         },
@@ -50,11 +54,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         edadPromedio: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         generoPromedio: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
         ordenPriorizacion: {
             type: DataTypes.INTEGER,
