@@ -518,7 +518,7 @@ const getMisCupones = async (req, res) => {
         categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
         };
     });
- ramaHugo2
+
 
     console.log('data conseguida');
     //console.log({total: count, cupones: formattedCupones});
