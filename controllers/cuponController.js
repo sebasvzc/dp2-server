@@ -1,6 +1,8 @@
 const db = require("../models");
 require('dotenv').config();
 const Sequelize = require('sequelize');
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const Op = Sequelize.Op;
 
 const User = db.users;
@@ -115,17 +117,18 @@ const getCupones = async (req, res) => {
 
 
 const habilitar = async (req, res) => {
+    console.log(req.body)
     try {
-        console.log('updateCupon - updateItem: ', req.body.selected);
+        console.log('updateCupon - updateItem: ', req.body);
         for (let i = 0; i < req.body.selected.length; i++) {
             const selectedItem = req.body.selected[i];
             console.log('Item seleccionado:', selectedItem);
-            const user = await Cupon.findOne({
+            const cupon = await Cupon.findOne({
                 where: {
                     id: selectedItem
                 }
             });
-            if (!user) {
+            if (!cupon) {
                 return res.status(409).send("El id del cupon  "+selectedItem+" no se encontro en la bd");
             }
             await Cupon.update(
@@ -149,12 +152,12 @@ const deshabilitar = async (req, res) => {
         for (let i = 0; i < req.body.selected.length; i++) {
             const selectedItem = req.body.selected[i];
             console.log('Item seleccionado:', selectedItem);
-            const user = await Cupon.findOne({
+            const cupon = await Cupon.findOne({
                 where: {
                     id: selectedItem
                 }
             });
-            if (!user) {
+            if (!cupon) {
                 return res.status(409).send("El id del cupon "+selectedItem+" no se encontro en la bd");
             }
             await Cupon.update(
@@ -171,9 +174,109 @@ const deshabilitar = async (req, res) => {
         console.log('updateCupon- updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+const crear = async (req, res) => {
+    try {
+        console.log("entre a registrar nuevo cupon")
+        const { codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
+        const data = {
+            codigo,
+            fidLocatario,
+            fidTipoCupon,
+            sumilla,
+            descripcionCompleta,
+            fechaExpiracion,
+            terminosCondiciones,
+            esLimitado,
+            costoPuntos,
+            cantidadInicial,
+            cantidadDisponible,
+            ordenPriorizacion,
+            rutaFoto,
+            activo:1
+        };
+        const checkCupon = await Cupon.findOne({
+            where: {
+                codigo: codigo
+            }
+        });
+        if (checkCupon) {
+            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
+            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+        }
+        //saving the user
+        const cupon = await Cupon.create(data);
+        //if user details is captured
+        //generate token with the user's id and the secretKey in the env file
+        // set cookie with the token generated
+        if (cupon) {
+
+            //send users details
+            //broadcast(req.app.locals.clients, 'signup', user);
+            return res.status(200).send("Cupon "+ cupon.id+ " creado correctamente");
+        }
+        else {
+            return res.status(400).send("Invalid request body");
+        }
+
+
+    } catch (error) {
+        console.log('signup - [Error]: ', error);
+    }
+}
+
+const modificar = async (req, res) => {
+    var updateItem = req.body.editedCupon;
+    console.log('updateUser - updateItem: ', updateItem);
+    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body.editedCupon;
+    try {
+        const cupon = await Cupon.findOne({
+            where: {
+                id: id
+            }
+        });
+        if (!cupon) {
+            console.log("Cupon "+updateItem+" no fue encontrado")
+            return res.status(409).send("Cupon "+updateItem+" no fue encontrado");
+        }
+        const checkCupon = await Cupon.findOne({
+            where: {
+                codigo: codigo
+            }
+        });
+        if (checkCupon && id!== checkCupon.id) {
+            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
+            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+        }
+        await Cupon.update(
+            {
+                codigo,
+                fidLocatario,
+                fidTipoCupon,
+                sumilla,
+                descripcionCompleta,
+                fechaExpiracion,
+                terminosCondiciones,
+                esLimitado,
+                costoPuntos,
+                cantidadInicial,
+                cantidadDisponible,
+                ordenPriorizacion,
+                rutaFoto
+            },
+            {
+                where: { id: id }
+            }
+        );
+        return res.status(200).send({message:"Cupon modificado correctametne"});
+    } catch (error) {
+        console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
 module.exports = {
     detalleCupon,
     getCupones,
     deshabilitar,
-    habilitar
+    habilitar,
+    crear,
+    modificar
 }
