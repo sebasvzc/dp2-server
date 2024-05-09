@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1615.0",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -22,6 +23,7 @@
     "googleapis": "^135.0.0",
     "ip": "^1.1.8",
     "jsonwebtoken": "^8.5.1",
+    "mysql": "^2.18.1",
     "mysql2": "^3.9.4",
     "node-fetch": "^2.6.7",
     "nodemailer": "^6.9.13",

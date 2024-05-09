@@ -13,12 +13,18 @@ const clientRouter = express.Router()
 clientRouter.post('/signup', clientAuth.saveClient, signup);
 clientRouter.post('/login', login);
 clientRouter.post('/misCupones', clienController.getMisCupones)
+
 clientRouter.post('/extraerData', getClientData);
+
+clientRouter.get('/cuponesObtenidos/:id_cliente', clienController.getCuponesEstado);
+
     //router.get('/listusers', authenticateToken, getUser);
 
     //router.put('/users/:email', updateUser);
     //router.delete('/users/:email', deleteUser);
 clientRouter.post('/deshabilitarCliente',clienController.disableClient);
 clientRouter.post('/habilitarCliente',clienController.ableClient);
+clientRouter.post('/modificarCliente',clienController.modificarClient);
+clientRouter.post('/listarClientesActivos',clienController.listarClientesActivos);
 
 module.exports = clientRouter;
