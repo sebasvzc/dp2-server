@@ -110,8 +110,8 @@ const getClientData = async (req, res) => {
     // console.log(req.query.query)
     const tokenSinBearer = token.substring(7); // Comienza desde el índice 7 para omitir "Bearer "
     const refreshTokenSinBearer = refreshToken.substring(7);
-    jwt.verify(refreshTokenSinBearer, ACCESS_TOKEN_SECRET, async (err, decoded) => {
-        console.log(decoded)
+    jwt.verify(refreshTokenSinBearer, REFRESH_TOKEN_SECRET, async (err, decoded) => {
+
         if (err) {
             if (err.name === 'TokenExpiredError') {
                 console.log('Access denied. Access Token expired.');
@@ -174,7 +174,7 @@ const signup = async (req, res) => {
                 REFRESH_TOKEN_SECRET,
                 { expiresIn: REFRESH_TOKEN_EXPIRY }
             );
-            res.cookie("jwt", token, { maxAge: 1 * 24 * 60 * 60, httpOnly: true });
+
             console.log("client", JSON.stringify(client, null, 2));
             console.log(token);
             //send users details
