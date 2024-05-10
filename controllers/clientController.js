@@ -111,7 +111,7 @@ const getClientData = async (req, res) => {
     const tokenSinBearer = token.substring(7); // Comienza desde el índice 7 para omitir "Bearer "
     const refreshTokenSinBearer = refreshToken.substring(7);
     jwt.verify(refreshTokenSinBearer, ACCESS_TOKEN_SECRET, async (err, decoded) => {
-
+        console.log(decoded)
         if (err) {
             if (err.name === 'TokenExpiredError') {
                 console.log('Access denied. Access Token expired.');
