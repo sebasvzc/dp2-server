@@ -19,9 +19,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJPHBKNVGC',
-  secretAccessKey: '9jfmYg6jkSmFabe9gc0UDk8Q3d6ShrOqHdMcHizA',
-  sessionToken: 'IQoJb3JpZ2luX2VjELT//////////wEaCXVzLXdlc3QtMiJGMEQCIG3PGLm9wdQswPWevdBYrzPeUKiQU3GEKVkP+/8aduqtAiBVGV+AMbNis9PqvdxW/006eeLYNqGCs7DSGMwPEI9GQiqwAggdEAAaDDgwMjcwNjQ3MTY5OCIMCJ5bURbKY5Q7Sjz2Ko0C4TIyPCoDlD/kZSdz8OsDkVYWL0Xgw44dSksxQp/2iNf1fMUvfjjCwT0W0wLPU20Ba3PiOqoMixxLhd62bEyCJ92fwbohbkXHQq186eNfwZ0xOFiwMmJjVHSkFGppTmywwHO1bvVlrfUDMa80a748an3IsGdlW3M55DbFRREDPbNpk97IRNS5f98IshvxMcSpIc6srSsMTdJQWDhgf4bGFebavDKHkwKzzjbiXTvgCdMLSZM1TOlWmfnUq9Ocm513yacxk5SQP9suTbbsmvCrUy9v0OAQiiVF02KfCIIaxTJHo5LjcBXnN5oKXvDghGJuh+p4auw2JIm8UetoR+eXRvupqhOFonrnY2N9R2cwgMf0sQY6ngGFk1rBnvMG3DU3UGSSKTE5epxvlZnuJ32wPqUOSv+OuxEPve8wa/YOgzBeZGt8jxclDTTO7JJSR7TmdkqvaOmlhWpTU0sNDnyzfALG/iiu2L0IumX2pf2CT3MgBnEgYEwsD/xk8g7CgG6St2ScApdC6N+lT9YLuZeqsGU117XaouUjB6spMoaEBrz5ollOSrc6yDkTVcigtzhmycmuEg==',
+  accessKeyId: 'ASIA3VZIIXMJCJ3XRU74',
+  secretAccessKey: 'qPWnFM0OMYhSO4abMeLN5fhue6F3wWL/13v2z7lo',
+  sessionToken: 'IQoJb3JpZ2luX2VjELj//////////wEaCXVzLXdlc3QtMiJIMEYCIQDOfWo+l7YgcOoKqo/pLc5PtzIinaPxReBDVzQuh/hUIQIhAMkYwcjUc4stIoJIk5OoMgglbeJ2RpzVNdNkrvn1AdiyKrACCCAQABoMODAyNzA2NDcxNjk4IgxitHYaGeYzt738a1EqjQKrUEe/fkWDxW+iMVcmdmIrPu3G0bs+3KnnBpuGDZqtr2Br4HCFWEpSgAQ+jnLXXdEmlSj/OjBxSuxVWH1SxIj0+JDT0wl6nFElF46HizyomwBweB8VFpRUVkVDLaunFiS0a9pd+t+r2bNVOh6DqAz16sVYC1MywBLhclsCDj8EPpx6yiKRF59FOq5MSZt1EZtB7c7iH15WhuZ7d1RFjWfbD47d5g6MUc+d3gZgtuKFdfZr7GjpNXyQ16UjV/uFdunCjY7Hs6Jp1lo2o4OwsjGLENfRAOztXA9eDUgFLE6m7tF5LiWvWrCIKtdirxggzGjgfnX3yko0tLUx5LnjwmdWJG8GMVKn7751L0AjLTDMtPWxBjqcAT6KVS1fS6PQ9/ve5fTHWtvY5LrpTPaipS7DuIUFk9HcV/6/RzFytyoYUo9dnw1DigBeBn0JbTRffNXDaS6L0JSMSVA3/gOf4MuiQK3YNuSx4FlccVOjHs4NiHwkHU3cuo18FfJ7gzo8Dute7xOhMwyO9N8bj4ObsXhchild7eWmocJykM3Lr7+9AX1oKhY5hLIGDi5PbTWfz8cOeg==',
   region: 'us-east-1' // La región donde está tu bucket
 });
 
@@ -612,22 +612,36 @@ const getCuponesEstado = async (req, res,next) => {
 }
 
 const listarClientesActivos = async (req, res) => {
+    const { active, searchText } = req.body; // Obtener desde el cuerpo
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
     const offset = (page - 1) * pageSize; // Calcular el offset
 
     try {
-        // Encontrar todos los clientes cuyo campo activo sea igual a 1,
-        // excluyendo ciertos campos y aplicando paginación
+        const whereConditions = {};
+
+        if (active!=undefined && (active == 1 || active == 0)) {
+            whereConditions.activo = active; // Se incluyen clientes basados en el estado activo solicitado
+        }
+        
+        if (searchText) {
+            whereConditions[Op.or] = [
+                { nombre: { [Op.like]: `%${searchText}%` } },
+                { apellidoPaterno: { [Op.like]: `%${searchText}%` } },
+                { apellidoMaterno: { [Op.like]: `%${searchText}%` } }
+            ];
+        }
+
+        // Encontrar todos los clientes según los criterios de búsqueda y paginación
         const clientes = await db.clients.findAll({
-            where: { activo: 1 },
-            attributes: { exclude: ['contrasenia', 'activo', 'createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion'] },
+            where: whereConditions,
+            attributes: { exclude: ['contrasenia', 'createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion'] },
             limit: pageSize,
             offset: offset
         });
 
-        // Contar la cantidad total de clientes activos
-        const totalClientes = await db.clients.count({ where: { activo: 1 } });
+        // Contar la cantidad total de clientes según los criterios
+        const totalClientes = await db.clients.count({ where: whereConditions });
 
         // Calcular el número total de páginas
         const totalPages = Math.ceil(totalClientes / pageSize);
@@ -737,6 +751,36 @@ const getEventoDetalle = async (req, res,next) => {
     }
 }
 
+const listarClients = async (req, res) => {
+    const { active, searchText } = req.query;
+
+    try {
+        const whereConditions = {};
+
+        if (active !== undefined) {
+            whereConditions.activo = active;
+        }
+        if (searchText) {
+            whereConditions[Op.or] = [
+                { nombre: { [Op.like]: `%${searchText}%` } },
+                { apellidoPaterno: { [Op.like]: `%${searchText}%` } },
+                { apellidoMaterno: { [Op.like]: `%${searchText}%` } }
+            ];
+        }
+
+        const clients = await Client.findAll({
+            where: whereConditions,
+            attributes: { 
+                exclude: ['createdAt', 'updatedAt', 'usuarioCreacion', 'usuarioActualizacion']
+            }
+        });
+
+        res.json(clients);
+    } catch (error) {
+        console.error('Error al listar los clientes:', error);
+        res.status(500).send('Error interno del servidor');
+    }
+};
 
 
 module.exports = {
