@@ -314,33 +314,54 @@ const deleteUser = async (req, res) => {
 }
 
 const disableClient = async (req, res) => {
-    const {idCliente} = req.body;
+    const idsClientes = req.body.selected;  // Esperamos un array de IDs
+
+    if (!idsClientes || idsClientes.length === 0) {
+        return res.status(400).send({ message: "No se ha proporcionado una lista de IDs válida.", code: 1 });
+    }
+
     try {
-        // Primero, encontramos al cliente para asegurarnos de que existe
-        const client = await db.clients.findOne({
-            where: { id: idCliente }
+        // Encuentra todos los clientes que corresponden a los IDs proporcionados
+        const clientes = await db.clients.findAll({
+            where: {
+                id: idsClientes
+            }
         });
 
-        // Si el cliente no existe, devolvemos un error
-        if (!client) {
-            return res.status(404).send({estado:"El cliente " + idCliente + " no existe"});
+        if (clientes.length === 0) {
+            return res.status(404).send({ message: "Ninguno de los clientes especificados existe.", code: 2 });
         }
 
-        // Verificar si el cliente ya está desactivado
-        if (client.activo === 0) {
-            return res.status(400).send({estado:"El cliente " + idCliente + " ya está baneado."});
+        const idsEncontrados = clientes.map(cliente => cliente.id);
+        const noEncontrados = idsClientes.filter(id => !idsEncontrados.includes(id));
+
+        // Registrar los IDs de los clientes que no se encontraron
+        if (noEncontrados.length > 0) {
+            console.log("Clientes no encontrados:", noEncontrados);
         }
 
-        // Actualizar el atributo 'activo' del cliente de 1 a 0
-        
-        await db.clients.update({ activo: 0 }, {
-            where: { id: idCliente }
+        // Deshabilitar sólo los clientes que fueron encontrados y están activos
+        const actualizados = await db.clients.update({ activo: 0 }, {
+            where: {
+                id: idsEncontrados,
+                activo: 1  // Asegura que sólo se actualizan los que están actualmente activos
+            }
         });
-        // Enviar una respuesta exitosa
-        return res.status(200).send({estado:"El cliente " + idCliente + " ha sido baneado"});
+
+        // Verificar cuántos registros fueron realmente actualizados
+        if (actualizados[0] === 0) {
+            return res.status(404).send({ message: "Ninguno de los clientes encontrados necesitaba ser desactivado.", code: 3 });
+        }
+
+        return res.status(200).send({
+            message: "Clientes deshabilitados correctamente.",
+            code: 0,
+            noEncontrados: noEncontrados  // Opcionalmente devolver los IDs no encontrados
+        });
 
     } catch (error) {
-        return res.status(500).send({estado:"Ha ocurrido un error intentando deshabilitar al cliente"});
+        console.error("Error al deshabilitar clientes:", error);
+        return res.status(500).send({ message: "Error interno al intentar deshabilitar los clientes.", code: 4 });
     }
 }
 
