@@ -1,4 +1,8 @@
 const express = require('express');
+
+const multer = require('multer');
+const upload = multer();
+
 var cuponController = require('../../controllers/cuponController');
 const { getCuponesClientes,getCupones, deshabilitar, habilitar,crear,modificar } = cuponController
 const authenticateToken = require("../../middlewares/authenticateToken");
@@ -9,7 +13,7 @@ cuponRouter.post('/detalleCupon', cuponController.detalleCupon);
 cuponRouter.get('/listarcupones', authenticateToken,getCupones);
 cuponRouter.post('/deshabilitar', authenticateToken,deshabilitar);
 cuponRouter.post('/habilitar', authenticateToken,habilitar);
-cuponRouter.post('/crear', authenticateToken,crear);
+cuponRouter.post('/crear', authenticateToken,upload.any(),crear);
 cuponRouter.post('/modificar', authenticateToken,modificar);
 cuponRouter.get('/listarcuponescliente', getCuponesClientes);
 module.exports = cuponRouter;

@@ -4,7 +4,25 @@ const Sequelize = require('sequelize');
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const Op = Sequelize.Op;
+const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 
+const {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand
+} = require("@aws-sdk/client-s3");
+
+var s3Config;
+s3Config = {
+    region: "us-east-1",
+    credentials: {
+        accessKeyId: AWS_ACCESS_KEY,
+        secretAccessKey: AWS_ACCESS_SECRET,
+        sessionToken: AWS_SESSION_TOKEN
+    },
+};
+
+const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Cupon = db.cupones;
 const Locatario = db.locatarios;
@@ -114,7 +132,6 @@ const getCupones = async (req, res) => {
         console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
     }
 }
-
 const getCuponesClientes = async (req, res) => {
     var queryType = req.query.query;
     // console.log(req.query.query)
@@ -249,8 +266,20 @@ const deshabilitar = async (req, res) => {
 }
 const crear = async (req, res) => {
     try {
-        console.log("entre a registrar nuevo cupon")
-        const { codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
+        console.log("entre a registrar nuevo cupon");
+
+
+        const { codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,ordenPriorizacion } = req.body;
+
+        const checkCupon = await Cupon.findOne({
+            where: {
+                codigo: codigo
+            }
+        });
+        if (checkCupon) {
+            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
+            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+        }
         const data = {
             codigo,
             fidLocatario,
@@ -262,30 +291,40 @@ const crear = async (req, res) => {
             esLimitado,
             costoPuntos,
             cantidadInicial,
-            cantidadDisponible,
+            cantidadDisponible:cantidadInicial,
             ordenPriorizacion,
-            rutaFoto,
+            rutaFoto: codigo,
             activo:1
         };
-        const checkCupon = await Cupon.findOne({
-            where: {
-                codigo: codigo
-            }
-        });
-        if (checkCupon) {
-            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
-            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
-        }
         //saving the user
         const cupon = await Cupon.create(data);
         //if user details is captured
         //generate token with the user's id and the secretKey in the env file
         // set cookie with the token generated
         if (cupon) {
+            const file = req.files[0];
+            const bucketParams = {
+                Bucket: AWS_S3_BUCKET_NAME,
+                Key: codigo+".jpg",
+                Body: file.buffer,
+                ContentType: file.mimetype
+            };
+            try {
+                // Intenta subir el archivo a S3
+                const data = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al s3:", data);
+            } catch (error) {
+                // Captura cualquier error durante la subida del archivo a S3
+                console.error("Error al subir el archivo a S3:", error);
+                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                return res.status(200).send({
+                    message: "Se encontró un error durante la subida del archivo, pero sí se creó el cupón. Edítalo posteriormente."
+                });
+            }
 
             //send users details
             //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send("Cupon "+ cupon.id+ " creado correctamente");
+            return res.status(200).send({message:"Cupon "+ cupon.id+ " creado correctamente"});
         }
         else {
             return res.status(400).send("Invalid request body");
@@ -293,7 +332,7 @@ const crear = async (req, res) => {
 
 
     } catch (error) {
-        console.log('signup - [Error]: ', error);
+        console.log('crearCupon - [Error]: ', error);
     }
 }
 

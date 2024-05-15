@@ -216,7 +216,7 @@ const getUserData = async (req, res) => {
     // console.log(req.query.query)
     const tokenSinBearer = token.substring(7); // Comienza desde el índice 7 para omitir "Bearer "
     const refreshTokenSinBearer = refreshToken.substring(7);
-    jwt.verify(tokenSinBearer, ACCESS_TOKEN_SECRET, async (err, decoded) => {
+    jwt.verify(refreshTokenSinBearer, REFRESH_TOKEN_SECRET, async (err, decoded) => {
 
         if (err) {
             if (err.name === 'TokenExpiredError') {
@@ -234,7 +234,7 @@ const getUserData = async (req, res) => {
             });
             if(findUser){
                 if(findUser.activo===1){
-                    return res.status(200).send(findUser);
+                    return res.status(200).send({ findUser, newToken: req.newToken});
                 }else{
                     console.log('Access denied. User not active in db.');
                     return res.status(403).send('Access denied. User not active in db.');
