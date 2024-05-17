@@ -11,6 +11,7 @@ const {
     PutObjectCommand,
     GetObjectCommand
 } = require("@aws-sdk/client-s3");
+const {getSignUrlForFile} = require("../config/s3");
 
 var s3Config;
 s3Config = {
@@ -26,6 +27,38 @@ const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Cupon = db.cupones;
 const Locatario = db.locatarios;
+const TipoCupon = db.tipoCupons;
+const detalleCuponCompleto = async (req, res) => {
+    try {
+        let { id } = req.body;
+
+        const detalleCupon = await Cupon.findOne({
+            where: { id: id },
+            include: [
+                {
+                    model: db.locatarios,
+                    as: 'locatario',
+                    attributes: ['nombre'],
+                }
+            ]
+        });
+
+        if (detalleCupon) {
+            const objectKey = `${detalleCupon.codigo}.jpg`;
+            const url = await getSignUrlForFile( detalleCupon.codigo+ ".jpg");
+            console.log(detalleCupon.codigo)
+            console.log(url)
+            console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
+            res.status(200).json({ success: true, detalles: detalleCupon, image:url});
+        } else {
+            res.status(404).json({ success: false, message: 'Cupón no encontrado'});
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ success: false, message: 'Hubo un error al procesar la solicitud' });
+    }
+}
+
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon } = req.body;
@@ -386,6 +419,7 @@ const modificar = async (req, res) => {
 }
 module.exports = {
     detalleCupon,
+    detalleCuponCompleto,
     getCupones,
     deshabilitar,
     habilitar,

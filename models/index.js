@@ -73,9 +73,11 @@ db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as
 
 db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario", as: 'locatario'});
 db.locatarios.hasMany(db.cupones,{foreignKey: "fidLocatario", as: 'locatario'});
+db.tipoCupons.hasMany(db.cupones,{foreignKey: "fidTipoCupon", as: 'tipoCupon'});
 
 db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon", as: 'cupon'});
 db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon", as: 'cupon'});
+
 
 db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient", as:'cliente'});
 db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient", as:'cliente'});
