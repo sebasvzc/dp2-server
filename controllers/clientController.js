@@ -19,9 +19,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJCJ3XRU74',
-  secretAccessKey: 'qPWnFM0OMYhSO4abMeLN5fhue6F3wWL/13v2z7lo',
-  sessionToken: 'IQoJb3JpZ2luX2VjELj//////////wEaCXVzLXdlc3QtMiJIMEYCIQDOfWo+l7YgcOoKqo/pLc5PtzIinaPxReBDVzQuh/hUIQIhAMkYwcjUc4stIoJIk5OoMgglbeJ2RpzVNdNkrvn1AdiyKrACCCAQABoMODAyNzA2NDcxNjk4IgxitHYaGeYzt738a1EqjQKrUEe/fkWDxW+iMVcmdmIrPu3G0bs+3KnnBpuGDZqtr2Br4HCFWEpSgAQ+jnLXXdEmlSj/OjBxSuxVWH1SxIj0+JDT0wl6nFElF46HizyomwBweB8VFpRUVkVDLaunFiS0a9pd+t+r2bNVOh6DqAz16sVYC1MywBLhclsCDj8EPpx6yiKRF59FOq5MSZt1EZtB7c7iH15WhuZ7d1RFjWfbD47d5g6MUc+d3gZgtuKFdfZr7GjpNXyQ16UjV/uFdunCjY7Hs6Jp1lo2o4OwsjGLENfRAOztXA9eDUgFLE6m7tF5LiWvWrCIKtdirxggzGjgfnX3yko0tLUx5LnjwmdWJG8GMVKn7751L0AjLTDMtPWxBjqcAT6KVS1fS6PQ9/ve5fTHWtvY5LrpTPaipS7DuIUFk9HcV/6/RzFytyoYUo9dnw1DigBeBn0JbTRffNXDaS6L0JSMSVA3/gOf4MuiQK3YNuSx4FlccVOjHs4NiHwkHU3cuo18FfJ7gzo8Dute7xOhMwyO9N8bj4ObsXhchild7eWmocJykM3Lr7+9AX1oKhY5hLIGDi5PbTWfz8cOeg==',
+  accessKeyId: 'ASIA3VZIIXMJLT4YHJX2',
+  secretAccessKey: 'Xuj2kG+IFG86ckaI8zhd+8yaCtBesb+Vnmo4JzAw',
+  sessionToken: 'IQoJb3JpZ2luX2VjEIv//////////wEaCXVzLXdlc3QtMiJHMEUCIQCdMYIPTuzjiDdXvRYwKSzgmVkaDKqybnoWAwNYHbMbHwIgK2LkZqapjdormNFi89lZVb5bxBs+gAA/BJsuoo76kr8quQII8///////////ARAAGgw4MDI3MDY0NzE2OTgiDIpM3sic+ab6k50vQCqNAs3wVirJ5SMm0rye7eOEJpFnf0zYiD7dUhH6SB9Yqp5OvhExEx20f4MMeL+u/wcvyyrSiGgSP/a53EFNPY2Dgjad5FpzFvKKDUZJ8JLra/J+/0EBcBlqRqPdsfjII7SfhfsBQfsLDzraBIzAIhxgfcscGvspN9+DlXbTs/Dx1S78jQtIKbjdV/4z/JBhwlF2L87rPNplkAwELj6IKohGaIasEAUpZli77gaYVUfJGzFepdzzNYfT6QjBTb0QYcNLzI4uckBLd+mFr3iaSwXBTNV+FMEIfby1asQw6ZZQ0PfoKD8Dcs9T1G2yzymTWrJQtuZHE2pLxlvIVZ41r3PcuRLmPuuMlKoquU98/badMLbio7IGOp0BOl/CJnUBEq/oLmxLwTIUCEzfn8wxmdA002uYhEI40C6xPgY604QbdoI8FsK2SeJYzQT2s4fhKphRG81utT1NE+wFgk8h+xMfTX5+6AkNBTe48T2sdpOd5oatcFC41TEV+njJdL5xeNjErH+RlQ/Kxmqir1BU/S3DWtm+7frvJt8dRujc1hlH1LHEH21W/I7EZLlIgJq1/fTKUJkAeg==',
   region: 'us-east-1' // La región donde está tu bucket
 });
 
