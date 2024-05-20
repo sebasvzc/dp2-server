@@ -30,15 +30,20 @@ const Locatario = db.locatarios;
 const TipoCupon = db.tipoCupons;
 const detalleCuponCompleto = async (req, res) => {
     try {
-        let { id } = req.body;
+        console.log(req.body)
 
         const detalleCupon = await Cupon.findOne({
-            where: { id: id },
+            where: { id: req.body.id },
             include: [
                 {
                     model: db.locatarios,
                     as: 'locatario',
-                    attributes: ['nombre'],
+                    attributes: ['id','nombre'],
+                },
+                {
+                    model: db.tipoCupons,
+                    as: 'tipoCupon',
+                    attributes: ['id','nombre'],
                 }
             ]
         });

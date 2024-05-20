@@ -46,7 +46,7 @@ const db = {}
     });*/
 db.Sequelize = Sequelize
 db.sequelize = sequelize
-sequelize.sync(); // actualiza la base de datos cuando hay cambios en las tablas
+
 
 //connecting to model
 
@@ -71,7 +71,16 @@ db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTyp
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
 db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
 
+db.eventos.belongsTo(db.lugares,{foreignKey: "fidLugar", as: 'lugar'});
+db.eventos.belongsTo(db.tipoEventos,{foreignKey: "fidTipoEvento", as: 'tipoEvento'});
+db.eventos.belongsTo(db.locatarios,{foreignKey: "fidTienda", as: 'locatario'});
+db.eventos.hasMany(db.eventoXClientes,{foreignKey: "fidEvento", as: 'eventoxcliente'});
+
+db.eventoXClientes.belongsTo(db.eventos,{foreignKey: "fidEvento", as: 'eventoxcliente'});
+db.eventoXClientes.belongsTo(db.clients,{foreignKey: "fidCliente", as: 'cliente'});
+
 db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario", as: 'locatario'});
+db.cupones.belongsTo(db.tipoCupons,{foreignKey: "fidTipoCupon", as: 'tipoCupon'});
 db.locatarios.hasMany(db.cupones,{foreignKey: "fidLocatario", as: 'locatario'});
 db.tipoCupons.hasMany(db.cupones,{foreignKey: "fidTipoCupon", as: 'tipoCupon'});
 

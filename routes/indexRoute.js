@@ -8,6 +8,7 @@ var passManagerRoutes = require('./passwordManagment/passwordManagmentRoute');
 var catTiendaRoutes = require('./tiendas/categoriaTiendasRoute')
 var tiendasRoutes = require('./tiendas/locatariosRoute')
 var tipoCuponRoutes = require('./cupones/tipoCuponRoute')
+var eventoRoutes = require('./evento/eventoRoute')
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 const cuponRouter = require('./cupones/cuponRoute');
@@ -26,6 +27,7 @@ router.use('/client', clientRouter);
 router.use('/password', passManagerRoutes);
 router.use('/categoriaTienda', catTiendaRoutes);
 router.use('/tiendas', tiendasRoutes);
+router.use('/eventos', eventoRoutes);
 router.use('/cupones', cuponRouter);
 router.use('/tipocupones', tipoCuponRoutes);
 
