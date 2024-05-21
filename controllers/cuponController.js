@@ -84,6 +84,23 @@ const detalleCupon = async (req, res) => {
             }]
         });
 
+       /* const locatarioId = detalles.locatario.id;
+        const keyLocatario = `tienda${locatarioId}.jpg`;
+
+        const url = await getSignUrlForFile('getObject', {
+            Bucket: 'appdp2',
+            Key: keyLocatario,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        const cuponId = detalles.id;
+        const keyCupon = `cupon${cuponId}.jpg`;
+        const url2 = await getSignUrlForFile('getObject', {
+            Bucket: 'appdp2',
+            Key: keyCupon,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });*/
+
         if (detalles) {
 
             const keyCupon = `cupon${idCupon}.jpg`;
