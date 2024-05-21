@@ -64,6 +64,7 @@ const detalleCuponCompleto = async (req, res) => {
     }
 }
 
+// arreglar
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon } = req.body;
@@ -84,6 +85,26 @@ const detalleCupon = async (req, res) => {
         });
 
         if (detalles) {
+
+            const keyCupon = `cupon${idCupon}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlCupon = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyCupon,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+            const keyLocatario = `tienda${detalles.locatario.id}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+            const urlTienda = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyLocatario,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+
             const formattedCupon = {
                 cuponCodigo: detalles.codigo,
                 cuponSumilla: detalles.sumilla,
@@ -91,11 +112,11 @@ const detalleCupon = async (req, res) => {
                 cuponFechaExpiracion: detalles.fechaExpiracion,
                 cuponTerminosCondiciones: detalles.terminosCondiciones,
                 cuponCostoPuntos: detalles.costoPuntos,
-                cuponRutaFoto: detalles.rutaFoto ? "https://appdp2.s3.amazonaws.com/cupon" + idCupon + ".jpg" : null,
+                cuponRutaFoto: urlCupon,
                 locatarioNombre: detalles.locatario.nombre,
                 locatarioDescripcion: detalles.locatario.descripcion,
                 locatarioLocacion: detalles.locatario.locacion,
-                locatarioRutaFoto: detalles.locatario.rutaFoto ? "https://appdp2.s3.amazonaws.com/tienda" + detalles.locatario.id + ".jpg" : null,
+                locatarioRutaFoto: urlTienda,
                 categoriaTiendaNombre: detalles.locatario.categoriaTienda.nombre
             };
 
