@@ -83,24 +83,22 @@ const detalleCupon = async (req, res) => {
             }]
         });
 
-        const key = `tienda${detalles.locatario.id}.jpg`;
+        const locatarioId = detalles.locatario.id;
+        const keyLocatario = `tienda${locatarioId}.jpg`;
 
-        // Genera la URL firmada para el objeto en el bucket appdp2
-        const url = await getSignUrlForFile( key);
-        /*const url = s3.getSignedUrl('getObject', {
+        const url = await getSignUrlForFile('getObject', {
             Bucket: 'appdp2',
-            Key: key,
+            Key: keyLocatario,
             Expires: 8600 // Tiempo de expiración en segundos
-        });*/
+        });
 
-
-        const key2 = `cupon${detalles.idCupon}.jpg`;
-        const url2 = await getSignUrlForFile(key2);
-        /*const url2 = s3.getSignedUrl('getObject', {
+        const cuponId = detalles.id;
+        const keyCupon = `cupon${cuponId}.jpg`;
+        const url2 = await getSignUrlForFile('getObject', {
             Bucket: 'appdp2',
-            Key: key2,
-            Expires: 8600
-        });*/
+            Key: keyCupon,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
 
         if (detalles) {
             const formattedCupon = {
