@@ -83,6 +83,25 @@ const detalleCupon = async (req, res) => {
             }]
         });
 
+        const key = `tienda${detalles.locatario.id}.jpg`;
+
+        // Genera la URL firmada para el objeto en el bucket appdp2
+        const url = await getSignUrlForFile( key);
+        /*const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });*/
+
+
+        const key2 = `cupon${detalles.idCupon}.jpg`;
+        const url2 = await getSignUrlForFile(key2);
+        /*const url2 = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key2,
+            Expires: 8600
+        });*/
+
         if (detalles) {
             const formattedCupon = {
                 cuponCodigo: detalles.codigo,
@@ -91,11 +110,11 @@ const detalleCupon = async (req, res) => {
                 cuponFechaExpiracion: detalles.fechaExpiracion,
                 cuponTerminosCondiciones: detalles.terminosCondiciones,
                 cuponCostoPuntos: detalles.costoPuntos,
-                cuponRutaFoto: detalles.rutaFoto ? "https://appdp2.s3.amazonaws.com/cupon" + idCupon + ".jpg" : null,
+                cuponRutaFoto: url2,
                 locatarioNombre: detalles.locatario.nombre,
                 locatarioDescripcion: detalles.locatario.descripcion,
                 locatarioLocacion: detalles.locatario.locacion,
-                locatarioRutaFoto: detalles.locatario.rutaFoto ? "https://appdp2.s3.amazonaws.com/tienda" + detalles.locatario.id + ".jpg" : null,
+                locatarioRutaFoto: url,
                 categoriaTiendaNombre: detalles.locatario.categoriaTienda.nombre
             };
 

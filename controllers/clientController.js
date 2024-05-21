@@ -541,12 +541,12 @@ const getMisCupones = async (req, res) => {
 
         const key = `tienda${cupon.cupon.locatario.id}.jpg`;
 
-                // Genera la URL firmada para el objeto en el bucket appdp2
-                const url = s3.getSignedUrl('getObject', {
-                    Bucket: 'appdp2',
-                    Key: key,
-                    Expires: 8600 // Tiempo de expiración en segundos
-                });
+        // Genera la URL firmada para el objeto en el bucket appdp2
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
 
 
         const key2 = `cupon${cupon.fidCupon}.jpg`;
@@ -554,7 +554,7 @@ const getMisCupones = async (req, res) => {
             Bucket: 'appdp2',
             Key: key2,
             Expires: 8600
-    });
+        });
     return{
         id: cupon.id,
         fidCupon: cupon.fidCupon,
