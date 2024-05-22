@@ -6,7 +6,7 @@ const crypto = require("crypto");
 const Op = Sequelize.Op;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 
-const {
+/*const {
     S3Client,
     PutObjectCommand,
     GetObjectCommand
@@ -21,9 +21,22 @@ s3Config = {
         secretAccessKey: AWS_ACCESS_SECRET,
         sessionToken: AWS_SESSION_TOKEN
     },
-};
+};*/
 
-const s3Client = new S3Client(s3Config);
+const AWS = require('aws-sdk');
+
+// Configura las credenciales de AWS
+AWS.config.update({
+  accessKeyId: 'ASIA3VZIIXMJKH575VHB',
+  secretAccessKey: 'mUh7ZcAb2Rqd836Z0MaXuoTvoSMK/zBVZAuX9ou4',
+  sessionToken: 'IQoJb3JpZ2luX2VjEMT//////////wEaCXVzLXdlc3QtMiJHMEUCIQDHFH/ieE7ChKd5F5uyg3AodolsOAPgEFZF8+5W8PjriwIgfLS3jdXPQ91utztPHWXOC41TFK7NAsE0Rlmrbxxgs+IqsAIIPBAAGgw4MDI3MDY0NzE2OTgiDOtsNf3axvY0mdE/0CqNArW4PsL6I1soxEcQx0PoUM6oxpdzdNvcYHQ9UxoLHoXzGQv3Iw2wHhOCo+ggETnLaZTvJRx36b/N9980y9xoWDt0IvMFhzS7k3lTafqPS5KLL55EkkTqlEx2wg93wE25grXBfLK9/Jwt9S9Hxdh++/ap7+JZ2M+W3gZI9VK5weKtjW7ZRrvzLVgwcRszy2tDgQ/dVH8U8zW0qL4BypP323qSUgvvbt66mi4BV8bDZK/VkV0WtmXxDYXAnWfFWptLpW9iyDspx8/PEu6WUMxvN8kpSVBmE4QDOHIGdkrfS2nWZWk6mPh7hJl5BZdCZRIDN37I090jPJq2IP9UYbj7qq4d9ai3WakQSmJPSHWcMPGksLIGOp0BNkdMH920yeGRrlIaoIkG8fiGHOlm/P0INLyjGc0Lv0XuSQwQMIB3NR8IrIdpk6K5tGUmmxEB03CYWxhDEjijliVAgcR2hIaAYaKbRDtozr+okcekkLPa+Hh4vAer2NC7+slwyhqMs9Xw14wQo00YDk1Bbx4qk9pamHU42SQKW8r0ONZJklyY9/aWxhbmFkn3XZ7liRsmI6rc5cNVrg==',
+  region: 'us-east-1' // La región donde está tu bucket
+});
+
+// Crea un nuevo objeto S3
+const s3 = new AWS.S3();
+
+//const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Cupon = db.cupones;
 const Locatario = db.locatarios;
@@ -64,6 +77,7 @@ const detalleCuponCompleto = async (req, res) => {
     }
 }
 
+// arreglar
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon } = req.body;
@@ -83,7 +97,44 @@ const detalleCupon = async (req, res) => {
             }]
         });
 
+       /* const locatarioId = detalles.locatario.id;
+        const keyLocatario = `tienda${locatarioId}.jpg`;
+
+        const url = await getSignUrlForFile('getObject', {
+            Bucket: 'appdp2',
+            Key: keyLocatario,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        const cuponId = detalles.id;
+        const keyCupon = `cupon${cuponId}.jpg`;
+        const url2 = await getSignUrlForFile('getObject', {
+            Bucket: 'appdp2',
+            Key: keyCupon,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });*/
+
         if (detalles) {
+
+            const keyCupon = `cupon${idCupon}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlCupon = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyCupon,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+            const keyLocatario = `tienda${detalles.locatario.id}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+            const urlTienda = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyLocatario,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+
             const formattedCupon = {
                 cuponCodigo: detalles.codigo,
                 cuponSumilla: detalles.sumilla,
@@ -91,11 +142,11 @@ const detalleCupon = async (req, res) => {
                 cuponFechaExpiracion: detalles.fechaExpiracion,
                 cuponTerminosCondiciones: detalles.terminosCondiciones,
                 cuponCostoPuntos: detalles.costoPuntos,
-                cuponRutaFoto: detalles.rutaFoto ? "https://appdp2.s3.amazonaws.com/cupon" + idCupon + ".jpg" : null,
+                cuponRutaFoto: urlCupon,
                 locatarioNombre: detalles.locatario.nombre,
                 locatarioDescripcion: detalles.locatario.descripcion,
                 locatarioLocacion: detalles.locatario.locacion,
-                locatarioRutaFoto: detalles.locatario.rutaFoto ? "https://appdp2.s3.amazonaws.com/tienda" + detalles.locatario.id + ".jpg" : null,
+                locatarioRutaFoto: urlTienda,
                 categoriaTiendaNombre: detalles.locatario.categoriaTienda.nombre
             };
 
