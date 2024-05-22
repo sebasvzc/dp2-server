@@ -376,8 +376,8 @@ const crear = async (req, res) => {
 
 const modificar = async (req, res) => {
     var updateItem = req.body.editedCupon;
-    console.log('updateUser - updateItem: ', updateItem);
-    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body.editedCupon;
+
+    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
     try {
         const cupon = await Cupon.findOne({
             where: {
@@ -393,7 +393,8 @@ const modificar = async (req, res) => {
                 codigo: codigo
             }
         });
-        if (checkCupon && id!== checkCupon.id) {
+        if (checkCupon && parseInt(id,10)!== checkCupon.id) {
+
             console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
             return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
         }

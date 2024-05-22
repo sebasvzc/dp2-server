@@ -15,6 +15,6 @@ cuponRouter.get('/listarcupones', authenticateToken,getCupones);
 cuponRouter.post('/deshabilitar', authenticateToken,deshabilitar);
 cuponRouter.post('/habilitar', authenticateToken,habilitar);
 cuponRouter.post('/crear', authenticateToken,upload.any(),crear);
-cuponRouter.post('/modificar', authenticateToken,modificar);
+cuponRouter.post('/modificar', authenticateToken,upload.any(),modificar);
 cuponRouter.get('/listarcuponescliente', getCuponesClientes);
 module.exports = cuponRouter;
