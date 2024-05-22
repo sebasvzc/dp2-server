@@ -65,7 +65,7 @@ db.tipoEventos = require('./Evento/tipoEventoModel') (sequelize, DataTypes)
 db.lugares = require('./Evento/lugarModel') (sequelize, DataTypes) 
 db.eventos = require('./Evento/eventoModel') (sequelize, DataTypes) 
 db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTypes) 
-
+db.escaneos = require('./escaneoQRModel') (sequelize, DataTypes) 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
@@ -91,6 +91,35 @@ db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon", as: 'cupon'});
 db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient", as:'cliente'});
 db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient", as:'cliente'});
 
+/* COSAS DE LOS QRS */
+db.escaneos.belongsTo(db.clients, { foreignKey: 'fidClient', as: 'cliente' });
+
+db.escaneos.belongsTo(db.eventos, {
+    foreignKey: 'fidReferencia',
+    constraints: false,
+    as: 'evento',
+    scope: {
+        tipo: 'evento'
+    }
+});
+
+db.escaneos.belongsTo(db.locatarios, {
+    foreignKey: 'fidReferencia',
+    constraints: false,
+    as: 'locatario',
+    scope: {
+        tipo: 'tienda'
+    }
+});
+
+db.escaneos.belongsTo(db.cuponXClientes, {
+    foreignKey: 'fidReferencia',
+    constraints: false,
+    as: 'cupon',
+    scope: {
+        tipo: 'cupon'
+    }
+});
 
 
 //exporting the module
