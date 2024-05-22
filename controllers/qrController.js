@@ -99,7 +99,7 @@ const scanQr = async (req, res) => {
             ultimoEscaneo: new Date()  // Registra la fecha actual del escaneo
         });
 
-        res.json({ message: 'QR escaneado con éxito.' });
+        res.json({ message: 'QR escaneado con éxito, puntos asignados.' });
     } catch (error) {
         console.error('Error al escanear QR:', error);
         res.status(500).json({ message: error.message });
