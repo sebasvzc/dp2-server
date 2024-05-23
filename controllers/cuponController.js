@@ -184,7 +184,13 @@ const getCupones = async (req, res) => {
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `cupon${cupon.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
@@ -215,7 +221,13 @@ const getCupones = async (req, res) => {
             if (cupones) {
                 // console.log(users)
                 // console.log(users)
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `cupon${cupon.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(200).send("Cupones no encontrados con esa busqueda");
             }
@@ -321,7 +333,6 @@ const getCuponesClientes = async (req, res) => {
         console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
     }
 }
-
 const getClientesXCupon = async (req, res) => {
     var queryType = req.query.query;
     var idParam = parseInt(req.query.idParam);
@@ -401,8 +412,6 @@ const getClientesXCupon = async (req, res) => {
         console.log('getClientesXCupon - queryType:', queryType, ' - [Error]: ', error);
     }
 }
-
-
 const getCuponesXDiaCanjeado = async (req, res) => {
 
     var idParam = parseInt(req.query.idParam);
@@ -436,8 +445,6 @@ const getCuponesXDiaCanjeado = async (req, res) => {
         console.log('getCuponXDia - queryType: - [Error]: ', error);
     }
 }
-
-
 const habilitar = async (req, res) => {
     console.log(req.body)
     try {
