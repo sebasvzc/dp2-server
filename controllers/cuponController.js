@@ -29,7 +29,7 @@ const AWS = require('aws-sdk');
 // Crea un nuevo objeto S3
 const s3 = new AWS.S3();
 
-//const s3Client = new S3Client(s3Config);
+const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Cupon = db.cupones;
 const Locatario = db.locatarios;
