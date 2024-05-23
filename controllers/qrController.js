@@ -37,6 +37,7 @@ const generateQr = async (req, res) => {
 const scanQr = async (req, res) => {
     try {
         const { tipo, idReferencia, idCliente } = req.body;
+
         // Validar si el tipo es uno de los permitidos
         if (!['evento', 'tienda', 'cupon'].includes(tipo)) {
             return res.status(400).json({ message: 'Tipo no válido' });
@@ -56,10 +57,15 @@ const scanQr = async (req, res) => {
                 break;
         }
 
-        // Buscar la referencia para asegurar que existe
-        const referencia = await model.findByPk(idReferencia);
+        // Buscar la referencia para asegurar que existe y está activa
+        const referencia = await model.findOne({
+            where: {
+                id: idReferencia,
+                activo: 1
+            }
+        });
         if (!referencia) {
-            return res.status(404).json({ message: `${tipo} no encontrado` });
+            return res.status(404).json({ message: `${tipo} no encontrado o no está activo` });
         }
 
         // Consultar si ya existe un escaneo previo
@@ -86,9 +92,9 @@ const scanQr = async (req, res) => {
         // Verificar si el escaneo ya existe según las reglas dadas
         if (existingScan) {
             if (tipo === 'tienda' && existingScan.ultimoEscaneo.toDateString() === new Date().toDateString()) {
-                return res.status(400).json({ message: 'Este QR de tienda ya fue escaneado hoy.' });
+                return res.status(400).json({ message: 'Este QR de tienda ya fue escaneado hoy.' ,  puntosOtorgados:-1});
             }
-            return res.status(400).json({ message: 'Este QR ya ha sido escaneado.' });
+            return res.status(400).json({ message: 'Este QR ya ha sido escaneado.',  puntosOtorgados:-1 });
         }
 
         // Registrar el nuevo escaneo
@@ -99,10 +105,25 @@ const scanQr = async (req, res) => {
             ultimoEscaneo: new Date()  // Registra la fecha actual del escaneo
         });
 
-        res.json({ message: 'QR escaneado con éxito, puntos asignados.' });
+        // Si el tipo es 'evento', llamar al procedimiento para sumar puntos
+        let puntosOtorgados = 0;
+        if (tipo === 'evento') {
+            const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
+                replacements: { tipo: 1, idCliente: idCliente, idReferencia: idReferencia }
+            });
+
+            // Obtener el valor de la variable de salida
+            const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
+            puntosOtorgados = output.puntosOtorgados;
+        }
+
+        res.json({ 
+            message: 'QR escaneado con éxito, puntos asignados.',
+            puntosOtorgados: puntosOtorgados
+        });
     } catch (error) {
         console.error('Error al escanear QR:', error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message,  puntosOtorgados:-1});
     }
 }
 
