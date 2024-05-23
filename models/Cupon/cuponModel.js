@@ -81,7 +81,8 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'fidLocatario'
         });
         Cupon.belongsTo(models.tipoCupon, {
-            foreignKey: 'fidTipoCupon'
+            foreignKey: 'fidTipoCupon',
+            as: 'tipoCupon' // Alias de la relación
         });
         Cupon.hasMany(models.cuponXCliente, {
             foreignKey: 'fidCupon'

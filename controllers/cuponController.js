@@ -4,10 +4,73 @@ const Sequelize = require('sequelize');
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const Op = Sequelize.Op;
+const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 
+const {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand
+} = require("@aws-sdk/client-s3");
+const {getSignUrlForFile} = require("../config/s3");
+
+var s3Config;
+s3Config = {
+    region: "us-east-1",
+    credentials: {
+        accessKeyId: AWS_ACCESS_KEY,
+        secretAccessKey: AWS_ACCESS_SECRET,
+        sessionToken: AWS_SESSION_TOKEN
+    },
+};
+
+const AWS = require('aws-sdk');
+
+
+// Crea un nuevo objeto S3
+const s3 = new AWS.S3();
+
+//const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Cupon = db.cupones;
 const Locatario = db.locatarios;
+const TipoCupon = db.tipoCupons;
+const detalleCuponCompleto = async (req, res) => {
+    try {
+        console.log(req.body)
+
+        const detalleCupon = await Cupon.findOne({
+            where: { id: req.body.id },
+            include: [
+                {
+                    model: db.locatarios,
+                    as: 'locatario',
+                    attributes: ['id','nombre'],
+                },
+                {
+                    model: db.tipoCupons,
+                    as: 'tipoCupon',
+                    attributes: ['id','nombre'],
+                }
+            ]
+        });
+
+        if (detalleCupon) {
+            const objectKey = `${detalleCupon.codigo}.jpg`;
+            const url = await getSignUrlForFile( detalleCupon.codigo+ ".jpg");
+            console.log(detalleCupon.codigo)
+            console.log(url)
+            console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
+            res.status(200).json({ success: true, detalles: detalleCupon, image:url});
+        } else {
+            res.status(404).json({ success: false, message: 'Cupón no encontrado'});
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ success: false, message: 'Hubo un error al procesar la solicitud' });
+    }
+}
+
+// arreglar
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon } = req.body;
@@ -27,7 +90,44 @@ const detalleCupon = async (req, res) => {
             }]
         });
 
+       /* const locatarioId = detalles.locatario.id;
+        const keyLocatario = `tienda${locatarioId}.jpg`;
+
+        const url = await getSignUrlForFile('getObject', {
+            Bucket: 'appdp2',
+            Key: keyLocatario,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        const cuponId = detalles.id;
+        const keyCupon = `cupon${cuponId}.jpg`;
+        const url2 = await getSignUrlForFile('getObject', {
+            Bucket: 'appdp2',
+            Key: keyCupon,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });*/
+
         if (detalles) {
+
+            const keyCupon = `cupon${idCupon}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlCupon = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyCupon,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+            const keyLocatario = `tienda${detalles.locatario.id}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+            const urlTienda = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyLocatario,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+
             const formattedCupon = {
                 cuponCodigo: detalles.codigo,
                 cuponSumilla: detalles.sumilla,
@@ -35,11 +135,11 @@ const detalleCupon = async (req, res) => {
                 cuponFechaExpiracion: detalles.fechaExpiracion,
                 cuponTerminosCondiciones: detalles.terminosCondiciones,
                 cuponCostoPuntos: detalles.costoPuntos,
-                cuponRutaFoto: detalles.rutaFoto ? "https://appdp2.s3.amazonaws.com/cupon" + idCupon + ".jpg" : null,
+                cuponRutaFoto: urlCupon,
                 locatarioNombre: detalles.locatario.nombre,
                 locatarioDescripcion: detalles.locatario.descripcion,
                 locatarioLocacion: detalles.locatario.locacion,
-                locatarioRutaFoto: detalles.locatario.rutaFoto ? "https://appdp2.s3.amazonaws.com/tienda" + detalles.locatario.id + ".jpg" : null,
+                locatarioRutaFoto: urlTienda,
                 categoriaTiendaNombre: detalles.locatario.categoriaTienda.nombre
             };
 
@@ -114,7 +214,6 @@ const getCupones = async (req, res) => {
         console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
     }
 }
-
 const getCuponesClientes = async (req, res) => {
     var queryType = req.query.query;
     // console.log(req.query.query)
@@ -249,8 +348,20 @@ const deshabilitar = async (req, res) => {
 }
 const crear = async (req, res) => {
     try {
-        console.log("entre a registrar nuevo cupon")
-        const { codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
+        console.log("entre a registrar nuevo cupon");
+
+
+        const { codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,ordenPriorizacion } = req.body;
+
+        const checkCupon = await Cupon.findOne({
+            where: {
+                codigo: codigo
+            }
+        });
+        if (checkCupon) {
+            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
+            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+        }
         const data = {
             codigo,
             fidLocatario,
@@ -262,30 +373,40 @@ const crear = async (req, res) => {
             esLimitado,
             costoPuntos,
             cantidadInicial,
-            cantidadDisponible,
+            cantidadDisponible:cantidadInicial,
             ordenPriorizacion,
-            rutaFoto,
+            rutaFoto: codigo,
             activo:1
         };
-        const checkCupon = await Cupon.findOne({
-            where: {
-                codigo: codigo
-            }
-        });
-        if (checkCupon) {
-            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
-            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
-        }
         //saving the user
         const cupon = await Cupon.create(data);
         //if user details is captured
         //generate token with the user's id and the secretKey in the env file
         // set cookie with the token generated
         if (cupon) {
+            const file = req.files[0];
+            const bucketParams = {
+                Bucket: AWS_S3_BUCKET_NAME,
+                Key: codigo+".jpg",
+                Body: file.buffer,
+                ContentType: file.mimetype
+            };
+            try {
+                // Intenta subir el archivo a S3
+                const data = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al s3:", data);
+            } catch (error) {
+                // Captura cualquier error durante la subida del archivo a S3
+                console.error("Error al subir el archivo a S3:", error);
+                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                return res.status(200).send({
+                    message: "Se encontró un error durante la subida del archivo, pero sí se creó el cupón. Edítalo posteriormente."
+                });
+            }
 
             //send users details
             //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send("Cupon "+ cupon.id+ " creado correctamente");
+            return res.status(200).send({message:"Cupon "+ cupon.id+ " creado correctamente"});
         }
         else {
             return res.status(400).send("Invalid request body");
@@ -293,14 +414,14 @@ const crear = async (req, res) => {
 
 
     } catch (error) {
-        console.log('signup - [Error]: ', error);
+        console.log('crearCupon - [Error]: ', error);
     }
 }
 
 const modificar = async (req, res) => {
     var updateItem = req.body.editedCupon;
-    console.log('updateUser - updateItem: ', updateItem);
-    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body.editedCupon;
+
+    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
     try {
         const cupon = await Cupon.findOne({
             where: {
@@ -316,7 +437,8 @@ const modificar = async (req, res) => {
                 codigo: codigo
             }
         });
-        if (checkCupon && id!== checkCupon.id) {
+        if (checkCupon && parseInt(id,10)!== checkCupon.id) {
+
             console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
             return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
         }
@@ -347,6 +469,7 @@ const modificar = async (req, res) => {
 }
 module.exports = {
     detalleCupon,
+    detalleCuponCompleto,
     getCupones,
     deshabilitar,
     habilitar,

@@ -78,6 +78,7 @@ function verifyRefreshToken(refreshToken, req, res, next) {
         });
         if(findUser){
             if(findUser.activo===1){
+                console.log("estoy dandon nuevos tokens")
                 req.newToken = newAccessToken;
                 req.user = decoded;
                 next();

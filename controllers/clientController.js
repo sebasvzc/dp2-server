@@ -19,9 +19,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJCJ3XRU74',
-  secretAccessKey: 'qPWnFM0OMYhSO4abMeLN5fhue6F3wWL/13v2z7lo',
-  sessionToken: 'IQoJb3JpZ2luX2VjELj//////////wEaCXVzLXdlc3QtMiJIMEYCIQDOfWo+l7YgcOoKqo/pLc5PtzIinaPxReBDVzQuh/hUIQIhAMkYwcjUc4stIoJIk5OoMgglbeJ2RpzVNdNkrvn1AdiyKrACCCAQABoMODAyNzA2NDcxNjk4IgxitHYaGeYzt738a1EqjQKrUEe/fkWDxW+iMVcmdmIrPu3G0bs+3KnnBpuGDZqtr2Br4HCFWEpSgAQ+jnLXXdEmlSj/OjBxSuxVWH1SxIj0+JDT0wl6nFElF46HizyomwBweB8VFpRUVkVDLaunFiS0a9pd+t+r2bNVOh6DqAz16sVYC1MywBLhclsCDj8EPpx6yiKRF59FOq5MSZt1EZtB7c7iH15WhuZ7d1RFjWfbD47d5g6MUc+d3gZgtuKFdfZr7GjpNXyQ16UjV/uFdunCjY7Hs6Jp1lo2o4OwsjGLENfRAOztXA9eDUgFLE6m7tF5LiWvWrCIKtdirxggzGjgfnX3yko0tLUx5LnjwmdWJG8GMVKn7751L0AjLTDMtPWxBjqcAT6KVS1fS6PQ9/ve5fTHWtvY5LrpTPaipS7DuIUFk9HcV/6/RzFytyoYUo9dnw1DigBeBn0JbTRffNXDaS6L0JSMSVA3/gOf4MuiQK3YNuSx4FlccVOjHs4NiHwkHU3cuo18FfJ7gzo8Dute7xOhMwyO9N8bj4ObsXhchild7eWmocJykM3Lr7+9AX1oKhY5hLIGDi5PbTWfz8cOeg==',
+  accessKeyId: 'ASIA3VZIIXMJKH575VHB',
+  secretAccessKey: 'mUh7ZcAb2Rqd836Z0MaXuoTvoSMK/zBVZAuX9ou4',
+  sessionToken: 'IQoJb3JpZ2luX2VjEMT//////////wEaCXVzLXdlc3QtMiJHMEUCIQDHFH/ieE7ChKd5F5uyg3AodolsOAPgEFZF8+5W8PjriwIgfLS3jdXPQ91utztPHWXOC41TFK7NAsE0Rlmrbxxgs+IqsAIIPBAAGgw4MDI3MDY0NzE2OTgiDOtsNf3axvY0mdE/0CqNArW4PsL6I1soxEcQx0PoUM6oxpdzdNvcYHQ9UxoLHoXzGQv3Iw2wHhOCo+ggETnLaZTvJRx36b/N9980y9xoWDt0IvMFhzS7k3lTafqPS5KLL55EkkTqlEx2wg93wE25grXBfLK9/Jwt9S9Hxdh++/ap7+JZ2M+W3gZI9VK5weKtjW7ZRrvzLVgwcRszy2tDgQ/dVH8U8zW0qL4BypP323qSUgvvbt66mi4BV8bDZK/VkV0WtmXxDYXAnWfFWptLpW9iyDspx8/PEu6WUMxvN8kpSVBmE4QDOHIGdkrfS2nWZWk6mPh7hJl5BZdCZRIDN37I090jPJq2IP9UYbj7qq4d9ai3WakQSmJPSHWcMPGksLIGOp0BNkdMH920yeGRrlIaoIkG8fiGHOlm/P0INLyjGc0Lv0XuSQwQMIB3NR8IrIdpk6K5tGUmmxEB03CYWxhDEjijliVAgcR2hIaAYaKbRDtozr+okcekkLPa+Hh4vAer2NC7+slwyhqMs9Xw14wQo00YDk1Bbx4qk9pamHU42SQKW8r0ONZJklyY9/aWxhbmFkn3XZ7liRsmI6rc5cNVrg==',
   region: 'us-east-1' // La región donde está tu bucket
 });
 
@@ -314,72 +314,104 @@ const deleteUser = async (req, res) => {
 }
 
 const disableClient = async (req, res) => {
-    console.log(req.body)
-    const {idCliente} = req.body;
-    
+    const idsClientes = req.body.selected;  // Esperamos un array de IDs
+
+    if (!idsClientes || idsClientes.length === 0) {
+        return res.status(400).send({ message: "No se ha proporcionado una lista de IDs válida.", code: 1 });
+    }
+
     try {
-        
-        console.log('ENTRE :D')
-        
-        console.log(idCliente)
-       
-        // Primero, encontramos al cliente para asegurarnos de que existe
-        const client = await db.clients.findOne({
-            where: { id: idCliente }
+        // Encuentra todos los clientes que corresponden a los IDs proporcionados
+        const clientes = await db.clients.findAll({
+            where: {
+                id: idsClientes
+            }
         });
 
-        // Si el cliente no existe, devolvemos un error
-        if (!client) {
-            return res.status(404).send({estado:"El cliente " + idCliente + " no existe"});
+        if (clientes.length === 0) {
+            return res.status(404).send({ message: "Ninguno de los clientes especificados existe.", code: 2 });
         }
 
-        // Verificar si el cliente ya está desactivado
-        if (client.activo === 0) {
-            return res.status(400).send({estado:"El cliente " + idCliente + " ya está baneado."});
+        const idsEncontrados = clientes.map(cliente => cliente.id);
+        const noEncontrados = idsClientes.filter(id => !idsEncontrados.includes(id));
+
+        // Registrar los IDs de los clientes que no se encontraron
+        if (noEncontrados.length > 0) {
+            console.log("Clientes no encontrados:", noEncontrados);
         }
-        console.log('El cliente existe')
+
         // Actualizar el atributo 'activo' del cliente de 1 a 0
         
         await db.clients.update({ activo: 0 }, {
             where: { id: idCliente }
         });
-        // Enviar una respuesta exitosa
-        return res.status(200).send({estado:"El cliente " + idCliente + " ha sido baneado"});
+
+        // Verificar cuántos registros fueron realmente actualizados
+        if (actualizados[0] === 0) {
+            return res.status(404).send({ message: "Ninguno de los clientes encontrados necesitaba ser desactivado.", code: 3 });
+        }
+
+        return res.status(200).send({
+            message: "Clientes deshabilitados correctamente.",
+            code: 0,
+            noEncontrados: noEncontrados  // Opcionalmente devolver los IDs no encontrados
+        });
 
     } catch (error) {
-        return res.status(500).send({estado:"Ha ocurrido un error intentando deshabilitar al cliente"});
+        console.error("Error al deshabilitar clientes:", error);
+        return res.status(500).send({ message: "Error interno al intentar deshabilitar los clientes.", code: 4 });
     }
 }
 
 const ableClient = async (req, res) => {
-    const {idCliente} = req.body;
+    const idsClientes = req.body.selected;  // Esperamos un array de IDs
+
+    if (!idsClientes || idsClientes.length === 0) {
+        return res.status(400).send({ message: "No se ha proporcionado una lista de IDs válida.", code: 1 });
+    }
+
     try {
-        // Primero, encontramos al cliente para asegurarnos de que existe
-        const client = await db.clients.findOne({
-            where: { id: idCliente }
+        // Encuentra todos los clientes que corresponden a los IDs proporcionados
+        const clientes = await db.clients.findAll({
+            where: {
+                id: idsClientes
+            }
         });
 
-        // Si el cliente no existe, devolvemos un error
-        if (!client) {
-            return res.status(404).send({estado:"El cliente " + idCliente + " no existe"});
+        if (clientes.length === 0) {
+            return res.status(404).send({ message: "Ninguno de los clientes especificados existe.", code: 2 });
         }
 
-        // Verificar si el cliente ya está desactivado
-        if (client.activo === 1) {
-            return res.status(400).send({estado:"El cliente " + idCliente + " ya está activo."});
+        const idsEncontrados = clientes.map(cliente => cliente.id);
+        const noEncontrados = idsClientes.filter(id => !idsEncontrados.includes(id));
+
+        // Registrar los IDs de los clientes que no se encontraron
+        if (noEncontrados.length > 0) {
+            console.log("Clientes no encontrados:", noEncontrados);
         }
 
-        // Actualizar el atributo 'activo' del cliente de 1 a 0
-
-        await db.clients.update({ activo: 0 }, {
-            where: { id: idCliente }
+        // Deshabilitar sólo los clientes que fueron encontrados y están activos
+        const actualizados = await db.clients.update({ activo: 1 }, {
+            where: {
+                id: idsEncontrados,
+                activo: 1  // Asegura que sólo se actualizan los que están actualmente activos
+            }
         });
 
-        // Enviar una respuesta exitosa
-        return res.status(200).send({estado:"El cliente " + idCliente + " ha sido activado"});
+        // Verificar cuántos registros fueron realmente actualizados
+        if (actualizados[0] === 0) {
+            return res.status(404).send({ message: "Ninguno de los clientes encontrados necesitaba ser activado.", code: 3 });
+        }
+
+        return res.status(200).send({
+            message: "Clientes habilitados correctamente.",
+            code: 0,
+            noEncontrados: noEncontrados  // Opcionalmente devolver los IDs no encontrados
+        });
 
     } catch (error) {
-        return res.status(500).send({estado:"Ha ocurrido un error intentando habilitar al cliente"});
+        console.error("Error al habilitar clientes:", error);
+        return res.status(500).send({ message: "Error interno al intentar habilitar los clientes.", code: 4 });
     }
 }
 
@@ -507,12 +539,12 @@ const getMisCupones = async (req, res) => {
 
         const key = `tienda${cupon.cupon.locatario.id}.jpg`;
 
-                // Genera la URL firmada para el objeto en el bucket appdp2
-                const url = s3.getSignedUrl('getObject', {
-                    Bucket: 'appdp2',
-                    Key: key,
-                    Expires: 8600 // Tiempo de expiración en segundos
-                });
+        // Genera la URL firmada para el objeto en el bucket appdp2
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
 
 
         const key2 = `cupon${cupon.fidCupon}.jpg`;
@@ -520,7 +552,7 @@ const getMisCupones = async (req, res) => {
             Bucket: 'appdp2',
             Key: key2,
             Expires: 8600
-    });
+        });
     return{
         id: cupon.id,
         fidCupon: cupon.fidCupon,

@@ -21,5 +21,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         }
     }, {timestamps: true} )
+    //RELACIÓN CON LA LLAVE FORÁNEA
+    TipoCupon.associate = models => {
+        TipoCupon.hasMany(models.cupon, {
+            foreignKey: 'fidTipoCupon'
+        });
+    };
     return TipoCupon
 }

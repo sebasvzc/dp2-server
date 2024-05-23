@@ -35,6 +35,19 @@
         {
             "name": "cupon-controller",
             "description": "Cupon Controller"
+        },
+        {
+            "name": "tienda-controller",
+            "description": "Tienda Controller"
+        },
+        {
+            "name": "tipo-cupones-controller",
+            "description": "Tipo de Cupon Controller"
+        }
+        ,
+        {
+            "name": "evento-controller",
+            "description": "Evento Controller"
         }
     ],
     "paths": {
@@ -206,6 +219,86 @@
                         "schema": {
                             "$ref": "#/definitions/User"
                         },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/eventos/getEventosAsisCateg?fechaInicial={fechaIni}&fechaFinal={fechaFin}": {
+            "get": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "getAsistentesUsingGET",
+                "summary": "Get asistenetes para daashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch para btener la cantidad de asistentes por mes y por categoria",
+                "parameters": [
+                    {
+                        "name": "fechaIni",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "2024-01-10"
+                    },{
+                        "name": "fechaFin",
+                        "required": true,
+                        "in": "path",
+                        "type": "string",
+                        "description": "2024-12-10"
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
                         "description": "A JSON array of user information"
                     },
                     "400": {
@@ -1030,6 +1123,271 @@
                 }
             }
         },
+        "/api/tiendas/listartiendas?query={nombre}&page={page}&pageSize={pageSize}": {
+            "get": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "getTiendasUsingGET",
+                "summary": "Get tienda / tiendas",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al Tienda basado en el parametro. \"20% de dscto\" para unos o \"all\" para traer todos los tiendas.",
+                "parameters": [
+                    {
+                        "name": "nombre",
+                        "required": false,
+                        "in": "path",
+                        "type": "string",
+                        "description": "Nombre de la tienda"
+                    },{
+                        "name": "page",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Pagina solicitada"
+                    },{
+                        "name": "pageSize",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Tamanio de pagina solicitada"
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Tienda"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/tiendas/deshabilitar": {
+            "post": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "deshabilitartiendasUsingPOST",
+                "summary": "Deshabilitar tienda / tiendas",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Deshabilitar tiendas.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "deshabilitar",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "selected": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Tienda"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/tiendas/habilitar": {
+            "post": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "habilitartiendasUsingPOST",
+                "summary": "Habilitar tienda / tiendas",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Habilitar tiendas.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "habilitar",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "selected": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Tienda"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/cupones/listarcuponescliente?query={sumilladescrip}&page={page}&pageSize={pageSize}&categoria={categoria}": {
             "get": {
                 "tags": [
@@ -1214,6 +1572,109 @@
                 }
             }
         },
+        "/api/cupones/detalleCuponCompleto": {
+            "post": {
+                "tags": [
+                    "cupon-controller"
+                ],
+                "operationId": "detalleCuponCompletoUsingGET",
+                "summary": "Detalle del cupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "image/jpeg"
+                ],
+                "description": "Detalle de cupon y retorna la imagen relacionada desde S3   ",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "detalle",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 1
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response with cupon details and image",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "detalles": {
+                                    "$ref": "#/definitions/Cupon"
+                                },
+                                "image": {
+                                    "type": "string",
+                                    "description": "Base64 encoded image content, prepend with 'data:image/jpeg;base64,' to display as image in HTML.",
+                                    "example": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/cupones/habilitar": {
             "post": {
                 "tags": [
@@ -1310,73 +1771,109 @@
                 "operationId": "crearCuponUsingPOST",
                 "summary": "Create Cupon",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "description": "Crea el cupon.",
                 "parameters": [
                     {
-                        "in": "body",
-                        "name": "Cupon",
-                        "description": "Request body as following",
+                        "in": "formData",
+                        "name": "codigo",
+                        "description": "Codigo",
                         "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "codigo": {
-                                    "type": "string",
-                                    "example": "CUP017"
-                                },
-                                "fidLocatario": {
-                                    "type": "string",
-                                    "example": "1"
-                                },
-                                "fidTipoCupon": {
-                                    "type": "string",
-                                    "example": "1"
-                                },
-                                "sumilla": {
-                                    "type": "string",
-                                    "example": "20% DE DESCUENTO"
-                                },
-                                "descripcionCompleta": {
-                                    "type": "string",
-                                    "example": "Ten 20% de descuento en la compra de un corndog en Chung chun"
-                                },
-                                "fechaExpiracion": {
-                                    "type": "Date",
-                                    "example": "06/30/2024"
-                                },
-                                "terminosCondiciones": {
-                                    "type": "string",
-                                    "example": "Válido solo en Chung chun de Plaza San Miguel, no acumulable con otras promociones"
-                                },
-                                "esLimitado": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "costoPuntos": {
-                                    "type": "integer",
-                                    "example": 20
-                                },
-                                "cantidadInicial": {
-                                    "type": "integer",
-                                    "example": 50
-                                },
-                                "cantidadDisponible": {
-                                    "type": "integer",
-                                    "example": 44
-                                },
-                                "ordenPriorizacion": {
-                                    "type": "integer",
-                                    "example": 1
-                                },
-                                "rutaFoto": {
-                                    "type": "string",
-                                    "example": "www"
-                                }
-                            }
-                        }
-                    },{
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidLocatario",
+                        "description": "ID Locatario",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidTipoCupon",
+                        "description": "ID Tipo Cupon",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "sumilla",
+                        "description": "Sumilla",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "descripcionCompleta",
+                        "description": "Descripcion Completa",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fechaExpiracion",
+                        "description": "Fecha de Expiracion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "terminosCondiciones",
+                        "description": "Terminos y Condiciones",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "esLimitado",
+                        "description": "Esta limitado?",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "costoPuntos",
+                        "description": "Costo de Puntos",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "cantidadInicial",
+                        "description": "Cantidad Inicial",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "cantidadDisponible",
+                        "description": "Cantidad Disponible",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "ordenPriorizacion",
+                        "description": "Orden de priorizacion",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "nombreFoto",
+                        "description": "Nombre de foto",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "foto",
+                        "description": "Archivo de imagen para el cupón",
+                        "required": true,
+                        "type": "file"
+                    },
+                    {
                         "in": "header",
                         "name": "authorization",
                         "description": "Access Token JWT",
@@ -1578,6 +2075,95 @@
                     }
                 }
             }
+        },
+        "/api/tipocupones/listartipocupones?query={nombre}&page={page}&pageSize={pageSize}": {
+            "get": {
+                "tags": [
+                    "tipo-cupones-controller"
+                ],
+                "operationId": "getTipoCuponesUsingGET",
+                "summary": "Get Tipo de Cupon / TipoCupones",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al TipoCupon basado en el parametro. \"20% de dscto\" para unos o \"all\" para traer todos los tipos de cupones.",
+                "parameters": [
+                    {
+                        "name": "nombre",
+                        "required": false,
+                        "in": "path",
+                        "type": "string",
+                        "description": "Nombre del tipo"
+                    },{
+                        "name": "page",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Pagina solicitada"
+                    },{
+                        "name": "pageSize",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Tamanio de pagina solicitada"
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/TipoCupon"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1724,6 +2310,110 @@
                 "updatedAt": {
                     "type":"string",
                     "example": "2022-09-19T09:03:46.865Z"
+                }
+            }
+        },
+        "TipoCupon": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Descuento"
+                },
+                "descripcion": {
+                    "type": "string",
+                    "example": "Se desceunta un porcentaje del precio"
+                },
+                "usuarioCreacion": {
+                    "type": "string",
+                    "example": "Diego Damian"
+                },
+                "usuarioActualizacion": {
+                    "type": "string",
+                    "example": "Diego Damian"
+                },
+                "activo": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "createdAT": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:45.281Z"
+                },
+                "updatedAt": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:46.865Z"
+                }
+            }
+        },
+        "Tienda": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "fidCategoriaTienda": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 2
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Chung Chun"
+                },
+                "descripcion": {
+                    "type": "string",
+                    "example": "Venta de corndogs"
+                },
+                "locacion": {
+                    "type": "string",
+                    "example": "Primera planta"
+                },
+                "horaApertura": {
+                    "type":"string",
+                    "example": "10:00:00"
+                },
+                "horaCierre": {
+                    "type": "string",
+                    "example": "20:00:00"
+                },
+                "aforo": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 100
+                },
+                "rutaFoto": {
+                    "type": "string",
+                    "example": "www.vsda"
+                },
+                "activo": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "createdAT": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:45.281Z"
+                },
+                "updatedAt": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:46.865Z"
+                },
+                "usuarioCreacion": {
+                    "type":"string",
+                    "example": "Diego Damian"
+                },
+                "usuarioActualizacion": {
+                    "type":"string",
+                    "example": "Diego Damian"
                 }
             }
         },

@@ -58,9 +58,7 @@ server.listen(port, function (error) {
   console.log(`Server is listening on http://${host}:${port}`);
 })
 
-app.on('close', function(){
-  db.sequelize.close();
-})
+
 
 
 const socketServer = new WebSocket.Server({server});
