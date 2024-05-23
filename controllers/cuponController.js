@@ -490,7 +490,7 @@ const modificar = async (req, res) => {
                 });
             }
         }else{
-            console.log("no has enviados")
+            console.log("no has enviado ningun archivo")
         }
         await Cupon.update(
             {
