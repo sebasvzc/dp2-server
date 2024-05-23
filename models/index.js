@@ -66,6 +66,7 @@ db.lugares = require('./Evento/lugarModel') (sequelize, DataTypes)
 db.eventos = require('./Evento/eventoModel') (sequelize, DataTypes) 
 db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTypes) 
 db.escaneos = require('./escaneoQRModel') (sequelize, DataTypes) 
+db.recordatorios = require('./recordatorioModel') (sequelize, DataTypes) 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
@@ -88,8 +89,8 @@ db.cuponXClientes.belongsTo(db.cupones,{foreignKey: "fidCupon", as: 'cupon'});
 db.cupones.hasMany(db.cuponXClientes,{foreignKey: "fidCupon", as: 'cupon'});
 
 
-db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidClient", as:'cliente'});
-db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidClient", as:'cliente'});
+db.cuponXClientes.belongsTo(db.clients,{foreignKey: "fidCliente", as:'cliente'});
+db.clients.hasMany(db.cuponXClientes,{foreignKey: "fidCliente", as:'cliente'});
 
 /* COSAS DE LOS QRS */
 db.escaneos.belongsTo(db.clients, { foreignKey: 'fidClient', as: 'cliente' });

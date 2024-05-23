@@ -23,22 +23,21 @@ s3Config = {
         sessionToken: AWS_SESSION_TOKEN
     },
 };
+const s3Client = new S3Client(s3Config);
 
+// USADO PARA LEER LO QUE SE ENCUENTRA DENTRO DEL S3
 const AWS = require('aws-sdk');
-
-
-// Configura las credenciales de AWS
 AWS.config.update({
-    accessKeyId: 'ASIA3VZIIXMJDNKT2S24',
-    secretAccessKey: 'iWx1VdWF05CvjoRTyRdtWJV0xEL+RQkZS/A7VQ4o',
-    sessionToken: 'IQoJb3JpZ2luX2VjEPL//////////wEaCXVzLXdlc3QtMiJHMEUCIQDTXpW8pmQ2Zp0wGIT+pCXhrLYHCB7pEZa+t1kxv9+7TwIgSln19vCo15Iq9VFxLUjtDSsY8ha7DwV/hLixhFGKpH0qsAIIaxAAGgw4MDI3MDY0NzE2OTgiDBgGFqKFG0WpKZhw/yqNAvd1RMKEEqPjNwwxbbqefapBTp1tSibgZzAzfKrfE35TNfRklFDwbPElUMBOM+PgZpeDw6qGeIN2+vJ3mKL7ui0/9pLRi5P6dMA70ZhJc3zHoOGwLIl/bFtaUasQzwrrrAetP+t0O2Oj1VTSudkaKw6flxY23xD2Ga8umi1xKzTlf5pZ7swBtWqXY98iXTlgagM2gF/4mFX28ZhE6wbfAfw1UqubVACsVTuZXC/Sxn0MaFSXQ84G7auHGf70qQkwW0hOOsU0eL+tJ0Iem/Czfb3FXVfFGFR4VcjeHsqto2fCFtu3oG2la/T5YPhfmOlZRwcmBo3Q3c04Ab1cxZAw9Z9MiJM0QJ/FoqX7u5svMMfIurIGOp0B9Pyn3P+B8hQdck4+5eC/nCNwODy1HrKOdbaH9L6wYa4pm1MTwoL87glg0Xewi6WBRqoJxREUOQncFPPoYNn0slEgpB+T7Ezs1cuSgwFuJMO6WrIFbgQIZT3vNVCXIYiKKnRVAe/Z8RGX0vVF+c5y1yJFNIME5Jq6quN6qDI+aIvM90rNIRPOCdWipWb5j3VpVdJQlbaxu7oxgtmbLg==',
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_ACCESS_SECRET,
+    sessionToken: AWS_SESSION_TOKEN,
     region: 'us-east-1' // La región donde está tu bucket
   });
 
-// Crea un nuevo objeto S3
 const s3 = new AWS.S3();
 
-const s3Client = new S3Client(s3Config);
+
+
 const User = db.users;
 const Cupon = db.cupones;
 const Cliente = db.clients;
@@ -92,7 +91,7 @@ const detalleCupon = async (req, res) => {
             include: [{
                 model: db.locatarios,
                 as: 'locatario',
-                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto','id'],
                 include: [{
                     model: db.categoriaTiendas,
                     as: 'categoriaTienda',
@@ -610,6 +609,113 @@ const modificar = async (req, res) => {
         console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+
+const cuponesFiltradosGeneral = async (req, res) => {
+    console.log("Req ", req.query, req.body)
+    const { busqueda, page = 0, size = 5 } = req.query;
+    let { categorias, orderBy, orden } = req.body;
+
+    var options = {
+        limit: +size,
+        offset: (+page) * (+size),
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
+        required: true,
+        include: [
+            {
+                model: db.locatarios,
+                association: 'locatario',
+                attributes: ['id', 'nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                required: true,
+                include: [
+                    {
+                        model: db.categoriaTiendas,
+                        association: 'categoriaTienda',
+                        required: true,
+                        attributes: ['nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                    }
+                ]
+            }
+        ],
+        where: {
+            activo: 1
+        }
+    }
+
+    if(busqueda != ""){
+        options.where[Op.or] = [
+            {
+                sumilla: {
+                    [Op.like]: `%${busqueda}%` // Buscar sumilla que contenga el texto especificado
+                }
+            },
+            {
+                '$locatario.nombre$': {
+                    [Op.like]: `%${busqueda}%` // Buscar nombre de locatario que contenga el texto especificado
+                }
+            }
+        ];
+    }
+
+    if (!categorias || categorias.length === 0) {
+        options.include[0].include[0].where = {}; // Vaciar el objeto where
+    } else {
+        options.include[0].include[0].where = {id: categorias};
+    }
+
+    if(orden !== "ASC" && orden != "DESC"){
+        orden = "ASC";
+    }
+
+    if (orderBy === 'fechaExpiracion') {
+        options.order = [['fechaExpiracion', orden]];
+    } else if (orderBy === 'categoria') {
+        options.order = [[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]];
+    } else if (orderBy === 'puntos') {
+        options.order = [['costoPuntos', orden]];
+    }
+
+    const { count, rows: cupones } = await db.cupones.findAndCountAll(options);
+
+    const formattedCupones = cupones.map(cupon => {
+        const key = `tienda${cupon.locatario.id}.jpg`;
+
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        const key2 = `cupon${cupon.id}.jpg`;
+        const url2 = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key2,
+            Expires: 8600
+        });
+
+        return {
+            id: cupon.id,
+            codigo: cupon.codigo,
+            sumilla: cupon.sumilla,
+            descripcionCompleta: cupon.descripcionCompleta,
+            fechaExpiracion: cupon.fechaExpiracion,
+            terminosCondiciones: cupon.terminosCondiciones,
+            costoPuntos: cupon.costoPuntos,
+            rutaFoto: url2,
+
+            locatarioNombre: cupon.locatario.nombre,
+            locatarioDescripcion: cupon.locatario.descripcion,
+            locatarioLocacion: cupon.locatario.locacion,
+            locatarioRutaFoto: url,
+
+            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+        };
+    });
+
+    console.log('data conseguida');
+    res.json({total: count, cupones: formattedCupones})
+};
+
+
 module.exports = {
     detalleCupon,
     detalleCuponCompleto,
@@ -619,5 +725,9 @@ module.exports = {
     crear,
     modificar,
     getCuponesClientes,
-    getClientesXCupon
+
+    getClientesXCupon,
+
+    cuponesFiltradosGeneral
+
 }
