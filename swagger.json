@@ -1675,6 +1675,90 @@
                 }
             }
         },
+        "/api/cupones/detalleCupon": {
+            "post": {
+                "tags": [
+                    "cupon-controller"
+                ],
+                "operationId": "detalleCuponUsingGET",
+                "summary": "Detalle del cupon",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "image/jpeg"
+                ],
+                "description": "Detalle de cupon y retorna la imagen relacionada desde S3   ",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "detalle",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "idCupon": {
+                                    "type": "integer",
+                                    "example": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response with cupon details and image",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "detalles": {
+                                    "$ref": "#/definitions/Cupon"
+                                },
+                                "image": {
+                                    "type": "string",
+                                    "description": "Base64 encoded image content, prepend with 'data:image/jpeg;base64,' to display as image in HTML.",
+                                    "example": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/cupones/habilitar": {
             "post": {
                 "tags": [
