@@ -516,6 +516,113 @@ const modificar = async (req, res) => {
         console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+
+const cuponesFiltradosGeneral = async (req, res) => {
+    console.log("Req ", req.query, req.body)
+    const { busqueda, page = 0, size = 5 } = req.query;
+    let { categorias, orderBy, orden } = req.body;
+
+    var options = {
+        limit: +size,
+        offset: (+page) * (+size),
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
+        required: true,
+        include: [
+            {
+                model: db.locatarios,
+                association: 'locatario',
+                attributes: ['id', 'nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                required: true,
+                include: [
+                    {
+                        model: db.categoriaTiendas,
+                        association: 'categoriaTienda',
+                        required: true,
+                        attributes: ['nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                    }
+                ]
+            }
+        ],
+        where: {
+            activo: 1
+        }
+    }
+
+    if(busqueda != ""){
+        options.where[Op.or] = [
+            {
+                sumilla: {
+                    [Op.like]: `%${busqueda}%` // Buscar sumilla que contenga el texto especificado
+                }
+            },
+            {
+                '$locatario.nombre$': {
+                    [Op.like]: `%${busqueda}%` // Buscar nombre de locatario que contenga el texto especificado
+                }
+            }
+        ];
+    }
+
+    if (!categorias || categorias.length === 0) {
+        options.include[0].include[0].where = {}; // Vaciar el objeto where
+    } else {
+        options.include[0].include[0].where = {id: categorias};
+    }
+
+    if(orden !== "ASC" && orden != "DESC"){
+        orden = "ASC";
+    }
+
+    if (orderBy === 'fechaExpiracion') {
+        options.order = [['fechaExpiracion', orden]];
+    } else if (orderBy === 'categoria') {
+        options.order = [[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]];
+    } else if (orderBy === 'puntos') {
+        options.order = [['costoPuntos', orden]];
+    }
+
+    const { count, rows: cupones } = await db.cupones.findAndCountAll(options);
+
+    const formattedCupones = cupones.map(cupon => {
+        const key = `tienda${cupon.locatario.id}.jpg`;
+
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        const key2 = `cupon${cupon.id}.jpg`;
+        const url2 = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key2,
+            Expires: 8600
+        });
+
+        return {
+            id: cupon.id,
+            codigo: cupon.codigo,
+            sumilla: cupon.sumilla,
+            descripcionCompleta: cupon.descripcionCompleta,
+            fechaExpiracion: cupon.fechaExpiracion,
+            terminosCondiciones: cupon.terminosCondiciones,
+            costoPuntos: cupon.costoPuntos,
+            rutaFoto: url2,
+
+            locatarioNombre: cupon.locatario.nombre,
+            locatarioDescripcion: cupon.locatario.descripcion,
+            locatarioLocacion: cupon.locatario.locacion,
+            locatarioRutaFoto: url,
+
+            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+        };
+    });
+
+    console.log('data conseguida');
+    res.json({total: count, cupones: formattedCupones})
+};
+
+
 module.exports = {
     detalleCupon,
     detalleCuponCompleto,
@@ -524,5 +631,6 @@ module.exports = {
     habilitar,
     crear,
     modificar,
-    getCuponesClientes
+    getCuponesClientes,
+    cuponesFiltradosGeneral
 }
