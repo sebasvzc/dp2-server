@@ -821,6 +821,47 @@ const listarClients = async (req, res) => {
     }
 };
 
+const verPermisoUsuario = async (req, res,next) => {
+    let connection;
+    try{
+        const {id_cliente} = req.params
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL permisoCamaraVer(?,@resultado)`,[id_cliente])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado')
+        const resultado = row[0].resultado
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+const cambiarPermisoUsuario = async (req, res,next) => {
+    let connection;
+    const idCliente = parseInt(req.body.idCliente)
+    const autoriza = parseInt (req.body.autoriza)
+    try{
+
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL cambiarPermisoCamara(?,?,@resultado)`,[idCliente,autoriza])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado')
+        const resultado = row[0].resultado
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
 
 module.exports = {
     login,
@@ -839,6 +880,8 @@ module.exports = {
 
     getEventosHoy,
     getEventoDetalle,
-    getCuponesEstado
+    getCuponesEstado,
 
+    verPermisoUsuario,
+    cambiarPermisoUsuario
 };
