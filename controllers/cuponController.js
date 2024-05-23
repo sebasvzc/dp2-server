@@ -28,9 +28,9 @@ const AWS = require('aws-sdk');
 
 // Configura las credenciales de AWS
 AWS.config.update({
-    accessKeyId: 'ASIA3VZIIXMJDNKT2S24',
-    secretAccessKey: 'iWx1VdWF05CvjoRTyRdtWJV0xEL+RQkZS/A7VQ4o',
-    sessionToken: 'IQoJb3JpZ2luX2VjEPL//////////wEaCXVzLXdlc3QtMiJHMEUCIQDTXpW8pmQ2Zp0wGIT+pCXhrLYHCB7pEZa+t1kxv9+7TwIgSln19vCo15Iq9VFxLUjtDSsY8ha7DwV/hLixhFGKpH0qsAIIaxAAGgw4MDI3MDY0NzE2OTgiDBgGFqKFG0WpKZhw/yqNAvd1RMKEEqPjNwwxbbqefapBTp1tSibgZzAzfKrfE35TNfRklFDwbPElUMBOM+PgZpeDw6qGeIN2+vJ3mKL7ui0/9pLRi5P6dMA70ZhJc3zHoOGwLIl/bFtaUasQzwrrrAetP+t0O2Oj1VTSudkaKw6flxY23xD2Ga8umi1xKzTlf5pZ7swBtWqXY98iXTlgagM2gF/4mFX28ZhE6wbfAfw1UqubVACsVTuZXC/Sxn0MaFSXQ84G7auHGf70qQkwW0hOOsU0eL+tJ0Iem/Czfb3FXVfFGFR4VcjeHsqto2fCFtu3oG2la/T5YPhfmOlZRwcmBo3Q3c04Ab1cxZAw9Z9MiJM0QJ/FoqX7u5svMMfIurIGOp0B9Pyn3P+B8hQdck4+5eC/nCNwODy1HrKOdbaH9L6wYa4pm1MTwoL87glg0Xewi6WBRqoJxREUOQncFPPoYNn0slEgpB+T7Ezs1cuSgwFuJMO6WrIFbgQIZT3vNVCXIYiKKnRVAe/Z8RGX0vVF+c5y1yJFNIME5Jq6quN6qDI+aIvM90rNIRPOCdWipWb5j3VpVdJQlbaxu7oxgtmbLg==',
+    accessKeyId: 'ASIA3VZIIXMJGKDO774G',
+    secretAccessKey: 'adPSCHmGb703cK/hpeiEosRZwbkLqd/0XBcNcMIR',
+    sessionToken: 'IQoJb3JpZ2luX2VjEP///////////wEaCXVzLXdlc3QtMiJHMEUCIQDDCT9P7bQUHCntJLVmOaVsXfsYXH+8Yel/JzQQamXoWwIgNJDfU5WmtOh1+SzWPRUF2R91H3IUae6eJFSXBzvfCWcqsAIIeBAAGgw4MDI3MDY0NzE2OTgiDEnwFVPonRke380Q5yqNAvUSzd8YjdKfGc/gv8mahBzR5X+L7d4jdscvMoqOnHno0GBwzgloBDY7F4+kQdkyV/PQ7hxLPHCj1r67v3GqPZOILcl2YLx3KDE6h3yCwZX00arHg1Yv9k1GzMzFIMYCCC7jdWDdfF/vYaeZ4aZ6ZDM9gA2vXSzHPdSmmSf5GfiJTCbKbQKCjyctmRUXW4A/ABMIEAOyQfJtz93/3kQ8c43LV+CtBYmEkDkXoodakLMezH58xp1UvR8+v1iVCpOjMjW08PRHYMj5CbtcBMUjc6iijh1mlG2ef2PvI3/s67PddJ6AxyeJmDARP/JxuSpZyk7PXbb5GF3wXYuBWbCDeWmRIAo2RDSYN7xoO+gdMJeqvbIGOp0BLmLrtcuKU2in+odiFPEqrpc4TWuPU/DDkq551Vv/vbcUtis8Jbfdh2U1uJ1odiiA73Chz5qBC4EYdK1jM+44okJo6ktQfbRKG+SdD7TFbGBf7BMTuZGLr2uu6INVqLTdAaYQTBzaBQaoNbCElbl3Quu6Y2ug6SQPMjDIe96RHydYiZGXoTZ+nJFI7EvS+kGmcrKs+dszh36sCLmN2Q==',
     region: 'us-east-1' // La región donde está tu bucket
   });
 
@@ -84,12 +84,12 @@ const detalleCupon = async (req, res) => {
         let { idCupon } = req.body;
 
         const detalles = await db.cupones.findOne({
-            where: { id: idCupon },
+            where: { id: 1 },
             attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
             include: [{
                 model: db.locatarios,
                 as: 'locatario',
-                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto','id'],
                 include: [{
                     model: db.categoriaTiendas,
                     as: 'categoriaTienda',
@@ -117,7 +117,7 @@ const detalleCupon = async (req, res) => {
 
         if (detalles) {
 
-            const keyCupon = `cupon${idCupon}.jpg`;
+            const keyCupon = `cupon${1}.jpg`;
 
                 // Genera la URL firmada para el objeto en el bucket appdp2
                 const urlCupon = s3.getSignedUrl('getObject', {
