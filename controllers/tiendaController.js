@@ -76,8 +76,66 @@ const getTiendas = async (req, res) => {
         console.log('getTiendas - queryType:', queryType, ' - [Error]: ', error);
     }
 }
-
+const habilitar = async (req, res) => {
+    console.log(req.body)
+    try {
+        console.log('updateTienda - updateItem: ', req.body);
+        for (let i = 0; i < req.body.selected.length; i++) {
+            const selectedItem = req.body.selected[i];
+            console.log('Item seleccionado:', selectedItem);
+            const tienda = await Tienda.findOne({
+                where: {
+                    id: selectedItem
+                }
+            });
+            if (!tienda) {
+                return res.status(409).send("El id de la tienda  "+selectedItem+" no se encontro en la bd");
+            }
+            await Tienda.update(
+                {
+                    activo: 1
+                },
+                {
+                    where: { id: selectedItem }
+                }
+            );
+        }
+        return res.status(200).send({message:"Tiendas habilitadas correctamente", code:0});
+    } catch (error) {
+        console.log('updateTienda - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
+const deshabilitar = async (req, res) => {
+    try {
+        console.log('updateTienda - updateItem: ', req.body.selected);
+        console.log(req.body.selected.length);
+        for (let i = 0; i < req.body.selected.length; i++) {
+            const selectedItem = req.body.selected[i];
+            console.log('Item seleccionado:', selectedItem);
+            const cupon = await Tienda.findOne({
+                where: {
+                    id: selectedItem
+                }
+            });
+            if (!cupon) {
+                return res.status(409).send("El id de la tienda "+selectedItem+" no se encontro en la bd");
+            }
+            await Tienda.update(
+                {
+                    activo: 0
+                },
+                {
+                    where: { id: selectedItem }
+                }
+            );
+        }
+        return res.status(200).send({message:"Tiendas deshabilitadas correctamente", code:0});
+    } catch (error) {
+        console.log('updateTienda- updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
 module.exports = {
-
+    habilitar,
+    deshabilitar,
     getTiendas
 };

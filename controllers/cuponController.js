@@ -6,7 +6,7 @@ const crypto = require("crypto");
 const Op = Sequelize.Op;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 
-/*const {
+const {
     S3Client,
     PutObjectCommand,
     GetObjectCommand
@@ -21,9 +21,10 @@ s3Config = {
         secretAccessKey: AWS_ACCESS_SECRET,
         sessionToken: AWS_SESSION_TOKEN
     },
-};*/
+};
 
 const AWS = require('aws-sdk');
+
 
 // Configura las credenciales de AWS
 AWS.config.update({
@@ -427,8 +428,8 @@ const crear = async (req, res) => {
 
 const modificar = async (req, res) => {
     var updateItem = req.body.editedCupon;
-    console.log('updateUser - updateItem: ', updateItem);
-    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body.editedCupon;
+
+    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
     try {
         const cupon = await Cupon.findOne({
             where: {
@@ -444,7 +445,8 @@ const modificar = async (req, res) => {
                 codigo: codigo
             }
         });
-        if (checkCupon && id!== checkCupon.id) {
+        if (checkCupon && parseInt(id,10)!== checkCupon.id) {
+
             console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
             return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
         }

@@ -340,12 +340,10 @@ const disableClient = async (req, res) => {
             console.log("Clientes no encontrados:", noEncontrados);
         }
 
-        // Deshabilitar sólo los clientes que fueron encontrados y están activos
-        const actualizados = await db.clients.update({ activo: 0 }, {
-            where: {
-                id: idsEncontrados,
-                activo: 1  // Asegura que sólo se actualizan los que están actualmente activos
-            }
+        // Actualizar el atributo 'activo' del cliente de 1 a 0
+        
+        await db.clients.update({ activo: 0 }, {
+            where: { id: idCliente }
         });
 
         // Verificar cuántos registros fueron realmente actualizados
