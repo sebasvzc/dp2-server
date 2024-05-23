@@ -65,9 +65,9 @@ const detalleCuponCompleto = async (req, res) => {
         });
 
         if (detalleCupon) {
-            const objectKey = `${detalleCupon.codigo}.jpg`;
-            const url = await getSignUrlForFile( detalleCupon.codigo+ ".jpg");
-            console.log(detalleCupon.codigo)
+            const objectKey = `cupon${detalleCupon.id}.jpg`;
+            const url = await getSignUrlForFile( `cupon${detalleCupon.id}.jpg`);
+            console.log(detalleCupon.id)
             console.log(url)
             console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
             res.status(200).json({ success: true, detalles: detalleCupon, image:url});
@@ -246,13 +246,21 @@ const getCuponesClientes = async (req, res) => {
                 Cupon.findAll({
                     offset: offset,
                     limit: pageSize,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
                     where: {
-                        activo:1
+                        activo:1,
+                        '$locatario.fidCategoriaTienda$': { [Op.or]: categoria }
+
                     }
                 }),
-                Cupon.count({where: {
+                Cupon.count({
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+
+                    where: {
+                        '$locatario.fidCategoriaTienda$': { [Op.or]: categoria },
                         activo:1
-                    }})
+                    }
+                })
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
@@ -529,7 +537,7 @@ const crear = async (req, res) => {
             const file = req.files[0];
             const bucketParams = {
                 Bucket: AWS_S3_BUCKET_NAME,
-                Key: codigo+".jpg",
+                Key: `cupon${cupon.id}.jpg`,
                 Body: file.buffer,
                 ContentType: file.mimetype
             };
@@ -559,7 +567,6 @@ const crear = async (req, res) => {
         console.log('crearCupon - [Error]: ', error);
     }
 }
-
 const modificar = async (req, res) => {
     var updateItem = req.body.editedCupon;
 
@@ -586,8 +593,8 @@ const modificar = async (req, res) => {
         }
         const file = req.files[0];
         if(file){
-            const existingFileKey = checkCupon.codigo + ".jpg"; // Asumiendo que el archivo existente tiene el mismo código y extensión .jpg
-            const newFileKey = codigo + ".jpg";
+            const existingFileKey = `cupon${checkCupon.id}.jpg`; // Asumiendo que el archivo existente tiene el mismo código y extensión .jpg
+            const newFileKey = `cupon${id}.jpg`;
 
             try {
                 // Eliminar el archivo existente en S3
@@ -643,7 +650,6 @@ const modificar = async (req, res) => {
         console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
-
 const cuponesFiltradosGeneral = async (req, res) => {
     console.log("Req ", req.query, req.body)
     const { busqueda, page = 0, size = 5 } = req.query;
