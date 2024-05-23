@@ -39,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        permisoCamara: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
