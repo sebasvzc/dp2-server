@@ -84,7 +84,7 @@ const detalleCupon = async (req, res) => {
         let { idCupon } = req.body;
 
         const detalles = await db.cupones.findOne({
-            where: { id: 1 },
+            where: { id: idCupon },
             attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
             include: [{
                 model: db.locatarios,
@@ -117,7 +117,7 @@ const detalleCupon = async (req, res) => {
 
         if (detalles) {
 
-            const keyCupon = `cupon${1}.jpg`;
+            const keyCupon = `cupon${idCupon}.jpg`;
 
                 // Genera la URL firmada para el objeto en el bucket appdp2
                 const urlCupon = s3.getSignedUrl('getObject', {
