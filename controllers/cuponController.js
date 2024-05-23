@@ -249,7 +249,14 @@ const getCuponesClientes = async (req, res) => {
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                // Iterar sobre los cupones y realizar una acción asíncrona con cada uno
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `${cupon.codigo}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
