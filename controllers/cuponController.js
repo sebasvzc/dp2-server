@@ -258,7 +258,7 @@ const getCuponesClientes = async (req, res) => {
             if (cupones) {
                 // Iterar sobre los cupones y realizar una acción asíncrona con cada uno
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
-                    const objectKey = `${cupon.codigo}.jpg`;
+                    const objectKey = `cupon${cupon.id}.jpg`;
                     const url = await getSignUrlForFile(objectKey);
                     // Agregar la URL firmada al objeto del cupón
                     return { ...cupon.dataValues, rutaFoto: url };
