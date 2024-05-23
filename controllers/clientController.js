@@ -343,7 +343,7 @@ const disableClient = async (req, res) => {
         // Actualizar el atributo 'activo' del cliente de 1 a 0
         
         await db.clients.update({ activo: 0 }, {
-            where: { id: idCliente }
+            where: { id: idsEncontrados }
         });
 
         // Verificar cuántos registros fueron realmente actualizados
@@ -391,13 +391,9 @@ const ableClient = async (req, res) => {
         }
 
         // Deshabilitar sólo los clientes que fueron encontrados y están activos
-        const actualizados = await db.clients.update({ activo: 1 }, {
-            where: {
-                id: idsEncontrados,
-                activo: 1  // Asegura que sólo se actualizan los que están actualmente activos
-            }
+        await db.clients.update({ activo: 1 }, {
+            where: { id: idsEncontrados }
         });
-
         // Verificar cuántos registros fueron realmente actualizados
         if (actualizados[0] === 0) {
             return res.status(404).send({ message: "Ninguno de los clientes encontrados necesitaba ser activado.", code: 3 });
