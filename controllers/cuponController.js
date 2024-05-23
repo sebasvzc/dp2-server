@@ -41,6 +41,8 @@ const s3 = new AWS.S3();
 const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Cupon = db.cupones;
+const Cliente = db.clients;
+const CuponXCliente = db.cuponXClientes;
 const Locatario = db.locatarios;
 const TipoCupon = db.tipoCupons;
 const detalleCuponCompleto = async (req, res) => {
@@ -244,9 +246,14 @@ const getCuponesClientes = async (req, res) => {
             const cuponesAndCount = await Promise.all([
                 Cupon.findAll({
                     offset: offset,
-                    limit: pageSize
+                    limit: pageSize,
+                    where: {
+                        activo:1
+                    }
                 }),
-                Cupon.count({})
+                Cupon.count({where: {
+                        activo:1
+                    }})
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
@@ -270,6 +277,9 @@ const getCuponesClientes = async (req, res) => {
                             { sumilla: { [Op.like]: `%${queryType}%` } },
                             { descripcionCompleta: { [Op.like]: `%${queryType}%` } }
                         ]
+                    },
+                    {
+                        activo:1
                     }
                 ]
             };
@@ -304,6 +314,89 @@ const getCuponesClientes = async (req, res) => {
         console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
     }
 }
+
+const getClientesXCupon = async (req, res) => {
+    var queryType = req.query.query;
+    var idParam = parseInt(req.query.idParam);
+    // console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 10; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
+
+    console.log('getClientesXCupon - query: ', req.query.query);
+    if (!queryType) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        if (queryType === 'all') {
+            const cuponesAndCount = await Promise.all([
+                CuponXCliente.findAll({
+                    offset: offset,
+                    limit: pageSize,
+                    where: {
+                        fidCupon: idParam
+                    },
+                    include: [
+                        {
+                            model: Cliente,
+                            as: 'cliente',
+                            attributes: ["nombre","apellidoPaterno","email","telefono"]  // No necesitamos otros atributos del locatario para esta consulta
+                        }
+                    ]
+                }),
+                CuponXCliente.count({
+                    where: {
+                        fidCupon: idParam
+                    }
+
+                })
+            ]);
+            const [clientesXCupon, totalCount] = cuponesAndCount;
+            return res.status(200).json({ clientesxCupon:clientesXCupon, newToken: req.newToken,totalClientes:totalCount });
+        } else {
+            console.log("Estoy viendo algo que no es all")
+            /* const whereCondition = {
+                [Op.and]: [
+                    {
+                        [Op.or]: [
+                            { nombre: { [Op.like]: `%${queryType}%` } },
+                            { correo: { [Op.like]: `%${queryType}%` } }
+                        ]
+                    },
+                    {
+                        id: idParam
+                    }
+                ]
+            };
+            const cuponesAndCount = await Promise.all([
+                Cupon.findAll({
+                    where: whereCondition,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    offset: offset,
+                    limit: pageSize
+                }),
+                Cupon.count({
+                    where: whereCondition,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                })
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                // console.log(users)
+                // console.log(users)
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(200).send("Clientes no encontrados con esa busqueda para el cupon");
+            } */
+        }
+    } catch (error) {
+        console.log('getClientesXCupon - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
+
+
+
 const habilitar = async (req, res) => {
     console.log(req.body)
     try {
@@ -525,5 +618,6 @@ module.exports = {
     habilitar,
     crear,
     modificar,
-    getCuponesClientes
+    getCuponesClientes,
+    getClientesXCupon
 }
