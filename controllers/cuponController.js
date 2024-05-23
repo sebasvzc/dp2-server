@@ -23,22 +23,21 @@ s3Config = {
         sessionToken: AWS_SESSION_TOKEN
     },
 };
+const s3Client = new S3Client(s3Config);
 
+// USADO PARA LEER LO QUE SE ENCUENTRA DENTRO DEL S3
 const AWS = require('aws-sdk');
-
-
-// Configura las credenciales de AWS
 AWS.config.update({
-    accessKeyId: 'ASIA3VZIIXMJGKDO774G',
-    secretAccessKey: 'adPSCHmGb703cK/hpeiEosRZwbkLqd/0XBcNcMIR',
-    sessionToken: 'IQoJb3JpZ2luX2VjEP///////////wEaCXVzLXdlc3QtMiJHMEUCIQDDCT9P7bQUHCntJLVmOaVsXfsYXH+8Yel/JzQQamXoWwIgNJDfU5WmtOh1+SzWPRUF2R91H3IUae6eJFSXBzvfCWcqsAIIeBAAGgw4MDI3MDY0NzE2OTgiDEnwFVPonRke380Q5yqNAvUSzd8YjdKfGc/gv8mahBzR5X+L7d4jdscvMoqOnHno0GBwzgloBDY7F4+kQdkyV/PQ7hxLPHCj1r67v3GqPZOILcl2YLx3KDE6h3yCwZX00arHg1Yv9k1GzMzFIMYCCC7jdWDdfF/vYaeZ4aZ6ZDM9gA2vXSzHPdSmmSf5GfiJTCbKbQKCjyctmRUXW4A/ABMIEAOyQfJtz93/3kQ8c43LV+CtBYmEkDkXoodakLMezH58xp1UvR8+v1iVCpOjMjW08PRHYMj5CbtcBMUjc6iijh1mlG2ef2PvI3/s67PddJ6AxyeJmDARP/JxuSpZyk7PXbb5GF3wXYuBWbCDeWmRIAo2RDSYN7xoO+gdMJeqvbIGOp0BLmLrtcuKU2in+odiFPEqrpc4TWuPU/DDkq551Vv/vbcUtis8Jbfdh2U1uJ1odiiA73Chz5qBC4EYdK1jM+44okJo6ktQfbRKG+SdD7TFbGBf7BMTuZGLr2uu6INVqLTdAaYQTBzaBQaoNbCElbl3Quu6Y2ug6SQPMjDIe96RHydYiZGXoTZ+nJFI7EvS+kGmcrKs+dszh36sCLmN2Q==',
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_ACCESS_SECRET,
+    sessionToken: AWS_SESSION_TOKEN,
     region: 'us-east-1' // La región donde está tu bucket
   });
 
-// Crea un nuevo objeto S3
 const s3 = new AWS.S3();
 
-const s3Client = new S3Client(s3Config);
+
+
 const User = db.users;
 const Cupon = db.cupones;
 const Locatario = db.locatarios;
