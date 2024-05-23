@@ -9,7 +9,8 @@ const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN
 const {
     S3Client,
     PutObjectCommand,
-    GetObjectCommand
+    GetObjectCommand,
+    DeleteObjectCommand
 } = require("@aws-sdk/client-s3");
 const {getSignUrlForFile} = require("../config/s3");
 
@@ -456,6 +457,40 @@ const modificar = async (req, res) => {
 
             console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
             return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+        }
+        const file = req.files[0];
+        if(file){
+            const existingFileKey = checkCupon.codigo + ".jpg"; // Asumiendo que el archivo existente tiene el mismo código y extensión .jpg
+            const newFileKey = codigo + ".jpg";
+
+            try {
+                // Eliminar el archivo existente en S3
+                const deleteParams = {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: existingFileKey
+                };
+                await s3Client.send(new DeleteObjectCommand(deleteParams));
+                console.log("Archivo eliminado con éxito de S3:", existingFileKey);
+
+                // Subir el nuevo archivo a S3
+                const bucketParams = {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: newFileKey,
+                    Body: file.buffer,
+                    ContentType: file.mimetype
+                };
+                const data = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al S3:", data);
+            } catch (error) {
+                // Captura cualquier error durante la subida del archivo a S3
+                console.error("Error al subir el archivo a S3:", error);
+                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                return res.status(200).send({
+                    message: "Se encontró un error durante la subida del archivo, pero sí se creó el cupón. Edítalo posteriormente."
+                });
+            }
+        }else{
+            console.log("no has enviados")
         }
         await Cupon.update(
             {
