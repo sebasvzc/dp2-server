@@ -355,7 +355,7 @@ const getClientesXCupon = async (req, res) => {
             return res.status(200).json({ clientesxCupon:clientesXCupon, newToken: req.newToken,totalClientes:totalCount });
         } else {
             console.log("Estoy viendo algo que no es all")
-            /* const whereCondition = {
+            const whereCondition = {
                 [Op.and]: [
                     {
                         [Op.or]: [
@@ -387,13 +387,47 @@ const getClientesXCupon = async (req, res) => {
                 return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(200).send("Clientes no encontrados con esa busqueda para el cupon");
-            } */
+            }
         }
     } catch (error) {
         console.log('getClientesXCupon - queryType:', queryType, ' - [Error]: ', error);
     }
 }
 
+
+const getCuponesXDiaCanjeado = async (req, res) => {
+
+    var idParam = parseInt(req.query.idParam);
+
+    console.log('getCuponXDia - query: ', req.query.idParam);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        const cuponesGroupedByDate = await CuponXCliente.findAll({
+            where: {
+                fidCupon: idParam
+            },
+            attributes: [
+                [db.sequelize.fn('DATE_FORMAT', db.sequelize.col('fechaCompra'), '%d/%m/%Y'), 'fecha'], // Formatear la fecha a 'dd/mm/yyyy'
+                [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cantidad'] // Contar el número de cupones por fecha
+            ],
+            group: [db.sequelize.fn('DATE', db.sequelize.col('fechaCompra'))] // Agrupar por la fecha
+        });
+
+        // Formatear los resultados en el formato deseado
+        const usoDeCupones = cuponesGroupedByDate.map(cupon => ({
+            fecha: cupon.get('fecha'),
+            cantidad: cupon.get('cantidad')
+        }));
+
+        return res.status(200).json({ usoDeCupones, newToken: req.newToken });
+
+    } catch (error) {
+        console.log('getCuponXDia - queryType: - [Error]: ', error);
+    }
+}
 
 
 const habilitar = async (req, res) => {
@@ -727,7 +761,7 @@ module.exports = {
     getCuponesClientes,
 
     getClientesXCupon,
-
+    getCuponesXDiaCanjeado,
     cuponesFiltradosGeneral
 
 }
