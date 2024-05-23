@@ -314,8 +314,15 @@ const deleteUser = async (req, res) => {
 }
 
 const disableClient = async (req, res) => {
+    console.log(req.body)
     const {idCliente} = req.body;
+    
     try {
+        
+        console.log('ENTRE :D')
+        
+        console.log(idCliente)
+       
         // Primero, encontramos al cliente para asegurarnos de que existe
         const client = await db.clients.findOne({
             where: { id: idCliente }
@@ -330,7 +337,7 @@ const disableClient = async (req, res) => {
         if (client.activo === 0) {
             return res.status(400).send({estado:"El cliente " + idCliente + " ya está baneado."});
         }
-
+        console.log('El cliente existe')
         // Actualizar el atributo 'activo' del cliente de 1 a 0
         
         await db.clients.update({ activo: 0 }, {
