@@ -66,33 +66,37 @@ const login = async (req, res) => {
         const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
         //if user email is found, compare password
         if (client) {
-
-            // console.log(password);
-            // console.log(client.contrasenia);
-            const isSame = hashedPassword === client.contrasenia;
-            if (isSame) {
-                console.log("El usuario si existe y su contrasenia esta bien")
-                const accessToken = jwt.sign(
-                    { email: client.email,id: client.id  },
-                    ACCESS_TOKEN_SECRET,
-                    { expiresIn: ACCESS_TOKEN_EXPIRY }
-                );
-                const refreshToken = jwt.sign(
-                    {email: client.email,id: client.id },
-                    REFRESH_TOKEN_SECRET,
-                    { expiresIn: REFRESH_TOKEN_EXPIRY }
-                );
-                res.status(200).send({
-                    token: accessToken,
-                    refreshToken: refreshToken,
-                    clienteId: client.id,
-                    puntos: client.puntos,
-                    code:"0"
-                });
-            } else {
-                console.log("El usuario existe pero no es su contraseña")
-                return res.status(401).send({message:"Authentication failed: El usuario existe pero no es su contraseña", code:"2"});
+            if(cliente.activo===1){
+                // console.log(password);
+                // console.log(client.contrasenia);
+                const isSame = hashedPassword === client.contrasenia;
+                if (isSame) {
+                    console.log("El usuario si existe y su contrasenia esta bien")
+                    const accessToken = jwt.sign(
+                        { email: client.email,id: client.id  },
+                        ACCESS_TOKEN_SECRET,
+                        { expiresIn: ACCESS_TOKEN_EXPIRY }
+                    );
+                    const refreshToken = jwt.sign(
+                        {email: client.email,id: client.id },
+                        REFRESH_TOKEN_SECRET,
+                        { expiresIn: REFRESH_TOKEN_EXPIRY }
+                    );
+                    res.status(200).send({
+                        token: accessToken,
+                        refreshToken: refreshToken,
+                        clienteId: client.id,
+                        puntos: client.puntos,
+                        code:"0"
+                    });
+                } else {
+                    console.log("El usuario existe pero no es su contraseña")
+                    return res.status(401).send({message:"Authentication failed: El usuario existe pero no es su contraseña", code:"2"});
+                }
+            }else{
+                return res.status(401).send({message:"Login Fallo: El usuario no esta habilitado", code:"1"});
             }
+
         } else {
             console.log("Auth failed, nop hay usuario relacionadao")
             return res.status(401).send({message:"Authentication failed: El usuario no existe", code:"1"});

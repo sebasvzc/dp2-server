@@ -26,16 +26,10 @@ const getTiendas = async (req, res) => {
         if (queryType === 'all') {
             const tiendasAndCount = await Promise.all([
                 Tienda.findAll({
-                    where: {
-                        activo: 1
-                    },
                     offset: offset,
                     limit: pageSize
                 }),
                 Tienda.count({
-                    where: {
-                        activo: 1
-                    }
                 })
             ]);
             const [tiendas, totalCount] = tiendasAndCount;
