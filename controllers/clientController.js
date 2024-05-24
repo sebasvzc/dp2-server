@@ -66,7 +66,8 @@ const login = async (req, res) => {
         const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
         //if user email is found, compare password
         if (client) {
-            if(client.activo===1){
+            console.log(client)
+            if(client.activo){
                 // console.log(password);
                 // console.log(client.contrasenia);
                 const isSame = hashedPassword === client.contrasenia;
