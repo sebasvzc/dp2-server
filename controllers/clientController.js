@@ -15,17 +15,16 @@ const pool = mysql.createPool({
       database: 'plaza'
       });
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
+const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
+// USADO PARA LEER LO QUE SE ENCUENTRA DENTRO DEL S3
 const AWS = require('aws-sdk');
-
-// Configura las credenciales de AWS
 AWS.config.update({
-  accessKeyId: 'ASIA3VZIIXMJDNKT2S24',
-  secretAccessKey: 'iWx1VdWF05CvjoRTyRdtWJV0xEL+RQkZS/A7VQ4o',
-  sessionToken: 'IQoJb3JpZ2luX2VjEPL//////////wEaCXVzLXdlc3QtMiJHMEUCIQDTXpW8pmQ2Zp0wGIT+pCXhrLYHCB7pEZa+t1kxv9+7TwIgSln19vCo15Iq9VFxLUjtDSsY8ha7DwV/hLixhFGKpH0qsAIIaxAAGgw4MDI3MDY0NzE2OTgiDBgGFqKFG0WpKZhw/yqNAvd1RMKEEqPjNwwxbbqefapBTp1tSibgZzAzfKrfE35TNfRklFDwbPElUMBOM+PgZpeDw6qGeIN2+vJ3mKL7ui0/9pLRi5P6dMA70ZhJc3zHoOGwLIl/bFtaUasQzwrrrAetP+t0O2Oj1VTSudkaKw6flxY23xD2Ga8umi1xKzTlf5pZ7swBtWqXY98iXTlgagM2gF/4mFX28ZhE6wbfAfw1UqubVACsVTuZXC/Sxn0MaFSXQ84G7auHGf70qQkwW0hOOsU0eL+tJ0Iem/Czfb3FXVfFGFR4VcjeHsqto2fCFtu3oG2la/T5YPhfmOlZRwcmBo3Q3c04Ab1cxZAw9Z9MiJM0QJ/FoqX7u5svMMfIurIGOp0B9Pyn3P+B8hQdck4+5eC/nCNwODy1HrKOdbaH9L6wYa4pm1MTwoL87glg0Xewi6WBRqoJxREUOQncFPPoYNn0slEgpB+T7Ezs1cuSgwFuJMO6WrIFbgQIZT3vNVCXIYiKKnRVAe/Z8RGX0vVF+c5y1yJFNIME5Jq6quN6qDI+aIvM90rNIRPOCdWipWb5j3VpVdJQlbaxu7oxgtmbLg==',
-  region: 'us-east-1' // La región donde está tu bucket
-});
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_ACCESS_SECRET,
+    sessionToken: AWS_SESSION_TOKEN,
+    region: 'us-east-1' // La región donde está tu bucket
+  });
 
-// Crea un nuevo objeto S3
 const s3 = new AWS.S3();
 
 
@@ -67,33 +66,38 @@ const login = async (req, res) => {
         const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
         //if user email is found, compare password
         if (client) {
-
-            // console.log(password);
-            // console.log(client.contrasenia);
-            const isSame = hashedPassword === client.contrasenia;
-            if (isSame) {
-                console.log("El usuario si existe y su contrasenia esta bien")
-                const accessToken = jwt.sign(
-                    { email: client.email,id: client.id  },
-                    ACCESS_TOKEN_SECRET,
-                    { expiresIn: ACCESS_TOKEN_EXPIRY }
-                );
-                const refreshToken = jwt.sign(
-                    {email: client.email,id: client.id },
-                    REFRESH_TOKEN_SECRET,
-                    { expiresIn: REFRESH_TOKEN_EXPIRY }
-                );
-                res.status(200).send({
-                    token: accessToken,
-                    refreshToken: refreshToken,
-                    clienteId: client.id,
-                    puntos: client.puntos,
-                    code:"0"
-                });
-            } else {
-                console.log("El usuario existe pero no es su contraseña")
-                return res.status(401).send({message:"Authentication failed: El usuario existe pero no es su contraseña", code:"2"});
+            console.log(client)
+            if(client.activo){
+                // console.log(password);
+                // console.log(client.contrasenia);
+                const isSame = hashedPassword === client.contrasenia;
+                if (isSame) {
+                    console.log("El usuario si existe y su contrasenia esta bien")
+                    const accessToken = jwt.sign(
+                        { email: client.email,id: client.id  },
+                        ACCESS_TOKEN_SECRET,
+                        { expiresIn: ACCESS_TOKEN_EXPIRY }
+                    );
+                    const refreshToken = jwt.sign(
+                        {email: client.email,id: client.id },
+                        REFRESH_TOKEN_SECRET,
+                        { expiresIn: REFRESH_TOKEN_EXPIRY }
+                    );
+                    res.status(200).send({
+                        token: accessToken,
+                        refreshToken: refreshToken,
+                        clienteId: client.id,
+                        puntos: client.puntos,
+                        code:"0"
+                    });
+                } else {
+                    console.log("El usuario existe pero no es su contraseña")
+                    return res.status(401).send({message:"Authentication failed: El usuario existe pero no es su contraseña", code:"2"});
+                }
+            }else{
+                return res.status(401).send({message:"Login Fallo: El usuario no esta habilitado", code:"1"});
             }
+
         } else {
             console.log("Auth failed, nop hay usuario relacionadao")
             return res.status(401).send({message:"Authentication failed: El usuario no existe", code:"1"});
@@ -343,7 +347,7 @@ const disableClient = async (req, res) => {
         // Actualizar el atributo 'activo' del cliente de 1 a 0
         
         await db.clients.update({ activo: 0 }, {
-            where: { id: idCliente }
+            where: { id: idsEncontrados }
         });
 
         // Verificar cuántos registros fueron realmente actualizados
@@ -391,13 +395,9 @@ const ableClient = async (req, res) => {
         }
 
         // Deshabilitar sólo los clientes que fueron encontrados y están activos
-        const actualizados = await db.clients.update({ activo: 1 }, {
-            where: {
-                id: idsEncontrados,
-                activo: 1  // Asegura que sólo se actualizan los que están actualmente activos
-            }
+        await db.clients.update({ activo: 1 }, {
+            where: { id: idsEncontrados }
         });
-
         // Verificar cuántos registros fueron realmente actualizados
         if (actualizados[0] === 0) {
             return res.status(404).send({ message: "Ninguno de los clientes encontrados necesitaba ser activado.", code: 3 });
@@ -821,6 +821,47 @@ const listarClients = async (req, res) => {
     }
 };
 
+const verPermisoUsuario = async (req, res,next) => {
+    let connection;
+    try{
+        const {id_cliente} = req.params
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL permisoCamaraVer(?,@resultado)`,[id_cliente])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado')
+        const resultado = row[0].resultado
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+const cambiarPermisoUsuario = async (req, res,next) => {
+    let connection;
+    const idCliente = parseInt(req.body.idCliente)
+    const autoriza = parseInt (req.body.autoriza)
+    try{
+
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL cambiarPermisoCamara(?,?,@resultado)`,[idCliente,autoriza])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado')
+        const resultado = row[0].resultado
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
 
 module.exports = {
     login,
@@ -839,6 +880,8 @@ module.exports = {
 
     getEventosHoy,
     getEventoDetalle,
-    getCuponesEstado
+    getCuponesEstado,
 
+    verPermisoUsuario,
+    cambiarPermisoUsuario
 };

@@ -6,6 +6,7 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const WebSocket = require("ws");
 const crypto = require("crypto");
+const {getSignUrlForFile} = require("../config/s3");
 
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 const Tienda = db.locatarios;
@@ -25,21 +26,21 @@ const getTiendas = async (req, res) => {
         if (queryType === 'all') {
             const tiendasAndCount = await Promise.all([
                 Tienda.findAll({
-                    where: {
-                        activo: 1
-                    },
                     offset: offset,
                     limit: pageSize
                 }),
                 Tienda.count({
-                    where: {
-                        activo: 1
-                    }
                 })
             ]);
             const [tiendas, totalCount] = tiendasAndCount;
             if (tiendas) {
-                return res.status(200).json({ tiendas, newToken: req.newToken,totalTiendas:totalCount });
+                const updatedTiendas = await Promise.all(tiendas.map(async (tienda) => {
+                    const objectKey = `tienda${tienda.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...tienda.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ tiendas:updatedTiendas, newToken: req.newToken,totalTiendas:totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
@@ -65,9 +66,15 @@ const getTiendas = async (req, res) => {
             ]);
             const [tiendas, totalCount] = tiendasAndCount;
             if (tiendas) {
+                const updatedTiendas = await Promise.all(tiendas.map(async (tienda) => {
+                    const objectKey = `tienda${tienda.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...tienda.dataValues, rutaFoto: url };
+                }));
                 // console.log(users)
                 // console.log(users)
-                return res.status(200).json({ tiendas, newToken: req.newToken,totalTiendas:totalCount });
+                return res.status(200).json({ tiendas:updatedTiendas, newToken: req.newToken,totalTiendas:totalCount });
             } else {
                 return res.status(200).send("Tienda no encontrado");
             }

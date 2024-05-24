@@ -9,7 +9,8 @@ const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN
 const {
     S3Client,
     PutObjectCommand,
-    GetObjectCommand
+    GetObjectCommand,
+    DeleteObjectCommand
 } = require("@aws-sdk/client-s3");
 const {getSignUrlForFile} = require("../config/s3");
 
@@ -22,24 +23,25 @@ s3Config = {
         sessionToken: AWS_SESSION_TOKEN
     },
 };
+const s3Client = new S3Client(s3Config);
 
+// USADO PARA LEER LO QUE SE ENCUENTRA DENTRO DEL S3
 const AWS = require('aws-sdk');
-
-
-// Configura las credenciales de AWS
 AWS.config.update({
-    accessKeyId: 'ASIA3VZIIXMJDNKT2S24',
-    secretAccessKey: 'iWx1VdWF05CvjoRTyRdtWJV0xEL+RQkZS/A7VQ4o',
-    sessionToken: 'IQoJb3JpZ2luX2VjEPL//////////wEaCXVzLXdlc3QtMiJHMEUCIQDTXpW8pmQ2Zp0wGIT+pCXhrLYHCB7pEZa+t1kxv9+7TwIgSln19vCo15Iq9VFxLUjtDSsY8ha7DwV/hLixhFGKpH0qsAIIaxAAGgw4MDI3MDY0NzE2OTgiDBgGFqKFG0WpKZhw/yqNAvd1RMKEEqPjNwwxbbqefapBTp1tSibgZzAzfKrfE35TNfRklFDwbPElUMBOM+PgZpeDw6qGeIN2+vJ3mKL7ui0/9pLRi5P6dMA70ZhJc3zHoOGwLIl/bFtaUasQzwrrrAetP+t0O2Oj1VTSudkaKw6flxY23xD2Ga8umi1xKzTlf5pZ7swBtWqXY98iXTlgagM2gF/4mFX28ZhE6wbfAfw1UqubVACsVTuZXC/Sxn0MaFSXQ84G7auHGf70qQkwW0hOOsU0eL+tJ0Iem/Czfb3FXVfFGFR4VcjeHsqto2fCFtu3oG2la/T5YPhfmOlZRwcmBo3Q3c04Ab1cxZAw9Z9MiJM0QJ/FoqX7u5svMMfIurIGOp0B9Pyn3P+B8hQdck4+5eC/nCNwODy1HrKOdbaH9L6wYa4pm1MTwoL87glg0Xewi6WBRqoJxREUOQncFPPoYNn0slEgpB+T7Ezs1cuSgwFuJMO6WrIFbgQIZT3vNVCXIYiKKnRVAe/Z8RGX0vVF+c5y1yJFNIME5Jq6quN6qDI+aIvM90rNIRPOCdWipWb5j3VpVdJQlbaxu7oxgtmbLg==',
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_ACCESS_SECRET,
+    sessionToken: AWS_SESSION_TOKEN,
     region: 'us-east-1' // La región donde está tu bucket
   });
 
-// Crea un nuevo objeto S3
 const s3 = new AWS.S3();
 
-//const s3Client = new S3Client(s3Config);
+
+
 const User = db.users;
 const Cupon = db.cupones;
+const Cliente = db.clients;
+const CuponXCliente = db.cuponXClientes;
 const Locatario = db.locatarios;
 const TipoCupon = db.tipoCupons;
 const detalleCuponCompleto = async (req, res) => {
@@ -63,9 +65,9 @@ const detalleCuponCompleto = async (req, res) => {
         });
 
         if (detalleCupon) {
-            const objectKey = `${detalleCupon.codigo}.jpg`;
-            const url = await getSignUrlForFile( detalleCupon.codigo+ ".jpg");
-            console.log(detalleCupon.codigo)
+            const objectKey = `cupon${detalleCupon.id}.jpg`;
+            const url = await getSignUrlForFile( `cupon${detalleCupon.id}.jpg`);
+            console.log(detalleCupon.id)
             console.log(url)
             console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
             res.status(200).json({ success: true, detalles: detalleCupon, image:url});
@@ -89,7 +91,7 @@ const detalleCupon = async (req, res) => {
             include: [{
                 model: db.locatarios,
                 as: 'locatario',
-                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto','id'],
                 include: [{
                     model: db.categoriaTiendas,
                     as: 'categoriaTienda',
@@ -182,7 +184,13 @@ const getCupones = async (req, res) => {
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `cupon${cupon.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
@@ -213,7 +221,13 @@ const getCupones = async (req, res) => {
             if (cupones) {
                 // console.log(users)
                 // console.log(users)
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `cupon${cupon.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(200).send("Cupones no encontrados con esa busqueda");
             }
@@ -243,13 +257,33 @@ const getCuponesClientes = async (req, res) => {
             const cuponesAndCount = await Promise.all([
                 Cupon.findAll({
                     offset: offset,
-                    limit: pageSize
+                    limit: pageSize,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    where: {
+                        activo:1,
+                        '$locatario.fidCategoriaTienda$': { [Op.or]: categoria }
+
+                    }
                 }),
-                Cupon.count({})
+                Cupon.count({
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+
+                    where: {
+                        '$locatario.fidCategoriaTienda$': { [Op.or]: categoria },
+                        activo:1
+                    }
+                })
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                // Iterar sobre los cupones y realizar una acción asíncrona con cada uno
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `cupon${cupon.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url };
+                }));
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
@@ -262,6 +296,9 @@ const getCuponesClientes = async (req, res) => {
                             { sumilla: { [Op.like]: `%${queryType}%` } },
                             { descripcionCompleta: { [Op.like]: `%${queryType}%` } }
                         ]
+                    },
+                    {
+                        activo:1
                     }
                 ]
             };
@@ -294,6 +331,119 @@ const getCuponesClientes = async (req, res) => {
         }
     } catch (error) {
         console.log('getUser - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
+const getClientesXCupon = async (req, res) => {
+    var queryType = req.query.query;
+    var idParam = parseInt(req.query.idParam);
+    // console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 10; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
+
+    console.log('getClientesXCupon - query: ', req.query.query);
+    if (!queryType) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        if (queryType === 'all') {
+            const cuponesAndCount = await Promise.all([
+                CuponXCliente.findAll({
+                    offset: offset,
+                    limit: pageSize,
+                    where: {
+                        fidCupon: idParam
+                    },
+                    include: [
+                        {
+                            model: Cliente,
+                            as: 'cliente',
+                            attributes: ["nombre","apellidoPaterno","email","telefono"]  // No necesitamos otros atributos del locatario para esta consulta
+                        }
+                    ]
+                }),
+                CuponXCliente.count({
+                    where: {
+                        fidCupon: idParam
+                    }
+
+                })
+            ]);
+            const [clientesXCupon, totalCount] = cuponesAndCount;
+            return res.status(200).json({ clientesxCupon:clientesXCupon, newToken: req.newToken,totalClientes:totalCount });
+        } else {
+            console.log("Estoy viendo algo que no es all")
+            const whereCondition = {
+                [Op.and]: [
+                    {
+                        [Op.or]: [
+                            { nombre: { [Op.like]: `%${queryType}%` } },
+                            { correo: { [Op.like]: `%${queryType}%` } }
+                        ]
+                    },
+                    {
+                        id: idParam
+                    }
+                ]
+            };
+            const cuponesAndCount = await Promise.all([
+                Cupon.findAll({
+                    where: whereCondition,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    offset: offset,
+                    limit: pageSize
+                }),
+                Cupon.count({
+                    where: whereCondition,
+                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                })
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                // console.log(users)
+                // console.log(users)
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(200).send("Clientes no encontrados con esa busqueda para el cupon");
+            }
+        }
+    } catch (error) {
+        console.log('getClientesXCupon - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
+const getCuponesXDiaCanjeado = async (req, res) => {
+
+    var idParam = parseInt(req.query.idParam);
+
+    console.log('getCuponXDia - query: ', req.query.idParam);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        const cuponesGroupedByDate = await CuponXCliente.findAll({
+            where: {
+                fidCupon: idParam
+            },
+            attributes: [
+                [db.sequelize.fn('DATE_FORMAT', db.sequelize.col('fechaCompra'), '%d/%m/%Y'), 'fecha'], // Formatear la fecha a 'dd/mm/yyyy'
+                [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cantidad'] // Contar el número de cupones por fecha
+            ],
+            group: [db.sequelize.fn('DATE', db.sequelize.col('fechaCompra'))] ,// Agrupar por la fecha
+            order: [[db.sequelize.fn('DATE', db.sequelize.col('fechaCompra')), 'ASC']] // Ordenar por la fecha en orden ascendente
+        });
+
+        // Formatear los resultados en el formato deseado
+        const usoDeCupones = cuponesGroupedByDate.map(cupon => ({
+            fecha: cupon.get('fecha'),
+            cantidad: cupon.get('cantidad')
+        }));
+
+        return res.status(200).json({ usoDeCupones, newToken: req.newToken });
+
+    } catch (error) {
+        console.log('getCuponXDia - queryType: - [Error]: ', error);
     }
 }
 const habilitar = async (req, res) => {
@@ -395,7 +545,7 @@ const crear = async (req, res) => {
             const file = req.files[0];
             const bucketParams = {
                 Bucket: AWS_S3_BUCKET_NAME,
-                Key: codigo+".jpg",
+                Key: `cupon${cupon.id}.jpg`,
                 Body: file.buffer,
                 ContentType: file.mimetype
             };
@@ -425,7 +575,6 @@ const crear = async (req, res) => {
         console.log('crearCupon - [Error]: ', error);
     }
 }
-
 const modificar = async (req, res) => {
     var updateItem = req.body.editedCupon;
 
@@ -449,6 +598,40 @@ const modificar = async (req, res) => {
 
             console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
             return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+        }
+        const file = req.files[0];
+        if(file){
+            const existingFileKey = `cupon${checkCupon.id}.jpg`; // Asumiendo que el archivo existente tiene el mismo código y extensión .jpg
+            const newFileKey = `cupon${id}.jpg`;
+
+            try {
+                // Eliminar el archivo existente en S3
+                const deleteParams = {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: existingFileKey
+                };
+                await s3Client.send(new DeleteObjectCommand(deleteParams));
+                console.log("Archivo eliminado con éxito de S3:", existingFileKey);
+
+                // Subir el nuevo archivo a S3
+                const bucketParams = {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: newFileKey,
+                    Body: file.buffer,
+                    ContentType: file.mimetype
+                };
+                const data = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al S3:", data);
+            } catch (error) {
+                // Captura cualquier error durante la subida del archivo a S3
+                console.error("Error al subir el archivo a S3:", error);
+                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                return res.status(200).send({
+                    message: "Se encontró un error durante la subida del archivo, pero sí se creó el cupón. Edítalo posteriormente."
+                });
+            }
+        }else{
+            console.log("no has enviado ningun archivo")
         }
         await Cupon.update(
             {
@@ -475,6 +658,112 @@ const modificar = async (req, res) => {
         console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+const cuponesFiltradosGeneral = async (req, res) => {
+    console.log("Req ", req.query, req.body)
+    const { busqueda, page = 0, size = 5 } = req.query;
+    let { categorias, orderBy, orden } = req.body;
+
+    var options = {
+        limit: +size,
+        offset: (+page) * (+size),
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
+        required: true,
+        include: [
+            {
+                model: db.locatarios,
+                association: 'locatario',
+                attributes: ['id', 'nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                required: true,
+                include: [
+                    {
+                        model: db.categoriaTiendas,
+                        association: 'categoriaTienda',
+                        required: true,
+                        attributes: ['nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                    }
+                ]
+            }
+        ],
+        where: {
+            activo: 1
+        }
+    }
+
+    if(busqueda != ""){
+        options.where[Op.or] = [
+            {
+                sumilla: {
+                    [Op.like]: `%${busqueda}%` // Buscar sumilla que contenga el texto especificado
+                }
+            },
+            {
+                '$locatario.nombre$': {
+                    [Op.like]: `%${busqueda}%` // Buscar nombre de locatario que contenga el texto especificado
+                }
+            }
+        ];
+    }
+
+    if (!categorias || categorias.length === 0) {
+        options.include[0].include[0].where = {}; // Vaciar el objeto where
+    } else {
+        options.include[0].include[0].where = {id: categorias};
+    }
+
+    if(orden !== "ASC" && orden != "DESC"){
+        orden = "ASC";
+    }
+
+    if (orderBy === 'fechaExpiracion') {
+        options.order = [['fechaExpiracion', orden]];
+    } else if (orderBy === 'categoria') {
+        options.order = [[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]];
+    } else if (orderBy === 'puntos') {
+        options.order = [['costoPuntos', orden]];
+    }
+
+    const { count, rows: cupones } = await db.cupones.findAndCountAll(options);
+
+    const formattedCupones = cupones.map(cupon => {
+        const key = `tienda${cupon.locatario.id}.jpg`;
+
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        const key2 = `cupon${cupon.id}.jpg`;
+        const url2 = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key2,
+            Expires: 8600
+        });
+
+        return {
+            id: cupon.id,
+            codigo: cupon.codigo,
+            sumilla: cupon.sumilla,
+            descripcionCompleta: cupon.descripcionCompleta,
+            fechaExpiracion: cupon.fechaExpiracion,
+            terminosCondiciones: cupon.terminosCondiciones,
+            costoPuntos: cupon.costoPuntos,
+            rutaFoto: url2,
+
+            locatarioNombre: cupon.locatario.nombre,
+            locatarioDescripcion: cupon.locatario.descripcion,
+            locatarioLocacion: cupon.locatario.locacion,
+            locatarioRutaFoto: url,
+
+            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+        };
+    });
+
+    console.log('data conseguida');
+    res.json({total: count, cupones: formattedCupones})
+};
+
+
 module.exports = {
     detalleCupon,
     detalleCuponCompleto,
@@ -483,5 +772,10 @@ module.exports = {
     habilitar,
     crear,
     modificar,
-    getCuponesClientes
+    getCuponesClientes,
+
+    getClientesXCupon,
+    getCuponesXDiaCanjeado,
+    cuponesFiltradosGeneral
+
 }
