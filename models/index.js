@@ -67,6 +67,7 @@ db.eventos = require('./Evento/eventoModel') (sequelize, DataTypes)
 db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTypes) 
 db.escaneos = require('./escaneoQRModel') (sequelize, DataTypes) 
 db.recordatorios = require('./recordatorioModel') (sequelize, DataTypes) 
+db.marcoQRs = require('./marcosQRModel') (sequelize, DataTypes) 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
