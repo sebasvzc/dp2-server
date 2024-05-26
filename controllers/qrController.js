@@ -160,15 +160,18 @@ const scanQr = async (req, res) => {
 }
 
 const insertarMarcoQR = async (req, res) => {
-    try{
-        console.log(req.body)
-        const {codigo}  = req.body; // Leer el código del cuerpo de la solicitud
-        console.log("codigo: "+codigo);
+    try {
+        const { codigo, tipo } = req.body; // Leer el código y el tipo del cuerpo de la solicitud
+        const file = req.file; // Usar req.file para acceder al archivo subido
 
-        const file = req.files[0]; // Usar req.file para acceder al archivo subido
-        
-        if (!codigo) {
-            return res.status(400).send({ message: "Código no encontrado" });
+        const tiposAceptables = ['evento', 'tienda', 'otros'];
+
+        if (!codigo || !tipo) {
+            return res.status(400).send({ message: "Código y tipo son requeridos" });
+        }
+
+        if (!tiposAceptables.includes(tipo)) {
+            return res.status(400).send({ message: "Tipo no válido. Los valores aceptables son: 'evento', 'tienda', 'otros'" });
         }
 
         if (!file) {
@@ -177,11 +180,12 @@ const insertarMarcoQR = async (req, res) => {
 
         const data = {
             codigo,
-            activo:1
-        }
-        
+            tipo,
+            activo: 1
+        };
+
         const marco = await db.marcoQRs.create(data);
-        if(marco){
+        if (marco) {
             const bucketParams = {
                 Bucket: AWS_S3_BUCKET_NAME,
                 Key: `marco${marco.id}.jpg`,
@@ -190,29 +194,26 @@ const insertarMarcoQR = async (req, res) => {
             };
             try {
                 // Intenta subir el archivo a S3
-                const data = await s3Client.send(new PutObjectCommand(bucketParams));
-                console.log("Archivo subido con éxito al s3:", data);
+                const uploadData = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al s3:", uploadData);
             } catch (error) {
                 // Captura cualquier error durante la subida del archivo a S3
                 console.error("Error al subir el archivo a S3:", error);
-                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                // Aun así, informa que el marco fue creado pero el archivo no se subió correctamente
                 return res.status(200).send({
                     message: "Se encontró un error durante la subida del archivo, pero sí se creó el marco. Edítalo posteriormente."
                 });
             }
-        }else{
-            return res.status(400).send({message:"Invalid request body"});
+        } else {
+            return res.status(400).send({ message: "Invalid request body" });
         }
-        
 
-        //send users details
-        //broadcast(req.app.locals.clients, 'signup', user);
-        return res.status(200).send({message:"Marco "+ marco.id+ " creado correctamente"});
-    }catch (error) {
+        return res.status(200).send({ message: "Marco " + marco.id + " creado correctamente" });
+    } catch (error) {
         console.error('Error al cargar marco:', error);
-        res.status(500).json({ message: error.message});
+        res.status(500).json({ message: error.message });
     }
-}
+};
 
 const generateQrInFrame = async (req, res) => {
     const { tipo, idReferencia, marcoId } = req.body;
