@@ -299,9 +299,73 @@ const generateQrInFrame = async (req, res) => {
     }
 };
 
+const listarMarcos = async (req, res) => {
+    try {
+        const { tipo, activo } = req.body;
+        const { page = 1, size = 10 } = req.query;
+
+        // Validar que ambos campos están presentes
+        if (tipo === undefined || activo === undefined) {
+            return res.status(400).json({ message: 'Campos "tipo" y "activo" son requeridos' });
+        }
+
+        // Construir condiciones de búsqueda dinámicamente
+        const condiciones = {};
+        if (tipo !== "") {
+            condiciones.tipo = tipo;
+        }
+        if (activo !== "") {
+            condiciones.activo = activo;
+        }
+
+        // Calcular el offset para la paginación
+        const limit = parseInt(size);
+        const offset = (parseInt(page) - 1) * limit;
+
+        const { count, rows: marcos } = await db.marcoQRs.findAndCountAll({
+            where: condiciones,
+            offset,
+            limit
+        });
+
+        const marcosConUrl = await Promise.all(marcos.map(async (marco) => {
+            const key = `marco${marco.id}.jpg`;
+            //console.log("id marco: "+marco.id)
+            const url = s3.getSignedUrl('getObject', {
+                Bucket: AWS_S3_BUCKET_NAME,
+                Key: key,
+                Expires: 8600
+            });
+            //console.log("URL firmada:", url);
+            return {
+                id: marco.id,
+                codigo: marco.codigo,
+                tipo: marco.tipo,
+                activo: marco.activo,
+                url
+            };
+        }));
+
+        res.json({
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            marcos: marcosConUrl
+        });
+    } catch (error) {
+        console.error('Error al listar marcos:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    listarMarcos
+};
+
 module.exports = {
     generateQr,
     scanQr,
     insertarMarcoQR,
-    generateQrInFrame
+    generateQrInFrame,
+    listarMarcos
 };
