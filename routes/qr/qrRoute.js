@@ -8,5 +8,6 @@ const authenticateToken = require("../../middlewares/authenticateToken");
 qrRouter.post('/generar', qrController.generateQr);
 qrRouter.post('/scan', qrController.scanQr);
 qrRouter.post('/insertarMarco', upload.any(), qrController.insertarMarcoQR);
+qrRouter.post('/generarQRMarco', qrController.generateQrInFrame);
 
 module.exports = qrRouter;

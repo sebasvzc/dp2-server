@@ -1,9 +1,8 @@
 const qr = require('qrcode');
 const db = require('../models');
-const multer = require('multer');
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
-const storage = multer.memoryStorage(); // Puedes usar otros tipos de almacenamiento
-const upload = multer({ storage: storage });
+const sharp = require('sharp');
+const fetch = require('node-fetch');
 const {
     S3Client,
     PutObjectCommand,
@@ -215,8 +214,93 @@ const insertarMarcoQR = async (req, res) => {
     }
 }
 
+const generateQrInFrame = async (req, res) => {
+    const { tipo, idReferencia, marcoId } = req.body;
+
+    try {
+        let model;
+        switch (tipo) {
+            case 'evento':
+                model = db.eventos;
+                break;
+            case 'tienda':
+                model = db.locatarios;
+                break;
+            case 'cupon':
+                model = db.cuponXClientes;
+                break;
+            default:
+                return res.status(400).json({ message: 'Tipo no válido' });
+        }
+
+        const referencia = await model.findByPk(idReferencia);
+        if (!referencia) {
+            return res.status(404).json({ message: `${tipo} no encontrado` });
+        }
+
+        const qrData = JSON.stringify({ tipo, idReferencia });
+        const qrCodeBuffer = await qr.toBuffer(qrData);
+
+        let finalImageBuffer;
+
+        const marco = await db.marcoQRs.findOne({ where: { id: marcoId, activo: true } });
+
+        if (!marco) {
+            finalImageBuffer = qrCodeBuffer;
+        } else {
+            const key = `marco${marcoId}.jpg`;
+            console.log(key);
+            try {
+                const url = s3.getSignedUrl('getObject', {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: key,
+                    Expires: 8600
+                });
+                console.log("URL firmada:", url);
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.error('Error al obtener el marco:', response.statusText);
+                    return res.status(404).json({ message: 'Marco no encontrado' });
+                }
+
+                const frameBuffer = await response.buffer();
+                console.log("Buffer de respuesta obtenido");
+
+                const image = sharp(frameBuffer);
+                const { width, height } = await image.metadata();
+
+                // Calcular el tamaño y posición del QR
+                const qrSize = Math.floor(0.6 * width);
+                const qrX = Math.floor((width - qrSize) / 2);
+                const qrY = Math.floor((height - qrSize) / 2);
+
+                const qrResizedBuffer = await sharp(qrCodeBuffer)
+                    .resize(qrSize, qrSize)
+                    .toBuffer();
+
+                finalImageBuffer = await sharp(frameBuffer)
+                    .composite([{ input: qrResizedBuffer, left: qrX, top: qrY }])
+                    .toBuffer();
+            } catch (error) {
+                console.error("Error al procesar el marco:", error);
+                return res.status(404).json({ message: 'Marco no encontrado o error al obtener el marco.' });
+            }
+        }
+
+        const finalBase64 = finalImageBuffer.toString('base64');
+        const finalUrl = `data:image/jpeg;base64,${finalBase64}`;
+
+        res.json({ qrCode: finalUrl });
+    } catch (error) {
+        console.error("Error en generateQrInFrame:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     generateQr,
     scanQr,
-    insertarMarcoQR
+    insertarMarcoQR,
+    generateQrInFrame
 };
