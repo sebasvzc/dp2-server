@@ -10,6 +10,7 @@ const {
     DeleteObjectCommand
 } = require("@aws-sdk/client-s3");
 const {getSignUrlForFile} = require("../config/s3");
+const configuraciones = require('./configuracionesController')
 
 var s3Config;
 s3Config = {
@@ -331,11 +332,7 @@ const listarMarcos = async (req, res) => {
         const marcosConUrl = await Promise.all(marcos.map(async (marco) => {
             const key = `marco${marco.id}.jpg`;
             //console.log("id marco: "+marco.id)
-            const url = s3.getSignedUrl('getObject', {
-                Bucket: AWS_S3_BUCKET_NAME,
-                Key: key,
-                Expires: 8600
-            });
+            const url = await configuraciones.getSignedUrl(key);
             //console.log("URL firmada:", url);
             return {
                 id: marco.id,
