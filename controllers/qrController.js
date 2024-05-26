@@ -166,7 +166,7 @@ const insertarMarcoQR = async (req, res) => {
         const {codigo}  = req.body; // Leer el código del cuerpo de la solicitud
         console.log("codigo: "+codigo);
 
-        const file = req.body.file; // Usar req.file para acceder al archivo subido
+        const file = req.files[0]; // Usar req.file para acceder al archivo subido
         
         if (!codigo) {
             return res.status(400).send({ message: "Código no encontrado" });
@@ -176,8 +176,12 @@ const insertarMarcoQR = async (req, res) => {
             return res.status(400).send({ message: "Archivo no encontrado" });
         }
 
+        const data = {
+            codigo,
+            activo:1
+        }
         
-        const marco = await db.marcoQRs.create(codigo);
+        const marco = await db.marcoQRs.create(data);
         if(marco){
             const bucketParams = {
                 Bucket: AWS_S3_BUCKET_NAME,
