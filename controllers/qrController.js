@@ -162,7 +162,7 @@ const scanQr = async (req, res) => {
 const insertarMarcoQR = async (req, res) => {
     try {
         const { codigo, tipo } = req.body; // Leer el código y el tipo del cuerpo de la solicitud
-        const file = req.file; // Usar req.file para acceder al archivo subido
+        const file = req.files[0]; // Usar req.file para acceder al archivo subido
 
         const tiposAceptables = ['evento', 'tienda', 'otros'];
 
