@@ -2369,6 +2369,13 @@
                     },
                     {
                         "in": "formData",
+                        "name": "tipo",
+                        "description": "Tipo",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
                         "name": "foto",
                         "description": "Archivo de imagen para el marco de QR",
                         "required": true,
