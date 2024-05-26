@@ -48,6 +48,10 @@
         {
             "name": "evento-controller",
             "description": "Evento Controller"
+        },
+        {
+            "name": "qr-controller",
+            "description": "QR Controller"
         }
     ],
     "paths": {
@@ -2340,6 +2344,48 @@
                             }
                         },
                         "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/qr/insertarMarco": {
+            "post": {
+                "tags": [
+                    "qr-controller"
+                ],
+                "operationId": "marcoQRPOST",
+                "summary": "Inserta un marco de QR al s3",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "description": "Inserta un marco de QR al s3.",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "codigo",
+                        "description": "Codigo",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "foto",
+                        "description": "Archivo de imagen para el marco de QR",
+                        "required": true,
+                        "type": "file"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        
+                        "description": "Forbidden"
                     }
                 }
             }
