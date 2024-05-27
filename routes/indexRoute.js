@@ -13,6 +13,7 @@ const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 const cuponRouter = require('./cupones/cuponRoute');
 const qrRouter = require('./qr/qrRoute')
+const configRoute = require('./configuraciones/configuracionesRoute')
 // Configurar el transporte de correo
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -32,5 +33,6 @@ router.use('/eventos', eventoRoutes);
 router.use('/cupones', cuponRouter);
 router.use('/tipocupones', tipoCuponRoutes);
 router.use('/qr', qrRouter);
+router.use('/config', configRoute);
 
 module.exports = router;

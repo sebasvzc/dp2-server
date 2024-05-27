@@ -10,6 +10,7 @@ const {
     DeleteObjectCommand
 } = require("@aws-sdk/client-s3");
 const {getSignUrlForFile} = require("../config/s3");
+const configuraciones = require('./configuracionesController')
 
 var s3Config;
 s3Config = {
@@ -299,9 +300,174 @@ const generateQrInFrame = async (req, res) => {
     }
 };
 
+const listarMarcos = async (req, res) => {
+    try {
+        const { tipo, activo } = req.body;
+        const { page = 1, size = 10 } = req.query;
+
+        // Validar que ambos campos están presentes
+        if (tipo === undefined || activo === undefined) {
+            return res.status(400).json({ message: 'Campos "tipo" y "activo" son requeridos' });
+        }
+
+        // Construir condiciones de búsqueda dinámicamente
+        const condiciones = {};
+        if (tipo !== "") {
+            condiciones.tipo = tipo;
+        }
+        if (activo !== "") {
+            condiciones.activo = activo;
+        }
+
+        // Calcular el offset para la paginación
+        const limit = parseInt(size);
+        const offset = (parseInt(page) - 1) * limit;
+
+        const { count, rows: marcos } = await db.marcoQRs.findAndCountAll({
+            where: condiciones,
+            offset,
+            limit
+        });
+
+        const marcosConUrl = await Promise.all(marcos.map(async (marco) => {
+            const key = `marco${marco.id}.jpg`;
+            //console.log("id marco: "+marco.id)
+            const url = await configuraciones.getSignedUrl(key);
+            //console.log("URL firmada:", url);
+            return {
+                id: marco.id,
+                codigo: marco.codigo,
+                tipo: marco.tipo,
+                activo: marco.activo,
+                url
+            };
+        }));
+
+        res.json({
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page),
+            marcos: marcosConUrl
+        });
+    } catch (error) {
+        console.error('Error al listar marcos:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const habilitarMarcos = async (req, res) => {
+    try {
+        const { ids } = req.body;
+
+        // Validar que el campo ids está presente y es un array
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'El campo "ids" es requerido y debe ser un array no vacío' });
+        }
+
+        // Actualizar los marcos para habilitarlos
+        const result = await db.marcoQRs.update(
+            { activo: true },
+            {
+                where: {
+                    id: ids
+                }
+            }
+        );
+
+        res.status(200).json({ message: `${result[0]} marcos habilitados correctamente` });
+    } catch (error) {
+        console.error('Error al habilitar marcos:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const deshabilitarMarcos = async (req, res) => {
+    try {
+        const { ids } = req.body;
+
+        // Validar que el campo ids está presente y es un array
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'El campo "ids" es requerido y debe ser un array no vacío' });
+        }
+
+        // Actualizar los marcos para deshabilitarlos
+        const result = await db.marcoQRs.update(
+            { activo: false },
+            {
+                where: {
+                    id: ids
+                }
+            }
+        );
+
+        res.status(200).json({ message: `${result[0]} marcos deshabilitados correctamente` });
+    } catch (error) {
+        console.error('Error al deshabilitar marcos:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const modificarMarco = async (req, res) => {
+    try {
+        const { id, codigo, tipo, activo } = req.body;
+        const file = req.files[0];
+
+        // Validar que el campo id está presente
+        if (!id) {
+            return res.status(400).json({ message: 'El campo "id" es requerido' });
+        }
+
+        // Validar que el campo tipo tenga un valor permitido
+        const tiposPermitidos = ['evento', 'otros', 'tienda'];
+        if (tipo && !tiposPermitidos.includes(tipo)) {
+            return res.status(400).json({ message: 'El campo "tipo" debe ser uno de los siguientes valores: evento, otros, tienda' });
+        }
+
+        // Buscar el marco por id
+        const marco = await db.marcoQRs.findByPk(id);
+        if (!marco) {
+            return res.status(404).json({ message: 'Marco no encontrado' });
+        }
+
+        // Actualizar el marco
+        if (codigo) marco.codigo = codigo;
+        if (activo !== undefined) marco.activo = activo;
+        if (tipo) marco.tipo = tipo;
+
+        await marco.save();
+
+        // Si se proporciona un archivo, actualizar la imagen en S3
+        if (file) {
+            const key = `marco${id}.jpg`;
+            const bucketParams = {
+                Bucket: AWS_S3_BUCKET_NAME,
+                Key: key,
+                Body: file.buffer,
+                ContentType: file.mimetype
+            };
+            try {
+                await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Imagen actualizada con éxito en S3:", key);
+            } catch (error) {
+                console.error("Error al actualizar la imagen en S3:", error);
+                return res.status(500).json({ message: 'Error al actualizar la imagen en S3' });
+            }
+        }
+
+        res.status(200).json({ message: 'Marco actualizado correctamente', marco });
+    } catch (error) {
+        console.error('Error al modificar el marco:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     generateQr,
     scanQr,
     insertarMarcoQR,
-    generateQrInFrame
+    generateQrInFrame,
+    listarMarcos,
+    habilitarMarcos,
+    deshabilitarMarcos,
+    modificarMarco
 };
