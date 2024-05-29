@@ -19,6 +19,7 @@ cuponRouter.post('/crear', authenticateToken,upload.any(),crear);
 cuponRouter.post('/modificar', authenticateToken,upload.any(),modificar);
 cuponRouter.get('/listarcuponescliente', getCuponesClientes);
 cuponRouter.get('/listarcuponesxdiacanjeado', getCuponesXDiaCanjeado);
+
 cuponRouter.post('/listarCuponesFiltradosGeneral', cuponController.cuponesFiltradosGeneral);
 cuponRouter.post('/comprarCuponCliente', cuponController.comprarCuponCliente);
 module.exports = cuponRouter;
