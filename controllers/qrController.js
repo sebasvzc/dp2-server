@@ -296,8 +296,16 @@ const generateQrInFrame = async (req, res) => {
             return res.status(404).json({ message: `${tipo} no encontrado` });
         }
 
+
+        // Cifrar los datos
         const qrData = JSON.stringify({ tipo, idReferencia });
-        const qrCodeBuffer = await qr.toBuffer(qrData);
+        const encryptedData = crypto.AES.encrypt(qrData, CRYPTO_JS_KEY).toString();
+
+        // Generar el QR con los datos cifrados
+        const qrCodeBuffer = await qr.toBuffer(encryptedData);
+
+        /*const qrData = JSON.stringify({ tipo, idReferencia });
+        const qrCodeBuffer = await qr.toBuffer(qrData);*/
 
         let finalImageBuffer;
 
