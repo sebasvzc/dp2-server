@@ -74,7 +74,19 @@ const generateQr = async (req, res) => {
 
 const scanQr = async (req, res) => {
     try {
-        const { tipo, idReferencia, idCliente } = req.body;
+        const { dataEncriptada, idCliente } = req.body;
+
+        // Desencriptar los datos
+        let decryptedData;
+        try {
+            const bytes = crypto.AES.decrypt(dataEncriptada, CRYPTO_JS_KEY);
+            decryptedData = JSON.parse(bytes.toString(crypto.enc.Utf8));
+        } catch (error) {
+            return res.status(400).json({ message: 'Datos encriptados inválidos' });
+        }
+
+        const { tipo, idReferencia } = decryptedData;
+        console.log("tipo: "+tipo+" - id: "+idReferencia);
 
         // Validar si el tipo es uno de los permitidos
         if (!['evento', 'tienda', 'cupon'].includes(tipo)) {
