@@ -1,8 +1,8 @@
 const qr = require('qrcode');
 const db = require('../models');
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN, CRYPTO_JS_KEY } = process.env;
-const sharp = require('sharp');
-const fetch = require('node-fetch');
+//const sharp = require('sharp');
+//const fetch = require('node-fetch');
 const crypto = require('crypto-js');
 const {
     S3Client,
@@ -271,7 +271,7 @@ const insertarMarcoQR = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
+/*
 const generateQrInFrame = async (req, res) => {
     const { tipo, idReferencia, marcoId } = req.body;
 
@@ -304,8 +304,8 @@ const generateQrInFrame = async (req, res) => {
         // Generar el QR con los datos cifrados
         const qrCodeBuffer = await qr.toBuffer(encryptedData);
 
-        /*const qrData = JSON.stringify({ tipo, idReferencia });
-        const qrCodeBuffer = await qr.toBuffer(qrData);*/
+        //const qrData = JSON.stringify({ tipo, idReferencia });
+        //const qrCodeBuffer = await qr.toBuffer(qrData);
 
         let finalImageBuffer;
 
@@ -362,7 +362,7 @@ const generateQrInFrame = async (req, res) => {
         console.error("Error en generateQrInFrame:", error);
         res.status(500).json({ message: error.message });
     }
-};
+};*/
 
 const listarMarcos = async (req, res) => {
     try {
@@ -529,7 +529,7 @@ module.exports = {
     generateQr,
     scanQr,
     insertarMarcoQR,
-    generateQrInFrame,
+    //generateQrInFrame,
     listarMarcos,
     habilitarMarcos,
     deshabilitarMarcos,
