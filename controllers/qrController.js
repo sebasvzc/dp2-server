@@ -207,7 +207,8 @@ const scanQr = async (req, res) => {
             message: 'QR escaneado con éxito, puntos asignados.',
             puntosOtorgados: puntosOtorgados,
             nombre: nombre,
-            urlFoto: urlFoto
+            urlFoto: urlFoto,
+            tipo: tipo
         });
     } catch (error) {
         console.error('Error al escanear QR:', error);
