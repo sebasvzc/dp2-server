@@ -1,8 +1,9 @@
 const qr = require('qrcode');
 const db = require('../models');
-const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
-const sharp = require('sharp');
-const fetch = require('node-fetch');
+const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN, CRYPTO_JS_KEY } = process.env;
+//const sharp = require('sharp');
+//const fetch = require('node-fetch');
+const crypto = require('crypto-js');
 const {
     S3Client,
     PutObjectCommand,
@@ -58,8 +59,12 @@ const generateQr = async (req, res) => {
             return res.status(404).json({ message: `${tipo} no encontrado` });
         }
 
+        // Cifrar los datos
         const qrData = JSON.stringify({ tipo, idReferencia });
-        const qrCode = await qr.toDataURL(qrData);
+        const encryptedData = crypto.AES.encrypt(qrData, CRYPTO_JS_KEY).toString();
+
+        // Generar el QR con los datos cifrados
+        const qrCode = await qr.toDataURL(encryptedData);
 
         res.json({ qrCode });
     } catch (error) {
@@ -69,7 +74,19 @@ const generateQr = async (req, res) => {
 
 const scanQr = async (req, res) => {
     try {
-        const { tipo, idReferencia, idCliente } = req.body;
+        const { dataEncriptada, idCliente } = req.body;
+
+        // Desencriptar los datos
+        let decryptedData;
+        try {
+            const bytes = crypto.AES.decrypt(dataEncriptada, CRYPTO_JS_KEY);
+            decryptedData = JSON.parse(bytes.toString(crypto.enc.Utf8));
+        } catch (error) {
+            return res.status(400).json({ message: 'Datos encriptados inválidos' });
+        }
+
+        const { tipo, idReferencia } = decryptedData;
+        console.log("tipo: "+tipo+" - id: "+idReferencia);
 
         // Validar si el tipo es uno de los permitidos
         if (!['evento', 'tienda', 'cupon'].includes(tipo)) {
@@ -98,7 +115,7 @@ const scanQr = async (req, res) => {
             }
         });
         if (!referencia) {
-            return res.status(404).json({ message: `${tipo} no encontrado o no está activo` });
+            return res.status(404).json({ message: `${tipo} no encontrado o no está activo` ,  puntosOtorgados:-1});
         }
 
         // Consultar si ya existe un escaneo previo
@@ -138,8 +155,12 @@ const scanQr = async (req, res) => {
             ultimoEscaneo: new Date()  // Registra la fecha actual del escaneo
         });
 
-        // Si el tipo es 'evento', llamar al procedimiento para sumar puntos
+        // Si el tipo es 'evento' o 'tienda', obtener información adicional y sumar puntos
         let puntosOtorgados = 0;
+        let nombre = '';
+        let rutaFoto = '';
+        let urlFoto = '';
+
         if (tipo === 'evento') {
             const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
                 replacements: { tipo: 1, idCliente: idCliente, idReferencia: idReferencia }
@@ -148,11 +169,46 @@ const scanQr = async (req, res) => {
             // Obtener el valor de la variable de salida
             const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
             puntosOtorgados = output.puntosOtorgados;
+
+            // Obtener nombre y rutaFoto del evento
+            nombre = referencia.nombre;
+            rutaFoto = referencia.rutaFoto;
+
+            // Generar URL firmada para la imagen del evento
+            const key = `evento${idReferencia}.jpg`;
+            urlFoto = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: key,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
+        } else if (tipo === 'tienda') {
+            const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
+                replacements: { tipo: 2, idCliente: idCliente, idReferencia: idReferencia }
+            });
+
+            // Obtener el valor de la variable de salida
+            const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
+            puntosOtorgados = output.puntosOtorgados;
+
+            // Obtener nombre y rutaFoto del locatario
+            nombre = referencia.nombre;
+            rutaFoto = referencia.rutaFoto;
+
+            // Generar URL firmada para la imagen del locatario
+            const key = `tienda${idReferencia}.jpg`;
+            urlFoto = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: key,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
         }
 
-        res.json({ 
+        res.json({
             message: 'QR escaneado con éxito, puntos asignados.',
-            puntosOtorgados: puntosOtorgados
+            puntosOtorgados: puntosOtorgados,
+            nombre: nombre,
+            urlFoto: urlFoto,
+            tipo: tipo
         });
     } catch (error) {
         console.error('Error al escanear QR:', error);
@@ -215,7 +271,7 @@ const insertarMarcoQR = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
+/*
 const generateQrInFrame = async (req, res) => {
     const { tipo, idReferencia, marcoId } = req.body;
 
@@ -240,8 +296,16 @@ const generateQrInFrame = async (req, res) => {
             return res.status(404).json({ message: `${tipo} no encontrado` });
         }
 
+
+        // Cifrar los datos
         const qrData = JSON.stringify({ tipo, idReferencia });
-        const qrCodeBuffer = await qr.toBuffer(qrData);
+        const encryptedData = crypto.AES.encrypt(qrData, CRYPTO_JS_KEY).toString();
+
+        // Generar el QR con los datos cifrados
+        const qrCodeBuffer = await qr.toBuffer(encryptedData);
+
+        //const qrData = JSON.stringify({ tipo, idReferencia });
+        //const qrCodeBuffer = await qr.toBuffer(qrData);
 
         let finalImageBuffer;
 
@@ -298,7 +362,7 @@ const generateQrInFrame = async (req, res) => {
         console.error("Error en generateQrInFrame:", error);
         res.status(500).json({ message: error.message });
     }
-};
+};*/
 
 const listarMarcos = async (req, res) => {
     try {
@@ -465,7 +529,7 @@ module.exports = {
     generateQr,
     scanQr,
     insertarMarcoQR,
-    generateQrInFrame,
+    //generateQrInFrame,
     listarMarcos,
     habilitarMarcos,
     deshabilitarMarcos,

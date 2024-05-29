@@ -654,7 +654,7 @@ const getCuponesEstado = async (req, res,next) => {
 }
 
 const listarClientesActivos = async (req, res) => {
-    const { active, searchText } = req.body; // Obtener desde el cuerpo
+    const { active, searchText, id } = req.body; // Obtener desde el cuerpo
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
     const offset = (page - 1) * pageSize; // Calcular el offset
@@ -662,16 +662,23 @@ const listarClientesActivos = async (req, res) => {
     try {
         const whereConditions = {};
 
-        if (active!=undefined && (active == 1 || active == 0)) {
-            whereConditions.activo = active; // Se incluyen clientes basados en el estado activo solicitado
-        }
-        
-        if (searchText) {
-            whereConditions[Op.or] = [
-                { nombre: { [Op.like]: `%${searchText}%` } },
-                { apellidoPaterno: { [Op.like]: `%${searchText}%` } },
-                { apellidoMaterno: { [Op.like]: `%${searchText}%` } }
-            ];
+        if (id && id > 0) {
+            // Si se recibe un id válido, agregarlo a las condiciones de búsqueda
+            whereConditions.id = id;
+        } else {
+            if (active != undefined && (active == 1 || active == 0)) {
+                whereConditions.activo = active; // Se incluyen clientes basados en el estado activo solicitado
+            }
+
+            if (searchText) {
+                whereConditions[Op.or] = [
+                    { nombre: { [Op.like]: `%${searchText}%` } },
+                    { apellidoPaterno: { [Op.like]: `%${searchText}%` } },
+                    { apellidoMaterno: { [Op.like]: `%${searchText}%` } },
+                    { telefono: { [Op.like]: `%${searchText}%` } },
+                    { email: { [Op.like]: `%${searchText}%` } }
+                ];
+            }
         }
 
         // Encontrar todos los clientes según los criterios de búsqueda y paginación

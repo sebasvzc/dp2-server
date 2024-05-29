@@ -21,4 +21,5 @@ cuponRouter.get('/listarcuponescliente', getCuponesClientes);
 cuponRouter.get('/listarcuponesxdiacanjeado', getCuponesXDiaCanjeado);
 
 cuponRouter.post('/listarCuponesFiltradosGeneral', cuponController.cuponesFiltradosGeneral);
+cuponRouter.post('/comprarCuponCliente', cuponController.comprarCuponCliente);
 module.exports = cuponRouter;
