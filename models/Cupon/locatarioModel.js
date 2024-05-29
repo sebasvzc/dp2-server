@@ -36,6 +36,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        puntosOtorgados: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 50
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
