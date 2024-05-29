@@ -1,8 +1,9 @@
 const qr = require('qrcode');
 const db = require('../models');
-const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
+const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN, CRYPTO_JS_KEY } = process.env;
 const sharp = require('sharp');
 const fetch = require('node-fetch');
+const crypto = require('crypto-js');
 const {
     S3Client,
     PutObjectCommand,
@@ -58,8 +59,12 @@ const generateQr = async (req, res) => {
             return res.status(404).json({ message: `${tipo} no encontrado` });
         }
 
+        // Cifrar los datos
         const qrData = JSON.stringify({ tipo, idReferencia });
-        const qrCode = await qr.toDataURL(qrData);
+        const encryptedData = crypto.AES.encrypt(qrData, CRYPTO_JS_KEY).toString();
+
+        // Generar el QR con los datos cifrados
+        const qrCode = await qr.toDataURL(encryptedData);
 
         res.json({ qrCode });
     } catch (error) {
