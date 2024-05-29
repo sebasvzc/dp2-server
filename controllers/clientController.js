@@ -30,7 +30,10 @@ const s3 = new AWS.S3();
 
 // Assigning users to the variable User
 const Client = db.clients;
-
+const Locatario = db.locatarios;
+const CategoriaTienda = db.categoriaTiendas;
+const Cupon = db.cupones;
+const CuponXCliente = db.cuponXClientes;
 const broadcast = (clients, method, message) => {
     if(clients){
         clients.forEach((client) => {
@@ -696,8 +699,110 @@ const listarClientesActivos = async (req, res) => {
         return res.status(500).send({ estado: "Ha ocurrido un error intentando listar los clientes activos" });
     }
 }
+const listarCuponesXClientes = async (req, res) => {
+    var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
 
+    console.log('getCuponesXCliente - query: ', req.query.idParam, startDate, endDate);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        const cuponesGroupedByDateAndCategory = await CuponXCliente.findAll({
+            where: {
+                fidCliente: idParam,
+                fechaCompra: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            attributes: [
+                [db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`), 'fechaMesAnio'],
+                [db.sequelize.col('cupon.locatario.categoriaTienda.nombre'), 'categoria'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('cuponXCliente.id')), 'cantidad'] // Contar el número de cupones por fecha
+            ],
+            include: [{
+                model: Cupon,
+                as: 'cupon',
+                attributes: [], // No necesitamos atributos adicionales de Cupon
+                include: [{
+                    model: Locatario,
+                    as: 'locatario',
+                    attributes: [], // No necesitamos atributos adicionales de Locatario
+                    include: [{
+                        model: CategoriaTienda,
+                        as: 'categoriaTienda',
+                        attributes: ['nombre'] // Nombre de la categoría
+                    }]
+                }]
+            }],
+            group: [
+                db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`),
+                'cupon.locatario.categoriaTienda.id',
+            ], // Agrupar por la fecha y la categoría
+            order: [
+                [db.sequelize.fn('DATE', db.sequelize.col('cuponXCliente.fechaCompra')), 'ASC']
+            ] // Ordenar por la fecha y luego por categoría
+        });
 
+        // Verificar la estructura de los datos crudos
+        console.log('Datos crudos:', JSON.stringify(cuponesGroupedByDateAndCategory, null, 2));
+
+        // Crear una estructura de categorías y fechas
+        const cuponesPorCategoria = {};
+        const monthsRange = generarRangoMeses(startDate, endDate);
+
+        cuponesGroupedByDateAndCategory.forEach(cupon => {
+            const fechaMesAnio = cupon.get('fechaMesAnio');
+            const cantidad = cupon.get('cantidad');
+            const categoria = cupon.get('categoria');
+            if (!cuponesPorCategoria[categoria]) {
+                cuponesPorCategoria[categoria] = monthsRange.map(month => ({
+                    fechaMesAnio: month,
+                    cantidad: 0
+                }));
+            }
+
+            const foundMonth = cuponesPorCategoria[categoria].find(month => month.fechaMesAnio === fechaMesAnio);
+            if (foundMonth) {
+                foundMonth.cantidad = cantidad;
+            }
+        });
+
+        // Convertir la estructura en el formato deseado
+        const resultado = Object.keys(cuponesPorCategoria).map(categoria => ({
+            Categoria: categoria,
+            data: cuponesPorCategoria[categoria]
+        }));
+
+        return res.status(200).json({ cupones: resultado, newToken: req.newToken });
+
+    } catch (error) {
+        console.log('getCuponXDia - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+
+function generarRangoMeses(start, end) {
+    const result = [];
+    const current = new Date(start);
+    while (current <= end) {
+        result.push(new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short' }).format(current));
+        current.setMonth(current.getMonth() + 1);
+    }
+    return result;
+}
+function parseDate(dateString) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // Restar 1 al mes porque los meses en JavaScript van de 0 a 11
+}
 const getEventosHoy = async (req, res,next) => {
     const page = parseInt(req.body.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.body.pageSize) || 3; // Tamaño de página, default 3
@@ -883,5 +988,6 @@ module.exports = {
     getCuponesEstado,
 
     verPermisoUsuario,
-    cambiarPermisoUsuario
+    cambiarPermisoUsuario,
+    listarCuponesXClientes
 };
