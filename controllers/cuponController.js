@@ -5,7 +5,14 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const Op = Sequelize.Op;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
-
+const mysql = require('mysql2/promise');
+const pool = mysql.createPool({
+    host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
+      port: 3306,
+      user: 'administrador',
+      password: 'contrasenia',
+      database: 'plaza'
+      });
 const {
     S3Client,
     PutObjectCommand,
@@ -764,6 +771,30 @@ const cuponesFiltradosGeneral = async (req, res) => {
 };
 
 
+
+const comprarCuponCliente = async (req, res,next) => {
+    let connection;
+    const idCliente = parseInt(req.body.idCliente)
+    const idCupon = parseInt (req.body.idCupon)
+    try{
+
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL comprarCupon(?,?,@resultado,@mensaje)`,[idCliente,idCupon])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado, @mensaje AS mensaje')
+        const resultado = row[0]
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
+
 module.exports = {
     detalleCupon,
     detalleCuponCompleto,
@@ -776,6 +807,8 @@ module.exports = {
 
     getClientesXCupon,
     getCuponesXDiaCanjeado,
-    cuponesFiltradosGeneral
+    cuponesFiltradosGeneral,
+
+    comprarCuponCliente
 
 }
