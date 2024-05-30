@@ -287,8 +287,13 @@ const getCuponesClientes = async (req, res) => {
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
                     const url = await getSignUrlForFile(objectKey);
+
+                    const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
+                    const urlTienda = await getSignUrlForFile(objectKey2);
+
+
                     // Agregar la URL firmada al objeto del cupón
-                    return { ...cupon.dataValues, rutaFoto: url };
+                    return { ...cupon.dataValues, rutaFoto: url, rutaTienda: urlTienda };
                 }));
                 return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
