@@ -302,10 +302,42 @@ const modificar = async (req, res) => {
         console.log('updateTienda - updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+const detalleTiendaCompleto = async (req, res) => {
+    try {
+        console.log(req.body)
+
+        const detalleTienda = await Tienda.findOne({
+            where: { id: req.body.id },
+            include: [
+                {
+                    model: db.categoriaTiendas,
+                    as: 'categoriaTienda',
+                    attributes: ['id','nombre'],
+                },
+            ]
+        });
+
+        if (detalleTienda) {
+            const objectKey = `tienda${detalleTienda.id}.jpg`;
+            const url = await getSignUrlForFile( `tienda${detalleTienda.id}.jpg`);
+            console.log(detalleTienda.id)
+            console.log(url)
+            console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
+            res.status(200).json({ success: true, detalles: detalleTienda, image:url});
+        } else {
+            res.status(404).json({ success: false, message: 'Tienda no encontrado'});
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ success: false, message: 'Hubo un error al procesar la solicitud' });
+    }
+}
 module.exports = {
     habilitar,
     deshabilitar,
     getTiendas,
     crear,
-    modificar
+    modificar,
+    detalleTiendaCompleto
+
 };
