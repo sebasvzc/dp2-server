@@ -90,6 +90,69 @@ const getEventosConAsistentesYCategoria = async (req, res) => {
     }
 };
 
+
+const getEventosProximos = async (req, res,next) => {
+    const page = parseInt(req.body.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.body.pageSize) || 3; // Tamaño de página, default 3
+    const offset = (page - 1) * pageSize; // Calcular el offset
+    const valoresFaltantes = parseInt(req.body.maxValores) - ((page-1)*size)
+    let connection;
+    try{
+        const {} = req.params
+        
+        const cantidad =parseInt(req.body.maxValores)
+
+        const [result] = await connection.query(`CALL eventosProximos(?,?,?)`,[pageSize,offset,valoresFaltantes])
+        const totalPages = Math.ceil(cantidad / pageSize);
+        const [eventosObtenidos] = result;
+   
+        const respuesta = {
+            totalEncontrados: cantidad,
+            totalPaginas: totalPages,
+            cupones: eventosObtenidos.map(evento => {
+                const key = `evento${evento.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+                
+                evento.fechaInicio= evento.fechaInicio.toISOString().split('T')[0];
+                evento.fechaFin=evento.fechaFin.toISOString().split('T')[0];
+                evento.fechaInicio=`${evento.fechaInicio.split('-')[2]}-${evento.fechaInicio.split('-')[1]}-${evento.fechaInicio.split('-')[0]}`;
+                evento.fechaFin=`${evento.fechaFin.split('-')[2]}-${evento.fechaFin.split('-')[1]}-${evento.fechaFin.split('-')[0]}`;
+
+              return {
+                idEvento: evento.idEvento,
+                nombreEvento: evento.nombreEvento,
+                fechaInicio: evento.fechaInicio,
+                fechaFin: evento.fechaFin,
+                horarioInicio: evento.horarioInicio,
+                horaFin:evento.horaFin,
+                descripcion: evento.descripcionEvento,
+                puntos: evento.puntosOtorgados,
+                ubicacion: evento.ubicacion,
+                aforo: evento.aforo,
+                nombreTienda:evento.nombreTienda,
+                urlEvento: urlEvento,
+              };
+            })
+          };
+        res.status(200).json(respuesta);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
+
 module.exports = {
-    getEventosConAsistentesYCategoria
+    getEventosConAsistentesYCategoria,
+    getEventosProximos
 }
