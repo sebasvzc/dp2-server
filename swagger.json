@@ -1402,6 +1402,95 @@
                 }
             }
         },
+        "/api/categoriaTienda/listarCategoriaTiendasWeb?query={nombre}&page={page}&pageSize={pageSize}": {
+            "get": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "getCatTiendasUsingGET",
+                "summary": "Get Cat tienda / Cat tiendas",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al Cat Tienda basado en el parametro.",
+                "parameters": [
+                    {
+                        "name": "nombre",
+                        "required": false,
+                        "in": "path",
+                        "type": "string",
+                        "description": "Nombre de la categoria de tienda"
+                    },{
+                        "name": "page",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Pagina solicitada"
+                    },{
+                        "name": "pageSize",
+                        "required": false,
+                        "in": "path",
+                        "type": "integer",
+                        "description": "Tamanio de pagina solicitada"
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Tienda"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/tiendas/deshabilitar": {
             "post": {
                 "tags": [
