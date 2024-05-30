@@ -796,7 +796,170 @@ const listarCuponesXClientes = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+const listarCuponesCategoriaRadar = async (req, res) => {
+    var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
 
+    console.log('getCuponesXClienteRadar - query: ', req.query.idParam, startDate, endDate);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required! getCuponesXClienteRadar");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        const cuponesGroupedByCategory = await CuponXCliente.findAll({
+            where: {
+                fidCliente: idParam,
+                fechaCompra: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            attributes: [
+                [db.sequelize.col('cupon.locatario.categoriaTienda.nombre'), 'categoria'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('cuponXCliente.id')), 'cantidad'] // Contar el número de cupones por fecha
+            ],
+            include: [{
+                model: Cupon,
+                as: 'cupon',
+                attributes: [], // No necesitamos atributos adicionales de Cupon
+                include: [{
+                    model: Locatario,
+                    as: 'locatario',
+                    attributes: [], // No necesitamos atributos adicionales de Locatario
+                    include: [{
+                        model: CategoriaTienda,
+                        as: 'categoriaTienda',
+                        attributes: ['nombre'] // Nombre de la categoría
+                    }]
+                }]
+            }],
+            group: [
+                'cupon.locatario.categoriaTienda.id',
+            ]
+        });
+
+        // Verificar la estructura de los datos crudos
+        console.log('Datos crudos:', JSON.stringify(cuponesGroupedByCategory, null, 2));
+        const resultado = {
+            name: "Cliente 1",
+            data: cuponesGroupedByCategory.map(cupon => cupon.get('cantidad')),
+            categoria: cuponesGroupedByCategory.map(cupon => cupon.get('categoria'))
+        };
+        console.log(resultado)
+        console.log("resultado")
+        return res.status(200).json({ cupones: resultado, newToken: req.newToken });
+
+    } catch (error) {
+        console.log('getCuponesXClienteRadar - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+const listarCuponesCanjeadosUsados= async (req, res) => {
+    var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getCuponesXCliente - query: ', req.query.idParam, startDate, endDate);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        // Obtener cupones agrupados por fecha y categoría para cupones canjeados
+        const cuponesCanjeados = await CuponXCliente.findAll({
+            where: {
+                fidCliente: idParam,
+                fechaCompra: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            attributes: [
+                [db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`), 'fechaMesAnio'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('cuponXCliente.id')), 'cantidad']
+            ],
+            group: [
+                db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`)
+            ],
+            order: [
+                [db.sequelize.fn('DATE', db.sequelize.col('cuponXCliente.fechaCompra')), 'ASC']
+            ]
+        });
+
+        // Obtener cupones agrupados por fecha y categoría para cupones usados
+        const cuponesUsados = await CuponXCliente.findAll({
+            where: {
+                fidCliente: idParam,
+                fechaCompra: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                },
+                usado: true
+            },
+            attributes: [
+                [db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`), 'fechaMesAnio'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('cuponXCliente.id')), 'cantidad']
+            ],
+            group: [
+                db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`)
+            ],
+            order: [
+                [db.sequelize.fn('DATE', db.sequelize.col('cuponXCliente.fechaCompra')), 'ASC']
+            ]
+        });
+
+        // Generar rango de meses
+        const monthsRange = generarRangoMeses(startDate, endDate);
+
+        // Función para mapear los datos
+        const mapearCupones = (cupones) => {
+            const result = monthsRange.map(month => ({
+                fechaMesAnio: month,
+                cantidad: 0
+            }));
+            cupones.forEach(cupon => {
+                const fechaMesAnio = cupon.get('fechaMesAnio');
+                const cantidad = cupon.get('cantidad');
+                const foundMonth = result.find(month => month.fechaMesAnio === fechaMesAnio);
+                if (foundMonth) {
+                    foundMonth.cantidad = cantidad;
+                }
+            });
+            return result;
+        };
+
+        const dataCanjeados = mapearCupones(cuponesCanjeados);
+        const dataUsados = mapearCupones(cuponesUsados);
+
+        // Crear la estructura final
+        const resultado = [
+            {
+                variable: "Canjeado",
+                data: dataCanjeados
+            },
+            {
+                variable: "Usado",
+                data: dataUsados
+            }
+        ];
+        console.log("resultados canejado usados")
+        console.log(resultado)
+        return res.status(200).json({ cupones: resultado, newToken: req.newToken });
+    } catch (error) {
+        console.log('getCuponXDia - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 function generarRangoMeses(start, end) {
     const result = [];
     const current = new Date(start);
@@ -996,5 +1159,7 @@ module.exports = {
 
     verPermisoUsuario,
     cambiarPermisoUsuario,
-    listarCuponesXClientes
+    listarCuponesXClientes,
+    listarCuponesCategoriaRadar,
+    listarCuponesCanjeadosUsados
 };
