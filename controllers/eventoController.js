@@ -6,6 +6,24 @@ const crypto = require("crypto");
 const Op = Sequelize.Op;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 
+const mysql = require('mysql2/promise');
+const pool = mysql.createPool({
+    host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
+      port: 3306,
+      user: 'administrador',
+      password: 'contrasenia',
+      database: 'plaza'
+      });
+      const AWS = require('aws-sdk');
+      AWS.config.update({
+          accessKeyId: AWS_ACCESS_KEY,
+          secretAccessKey: AWS_ACCESS_SECRET,
+          sessionToken: AWS_SESSION_TOKEN,
+          region: 'us-east-1' // La región donde está tu bucket
+        });
+      
+      const s3 = new AWS.S3();
+
 const Evento = db.eventos;
 const Locatario = db.locatarios;
 const CategoriaTienda=db.categoriaTiendas;
@@ -95,13 +113,11 @@ const getEventosProximos = async (req, res,next) => {
     const page = parseInt(req.body.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.body.pageSize) || 3; // Tamaño de página, default 3
     const offset = (page - 1) * pageSize; // Calcular el offset
-    const valoresFaltantes = parseInt(req.body.maxValores) - ((page-1)*size)
+    const cantidad =parseInt(req.body.maxValores) || 10
+    const valoresFaltantes = cantidad - ((page-1)*pageSize)
     let connection;
     try{
-        const {} = req.params
-        
-        const cantidad =parseInt(req.body.maxValores)
-
+         connection = await pool.getConnection();
         const [result] = await connection.query(`CALL eventosProximos(?,?,?)`,[pageSize,offset,valoresFaltantes])
         const totalPages = Math.ceil(cantidad / pageSize);
         const [eventosObtenidos] = result;
