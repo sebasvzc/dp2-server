@@ -1,12 +1,17 @@
 const express = require('express');
+
+const multer = require('multer');
+const upload = multer();
 var tiendaController = require('../../controllers/tiendaController');
 const authenticateToken = require("../../middlewares/authenticateToken");
 
-const { getTiendas,deshabilitar, habilitar } = tiendaController
+const { getTiendas,deshabilitar, habilitar,crear, modificar} = tiendaController
 var tiendaRouter = express.Router();
 
 tiendaRouter.get('/listartiendas', authenticateToken ,getTiendas);
 tiendaRouter.post('/deshabilitar', authenticateToken ,deshabilitar);
+tiendaRouter.post('/crear', authenticateToken,upload.any(),crear);
+tiendaRouter.post('/modificar', authenticateToken,upload.any(),modificar);
 tiendaRouter.post('/habilitar', authenticateToken ,habilitar);
 
 module.exports = tiendaRouter;

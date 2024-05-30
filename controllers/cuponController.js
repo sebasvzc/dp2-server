@@ -583,8 +583,8 @@ const crear = async (req, res) => {
     }
 }
 const modificar = async (req, res) => {
-    var updateItem = req.body.editedCupon;
 
+    console.log("viendo modificar cupon")
     const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
     try {
         const cupon = await Cupon.findOne({
