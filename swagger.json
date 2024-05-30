@@ -2206,6 +2206,133 @@
                 }
             }
         },
+        "/api/tiendas/crear": {
+            "post": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "crearTiendaUsingPOST",
+                "summary": "Crer Tienda",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "description": "Crear la tienda.",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "nombre",
+                        "description": "Nombre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidCategoriaTienda",
+                        "description": "ID Categoria Tienda",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "descripcion",
+                        "description": "Descripcion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "locacion",
+                        "description": "Locacion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "horaApertura",
+                        "description": "Hora de Apertura",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "horaCierre",
+                        "description": "Hora de Cierre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "aforo",
+                        "description": "Aforo",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "foto",
+                        "description": "Archivo de imagen para el cupón",
+                        "required": true,
+                        "type": "file"
+                    },
+                    {
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Tienda"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Tiendano se puede crear, no tienes accesos!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
         "/api/cupones/modificar": {
             "post": {
                 "tags": [
@@ -2292,6 +2419,140 @@
                             }
                         }
                     },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Cupon"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is duplicate. You don't have permission to perform this operation!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/tiendas/modificar": {
+            "post": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "modificarTiendaUsingPOST",
+                "summary": "Modificar Tienda",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Modifica los atributos la Tienda.",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "id",
+                        "description": "Id de la Tienda",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "nombre",
+                        "description": "Nombre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidCategoriaTienda",
+                        "description": "ID Categoria Tienda",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "descripcion",
+                        "description": "Descripcion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "locacion",
+                        "description": "Locacion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "horaApertura",
+                        "description": "Hora de Apertura",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "horaCierre",
+                        "description": "Hora de Cierre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "aforo",
+                        "description": "Aforo",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "foto",
+                        "description": "Archivo de imagen para el cupón",
+                        "required": true,
+                        "type": "file"
+                    },
+                    {
                         "in": "header",
                         "name": "authorization",
                         "description": "Access Token JWT",

@@ -6,9 +6,27 @@ const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const WebSocket = require("ws");
 const crypto = require("crypto");
+const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
+const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
+const {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand
+} = require("@aws-sdk/client-s3");
 const {getSignUrlForFile} = require("../config/s3");
 
-const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
+var s3Config;
+s3Config = {
+    region: "us-east-1",
+    credentials: {
+        accessKeyId: AWS_ACCESS_KEY,
+        secretAccessKey: AWS_ACCESS_SECRET,
+        sessionToken: AWS_SESSION_TOKEN
+    },
+};
+const s3Client = new S3Client(s3Config);
+const User = db.users;
 const Tienda = db.locatarios;
 const UserInv = db.usersInv;
 const getTiendas = async (req, res) => {
@@ -141,8 +159,153 @@ const deshabilitar = async (req, res) => {
         console.log('updateTienda- updateItem:', updateItem, ' - [Error]: ', error)
     }
 }
+const crear = async (req, res) => {
+    try {
+        console.log("entre a registrar nueva tienda");
+        console.log(req.user.id)
+
+        const { nombre, fidCategoriaTienda, descripcion, locacion,horaApertura,horaCierre,aforo } = req.body;
+        const findUser = await User.findOne({
+            where: {
+                id: req.user.id,
+
+            },
+            attributes: {exclude: ['contrasenia']}
+        });
+        const data = {
+            nombre,
+            fidCategoriaTienda,
+            descripcion,
+            locacion,
+            horaApertura,
+            horaCierre,
+            aforo,
+            rutaFoto:"www",
+            usuarioCreacion:findUser.nombre + " " + findUser.apellido,
+            usuarioActualizacion:findUser.nombre + " " + findUser.apellido,
+            activo:1
+        };
+        //saving the user
+        const tienda = await Tienda.create(data);
+        //if user details is captured
+        //generate token with the user's id and the secretKey in the env file
+        // set cookie with the token generated
+        if (tienda) {
+            const file = req.files[0];
+            const bucketParams = {
+                Bucket: AWS_S3_BUCKET_NAME,
+                Key: `tienda${tienda.id}.jpg`,
+                Body: file.buffer,
+                ContentType: file.mimetype
+            };
+            try {
+                // Intenta subir el archivo a S3
+                const data = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al s3:", data);
+            } catch (error) {
+                // Captura cualquier error durante la subida del archivo a S3
+                console.error("Error al subir el archivo a S3:", error);
+                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                return res.status(200).send({
+                    message: "Se encontró un error durante la subida del archivo, pero sí se creó la tienda. Edítalo posteriormente."
+                });
+            }
+
+            //send users details
+            //broadcast(req.app.locals.clients, 'signup', user);
+            return res.status(200).send({message:"Tienda "+ tienda.id+ " creado correctamente"});
+        }
+        else {
+            return res.status(400).send("Invalid request body");
+        }
+
+
+    } catch (error) {
+        console.log('crearTienda - [Error]: ', error);
+    }
+}
+
+const modificar = async (req, res) => {
+    console.log("modiciar tienda")
+    console.log(req.body)
+
+    const {id, nombre, fidCategoriaTienda, descripcion, locacion,horaApertura,horaCierre,aforo} = req.body;
+    try {
+        console.log("entre a modificar  tienda");
+        console.log(id)
+        const tienda = await Tienda.findOne({
+            where: {
+                id: parseInt(id)
+            }
+        });
+        if (!tienda) {
+            console.log("Tienda "+updateItem+" no fue encontrado")
+            return res.status(409).send("Tienda "+updateItem+" no fue encontrado");
+        }
+        console.log("despues de tienda")
+        const file = req.files[0];
+        console.log("despues de tienda2")
+        if(file){
+            const existingFileKey = `tienda${tienda.id}.jpg`; // Asumiendo que el archivo existente tiene el mismo código y extensión .jpg
+            const newFileKey = `tienda${id}.jpg`;
+            console.log("despues de tienda23")
+            try {
+                // Eliminar el archivo existente en S3
+                const deleteParams = {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: existingFileKey
+                };
+                await s3Client.send(new DeleteObjectCommand(deleteParams));
+                console.log("Archivo eliminado con éxito de S3:", existingFileKey);
+
+                // Subir el nuevo archivo a S3
+                const bucketParams = {
+                    Bucket: AWS_S3_BUCKET_NAME,
+                    Key: newFileKey,
+                    Body: file.buffer,
+                    ContentType: file.mimetype
+                };
+                const data = await s3Client.send(new PutObjectCommand(bucketParams));
+                console.log("Archivo subido con éxito al S3:", data);
+            } catch (error) {
+                // Captura cualquier error durante la subida del archivo a S3
+                console.error("Error al subir el archivo a S3:", error);
+                // Aun así, informa que el cupón fue creado pero el archivo no se subió correctamente
+                return res.status(200).send({
+                    message: "Se encontró un error durante la subida del archivo, pero sí se edito la tienda. Edítalo posteriormente."
+                });
+            }
+        }else{
+            console.log("no has enviado ningun archivo")
+        }
+        console.log("despues de tienda232")
+        const findUser = await User.findOne({
+            where: {
+                id:req.user.id,
+
+            },
+            attributes: {exclude: ['contrasenia']}
+        });
+        console.log("despues de tienda23")
+        await Tienda.update(
+            {
+                nombre, fidCategoriaTienda, descripcion, locacion,horaApertura,horaCierre,aforo, usuarioCreacion:findUser.nombre + " " + findUser.apellido,
+                usuarioActualizacion:findUser.nombre + " " + findUser.apellido,
+            },
+            {
+                where: { id: id }
+            }
+        );
+        console.log("despues de tienda23")
+        return res.status(200).send({message:"Tienda modificada correctametne"});
+    } catch (error) {
+        console.log('updateTienda - updateItem:', updateItem, ' - [Error]: ', error)
+    }
+}
 module.exports = {
     habilitar,
     deshabilitar,
-    getTiendas
+    getTiendas,
+    crear,
+    modificar
 };
