@@ -288,7 +288,7 @@ const getCuponesClientes = async (req, res) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
                     const url = await getSignUrlForFile(objectKey);
 
-                    const objectKey2 = `cupon${cupon.fidLocatario}.jpg`;
+                    const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
                     const urlTienda = await getSignUrlForFile(objectKey2);
 
 
