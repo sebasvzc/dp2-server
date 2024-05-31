@@ -29,6 +29,26 @@ const s3Client = new S3Client(s3Config);
 const User = db.users;
 const Tienda = db.locatarios;
 const UserInv = db.usersInv;
+const Locatario = db.locatarios;
+const CategoriaTienda = db.categoriaTiendas;
+const Cupon = db.cupones;
+const CuponXCliente = db.cuponXClientes;
+const Cliente = db.clients;
+
+
+function generarRangoMeses(start, end) {
+    const result = [];
+    const current = new Date(start);
+    while (current <= end) {
+        result.push(new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short' }).format(current));
+        current.setMonth(current.getMonth() + 1);
+    }
+    return result;
+}
+function parseDate(dateString) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // Restar 1 al mes porque los meses en JavaScript van de 0 a 11
+}
 const getTiendas = async (req, res) => {
     var queryType = req.query.query;
     // console.log(req.query.query)
@@ -332,12 +352,214 @@ const detalleTiendaCompleto = async (req, res) => {
         res.status(500).json({ success: false, message: 'Hubo un error al procesar la solicitud' });
     }
 }
+
+const listarCuponesMesxTienda= async (req, res) => {
+    var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getCuponesXTiendaEspecifica - query: ', req.query.idParam, startDate, endDate);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        // Obtener cupones agrupados por fecha y categoría para cupones canjeados
+        const cuponesxTienda = await CuponXCliente.findAll({
+            where: {
+                '$cupon.locatario.id$': idParam,
+                fechaCompra: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            include: [{
+                model: Cupon,
+                as: 'cupon',
+                attributes: [], // No necesitamos atributos adicionales de Cupon
+                include: [{
+                    model: Locatario,
+                    as: 'locatario'
+                }]
+            }],
+            attributes: [
+                [db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`), 'fechaMesAnio'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('cuponXCliente.id')), 'cantidad']
+            ],
+            group: [
+                db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`)
+            ],
+            order: [
+                [db.sequelize.fn('DATE', db.sequelize.col('cuponXCliente.fechaCompra')), 'ASC']
+            ]
+        });
+
+        const monthsRange = generarRangoMeses(startDate, endDate);
+        // Función para mapear los datos
+        const mapearCupones = (cupones) => {
+            const result = monthsRange.map(month => ({
+                fechaMesAnio: month,
+                cantidad: 0
+            }));
+            cupones.forEach(cupon => {
+                const fechaMesAnio = cupon.get('fechaMesAnio');
+                const cantidad = cupon.get('cantidad');
+                const foundMonth = result.find(month => month.fechaMesAnio === fechaMesAnio);
+                if (foundMonth) {
+                    foundMonth.cantidad = cantidad;
+                }
+            });
+            return result;
+        };
+
+        const dataCupones = mapearCupones(cuponesxTienda);
+
+
+        // Crear la estructura final
+        const resultado = [
+            {
+                variable: "Cupones",
+                data: dataCupones
+            }
+        ];
+        console.log("resultados canejado usados")
+        console.log(resultado)
+        return res.status(200).json({ cupones: resultado, newToken: req.newToken });
+    } catch (error) {
+        console.log('getCuponXTienda - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+
+const getCuponesXTienda = async (req, res) => {
+    var queryType = req.query.query;
+    console.log(req.query)
+    console.log(req.query.idParam)
+    var idParam = parseInt(req.query.idParam);
+    // console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 10; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
+
+    console.log('getClientesXCupon - query: ', req.query.query);
+    if (!queryType) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        if (queryType === 'all') {
+            console.log("Estoy viendo algo que  es all")
+            const cuponesAndCount = await Promise.all([
+                CuponXCliente.findAll({
+                    offset: offset,
+                    limit: pageSize,
+                    where: {
+                        '$cupon.locatario.id$': idParam
+                    },
+                    include: [
+                        {
+                            model: Cupon,
+                            as: 'cupon',
+                            include: [{
+                                model: Locatario,
+                                as: 'locatario'
+                            }]
+                        },{
+                            model: Cliente,
+                            as: 'cliente',
+                        }
+                    ]
+                }),
+                CuponXCliente.count({
+                    where: {
+                        '$cupon.locatario.id$': idParam
+                    },
+                    include: [
+                        {
+                            model: Cupon,
+                            as: 'cupon',
+                            include: [{
+                                model: Locatario,
+                                as: 'locatario'
+                            }]
+                        }
+                    ]
+                })
+            ]);
+            const [cuponesXTienda, totalCount] = cuponesAndCount;
+            return res.status(200).json({ cuponesXTienda:cuponesXTienda, newToken: req.newToken,totalCupones:totalCount });
+        } else {
+            console.log("Estoy viendo algo que no es all")
+            const whereCondition = {
+                [Op.and]: [
+                    {
+                        [Op.or]: [
+                            { nombre: { [Op.like]: `%${queryType}%` } }
+                        ]
+                    },
+                    {
+                        '$cupon.locatario.id$': idParam
+                    }
+                ]
+            };
+            const cuponesAndCount = await Promise.all([
+                CuponXCliente.findAll({
+                    where: whereCondition,
+                    include: [
+                        {
+                            model: Cupon,
+                            as: 'cupon',
+                            include: [{
+                                model: Locatario,
+                                as: 'locatario'
+                            }]
+                        },{
+                            model: Cliente,
+                            as: 'cliente',
+                        }
+
+                        ],
+                    offset: offset,
+                    limit: pageSize
+                }),
+                CuponXCliente.count({
+                    where: whereCondition,
+                    include: [{
+                        model: Cupon,
+                        as: 'cupon',
+                        include: [{
+                            model: Locatario,
+                            as: 'locatario'
+                        }]
+                    }],
+                })
+            ]);
+            const [cupones, totalCount] = cuponesAndCount;
+            if (cupones) {
+                // console.log(users)
+                // console.log(users)
+                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+            } else {
+                return res.status(200).send("Cupones no encontrados con esa busqueda para el cupon");
+            }
+        }
+    } catch (error) {
+        console.log('getClientesXCupon - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
+
 module.exports = {
     habilitar,
     deshabilitar,
     getTiendas,
     crear,
     modificar,
-    detalleTiendaCompleto
-
+    detalleTiendaCompleto,
+    listarCuponesMesxTienda,
+    getCuponesXTienda
 };
