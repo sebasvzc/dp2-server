@@ -224,5 +224,7 @@ module.exports = {
     forgotPassword, 
     changePassword,
     forgotPasswordWeb,
-    changePasswordWeb
+    changePasswordWeb,
+    validarCodigoCliente,
+    validarCodigoWeb
 };
