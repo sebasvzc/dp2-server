@@ -159,7 +159,67 @@ const changePasswordWeb = async (req, res) => {
     }
 };
 
+// Helper function to encrypt code using MD5
+const encryptCode = (code) => {
+    return crypto.createHash('md5').update(code).digest('hex');
+};
 
+
+// Validar código para clientes
+const validarCodigoCliente = async (req, res) => {
+    const { idCliente, codigo } = req.body;
+
+    try {
+        // Encrypt the received code
+        const encryptedCode = encryptCode(codigo);
+
+        // Find the record in the database
+        const record = await db.passwordManagments.findOne({
+            where: {
+                fidClient: idCliente,
+                codigo: encryptedCode,
+                activo: true
+            }
+        });
+
+        if (record) {
+            return res.json({ estado: 1, mensaje: 'Código correcto' });
+        } else {
+            return res.json({ estado: 0, mensaje: 'Código incorrecto' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.json({ estado: -1, mensaje: 'Error en la API' });
+    }
+};
+
+// Validar código para usuarios web
+const validarCodigoWeb = async (req, res) => {
+    const { idUser, codigo } = req.body;
+
+    try {
+        // Encrypt the received code
+        const encryptedCode = encryptCode(codigo);
+
+        // Find the record in the database
+        const record = await db.passwordManagmentWEBs.findOne({
+            where: {
+                fidUser: idUser,
+                codigo: encryptedCode,
+                activo: true
+            }
+        });
+
+        if (record) {
+            return res.json({ estado: 1, mensaje: 'Código correcto' });
+        } else {
+            return res.json({ estado: 0, mensaje: 'Código incorrecto' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.json({ estado: -1, mensaje: 'Error en la API' });
+    }
+};
 module.exports = {
     forgotPassword, 
     changePassword,
