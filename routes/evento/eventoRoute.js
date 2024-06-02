@@ -12,4 +12,5 @@ var eventoRouter = express.Router();
 
 eventoRouter.get('/getEventosAsisCateg', authenticateToken,getEventosConAsistentesYCategoria);
 eventoRouter.post('/getEventosProximos', eventoController.getEventosProximos);
+eventoRouter.post('/getEventosProximosTotales', eventoController.getEventosProxTotales);
 module.exports = eventoRouter;
