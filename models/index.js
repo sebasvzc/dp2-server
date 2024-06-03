@@ -20,7 +20,7 @@ const sequelize = new Sequelize({
 
 //checking if connection is done
 sequelize.authenticate().then(() => {
-    console.log(`Connection has been established successfully.`)
+    console.log(`Connection has been established successssssfully.`)
 }).catch((err) => {
     console.log('Unable to connect to the database:', err)
 })
@@ -49,7 +49,9 @@ db.sequelize = sequelize
 
 
 //connecting to model
-
+db.permission = require('./permissionModel') (sequelize, DataTypes)
+db.rol = require('./roleModel') (sequelize, DataTypes)
+db.rolePermission = require('./rolePermission') (sequelize, DataTypes)
 db.usersInv = require('./userInviteModel') (sequelize, DataTypes)
 db.users = require('./userModel') (sequelize, DataTypes)
 db.clients = require('./clientModel') (sequelize, DataTypes)
@@ -62,7 +64,8 @@ db.cupones = require('./Cupon/cuponModel') (sequelize, DataTypes)
 db.cuponXClientes = require('./Cupon/cuponXClienteModel') (sequelize, DataTypes)
 db.passwordManagmentWEBs = require('./passwordManagmentWebModel') (sequelize, DataTypes)
 db.tipoEventos = require('./Evento/tipoEventoModel') (sequelize, DataTypes)
-db.lugares = require('./Evento/lugarModel') (sequelize, DataTypes) 
+db.lugares = require('./Evento/lugarModel') (sequelize, DataTypes)
+
 db.eventos = require('./Evento/eventoModel') (sequelize, DataTypes) 
 db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTypes) 
 db.escaneos = require('./escaneoQRModel') (sequelize, DataTypes) 
@@ -70,6 +73,19 @@ db.recordatorios = require('./recordatorioModel') (sequelize, DataTypes)
 db.marcoQRs = require('./marcosQRModel') (sequelize, DataTypes) 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
+
+db.rolePermission.belongsTo(db.rol,{foreignKey: "fidRol", as: 'rol'});
+db.rol.hasMany(db.rolePermission,{foreignKey: "fidRol", as: 'rol'});
+
+db.rolePermission.belongsTo(db.permission,{foreignKey: "fidPermission", as: 'permission'});
+db.permission.hasMany(db.rolePermission,{foreignKey: "fidPermission", as: 'permission'});
+
+
+
+db.users.belongsTo(db.rol, {foreignKey: 'fidRol', as: 'role'});
+db.rol.hasMany(db.users, { foreignKey: 'fidRol', as: 'role'});
+
+
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
 db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
 

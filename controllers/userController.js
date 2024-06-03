@@ -11,6 +11,7 @@ const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_
 
 // Assigning users to the variable User
 const User = db.users;
+
 const UserInv = db.usersInv;
 const broadcast = (clients, method, message) => {
     if(clients){
@@ -249,7 +250,42 @@ const getUserData = async (req, res) => {
     });
 
 }
+const getUserPerms = async (req, res) => {
+    try {
+        // 1. Obtener el ID del usuario de req.user.id
+        const userId = req.user.id;
+        console.log("acagetuserParamsdsps1")
+        const user= await  db.users.findOne({
+            where:{
+                id:userId
+            }
+        })
+        console.log("acagetuserParamsdsp2")
+        // 2. Buscar los roles del usuario en la base de datos
+        const userPerm = await db.rolePermission.findAll({
+            where: {
+                fidRol: user.fidRol
+            },
+            include:{
+                model: db.permission,
+                as: 'permission',
+            }
+        });
+        console.log("acagetuserParamsdsp3")
+        if (userPerm.length > 0) {
+            console.log(userPerm);
+            return res.status(200).send({ permissions: userPerm, newToken: req.newToken });
+        } else {
+            console.log('No permissions found for this user.');
+            return res.status(403).send('No permissions found for this user.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 const getUser = async (req, res) => {
+    console.log("getUserQuery")
     var queryType = req.query.query;
     // console.log(req.query.query)
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
@@ -500,5 +536,5 @@ module.exports = {
     comprobarTokenRegistroUsuario,
     deshabilitar,
     habilitar,
-    modificar,getUserData
+    modificar,getUserData,getUserPerms
 };

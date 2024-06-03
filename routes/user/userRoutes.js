@@ -2,7 +2,7 @@
 const express = require('express')
 const userController = require('../../controllers/userController')
 const userInvController = require('../../controllers/userInviteController')
-const { signup, login, getUser,comprobarTokenRegistroUsuario,deshabilitar,habilitar, getUserData,modificar,updateUser, deleteUser } = userController
+const { signup, login, getUser,comprobarTokenRegistroUsuario,deshabilitar,habilitar,getUserPerms, getUserData,modificar,updateUser, deleteUser } = userController
 const { createUserInv} = userInvController
 const userAuth = require('../../middlewares/userAuth')
 const authenticateToken  = require('../../middlewares/authenticateToken')
@@ -79,6 +79,7 @@ module.exports = (transporter,crypto) => {
     router.post('/signup', userAuth.saveUser, signup);
     router.post('/login', login);
     router.post('/extraerData', authenticateToken,getUserData);
+    router.get('/listarpermisos', authenticateToken,getUserPerms);
     router.post('/deshabilitar', deshabilitar);
     router.post('/habilitar', habilitar);
     router.post('/modificar', modificar);

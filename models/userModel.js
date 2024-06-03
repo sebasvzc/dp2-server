@@ -23,6 +23,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        fidRol: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'roles',  // nombre de la tabla en la base de datos
+                key: 'id'        // nombre de la columna en la tabla User
+            }
+        },
         activo: {
         type: DataTypes.TINYINT(1),
             allowNull: false
@@ -36,5 +44,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         }
     }, {timestamps: true} )
+
+    User.associate = (models) => {
+        User.belongsTo(models.role, {
+            foreignKey: 'fidRol'
+        });
+    };
     return User
 }
