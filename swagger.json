@@ -1198,6 +1198,94 @@
                 }
             }
         },
+        "/api/eventos/listarEventos": {
+            "get": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "getEventosUsingGET",
+                "summary": "Get evento / eventos",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al Evento basado en el parametro. \"20% de dscto\" para unos o \"all\" para traer todos los cupones.",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "Nombre del evento"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "description": "Pagina solicitada"
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "description": "Tamaño de pagina solicitada"
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    },
+                    {
+                        "name": "refresh-token",
+                        "in": "header",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Evento"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/cupones/listarclientesxcupon?query={emailnombre}&idParam={idParam}&page={page}&pageSize={pageSize}": {
             "get": {
                 "tags": [
@@ -1890,6 +1978,182 @@
                     "200": {
                         "schema": {
                             "$ref": "#/definitions/Tienda"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/eventos/deshabilitar": {
+            "post": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "deshabilitareventosUsingPOST",
+                "summary": "Deshabilitar evento / eventos",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Deshabilitar eventos.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "deshabilitar",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "selected": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Evento"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/eventos/habilitar": {
+            "post": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "habilitareventosUsingPOST",
+                "summary": "Habilitar evento / eventos",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Habilitar eventos.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "habilitar",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "selected": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Evento"
                         },
                         "description": "A JSON array of user information"
                     },
@@ -2655,6 +2919,149 @@
                 }
             }
         },
+        "/api/eventos/crear": {
+            "post": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "crearEventoUsingPOST",
+                "summary": "Create Evento",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "description": "Crea el Evento.",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "codigo",
+                        "description": "Codigo",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "nombre",
+                        "description": "Nombre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fechaInicio",
+                        "description": "Fecha de Inicio",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fechaFin",
+                        "description": "Fecha de Fin",
+                        "required": true,
+                        "type": "string"
+                    },
+
+                    {
+                        "in": "formData",
+                        "name": "descripcion",
+                        "description": "Descripcion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidLugar",
+                        "description": "ID Lugar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidTipoEvento",
+                        "description": "ID Tipo Evento",
+                        "required": true,
+                        "type": "string"
+                    },
+
+                    {
+                        "in": "formData",
+                        "name": "fidTienda",
+                        "description": "ID Tienda",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "puntosOtorgados",
+                        "description": "Puntos Otorgados",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "foto",
+                        "description": "Archivo de imagen para el cupón",
+                        "required": true,
+                        "type": "file"
+                    },
+                    {
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Cupon"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is duplicate. You don't have permission to perform this operation!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
         "/api/tiendas/crear": {
             "post": {
                 "tags": [
@@ -2868,6 +3275,156 @@
                             }
                         }
                     },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Cupon"
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 403
+                                },
+                                "message": {
+                                    "type": "string", "example": "Email is duplicate. You don't have permission to perform this operation!"
+                                }
+                            }
+                        },
+                        "description": "Forbidden"
+                    }
+                }
+            }
+        },
+        "/api/eventos/modificar": {
+            "post": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "modificarEventoUsingPOST",
+                "summary": "Modificar Evento",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "description": "Modificar el Evento.",
+                "parameters": [
+                    {
+                        "in": "formData",
+                        "name": "id",
+                        "description": "Id del Evento",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "codigo",
+                        "description": "Codigo",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "nombre",
+                        "description": "Nombre",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fechaInicio",
+                        "description": "Fecha de Inicio",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fechaFin",
+                        "description": "Fecha de Fin",
+                        "required": true,
+                        "type": "string"
+                    },
+
+                    {
+                        "in": "formData",
+                        "name": "descripcion",
+                        "description": "Descripcion",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidLugar",
+                        "description": "ID Lugar",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "fidTipoEvento",
+                        "description": "ID Tipo Evento",
+                        "required": true,
+                        "type": "string"
+                    },
+
+                    {
+                        "in": "formData",
+                        "name": "fidTienda",
+                        "description": "ID Tienda",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "puntosOtorgados",
+                        "description": "Puntos Otorgados",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "formData",
+                        "name": "foto",
+                        "description": "Archivo de imagen para el cupón",
+                        "required": true,
+                        "type": "file"
+                    },
+                    {
                         "in": "header",
                         "name": "authorization",
                         "description": "Access Token JWT",
@@ -3335,6 +3892,97 @@
                     "type": "integer",
                     "format": "int64",
                     "example": 1
+                },
+                "createdAT": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:45.281Z"
+                },
+                "updatedAt": {
+                    "type":"string",
+                    "example": "2022-09-19T09:03:46.865Z"
+                }
+            }
+        },
+        "Evento": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "codigo": {
+                    "type": "string",
+                    "example": "EVE01"
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Presentación de camisetas de futbol"
+                },
+                "fechaInicio": {
+                    "type":"string",
+                    "example": "2024-06-30 00:00:00"
+                },
+                "fechaFin": {
+                    "type":"string",
+                    "example": "2024-06-30 00:00:00"
+                },
+                "descripcion": {
+                    "type": "string",
+                    "example": "Evento social dentro de plaza que incluye las principales camisetas de las selecciones auspiciadas."
+                },
+                "fidLugar": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "fidTipoEvento": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "fidTienda": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "rutaFoto": {
+                    "type": "string",
+                    "example": "wwww"
+                },
+                "puntosOtorgados": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 120
+                },
+                "edadPromedio": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 100
+                },
+                "generoPromedio": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 80
+                },
+                "ordenPriorizacion": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 3
+                },
+                "activo": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+
+                "usuarioCreacion": {
+                    "type":"string",
+                    "example": "Diego Damian"
+                },
+                "usuarioActualizacion": {
+                    "type":"string",
+                    "example": "Diego Damian"
                 },
                 "createdAT": {
                     "type":"string",
