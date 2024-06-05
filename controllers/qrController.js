@@ -162,16 +162,6 @@ const scanQr = async (req, res) => {
             return res.status(400).json({ message: 'Este QR ya ha sido escaneado.',  puntosOtorgados:-1 });
         }
 
-        // Registrar el nuevo escaneo
-        //esto debe de ser al final
-        //cuando ya tenga mis puntos otorgados
-        await db.escaneos.create({
-            fidClient: idCliente,
-            tipo,
-            fidReferencia: idReferencia,
-            ultimoEscaneo: new Date()  // Registra la fecha actual del escaneo
-            //puntos
-        });
 
         // Si el tipo es 'evento' o 'tienda', obtener información adicional y sumar puntos
         let puntosOtorgados = 0;
@@ -220,6 +210,17 @@ const scanQr = async (req, res) => {
                 Expires: 8600 // Tiempo de expiración en segundos
             });
         }
+
+        // Registrar el nuevo escaneo
+        //esto debe de ser al final
+        //cuando ya tenga mis puntos otorgados
+        await db.escaneos.create({
+            fidClient: idCliente,
+            tipo,
+            fidReferencia: idReferencia,
+            ultimoEscaneo: new Date(),  // Registra la fecha actual del escaneo
+            puntosOtorgados:puntosOtorgados 
+        });
 
         res.json({
             message: 'QR escaneado con éxito, puntos asignados.',
