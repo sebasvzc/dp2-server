@@ -36,7 +36,7 @@ AWS.config.update({
 const s3 = new AWS.S3();
 
 const generateQr = async (req, res) => {
-    const { tipo, idReferencia } = req.body;
+    const { tipo, idReferencia, monto = 100 } = req.body;
 
     try {
         let model;
@@ -45,6 +45,9 @@ const generateQr = async (req, res) => {
                 model = db.eventos;
                 break;
             case 'tienda':
+                model = db.locatarios;
+                break;
+            case 'compra':
                 model = db.locatarios;
                 break;
             case 'cupon':
@@ -59,8 +62,17 @@ const generateQr = async (req, res) => {
             return res.status(404).json({ message: `${tipo} no encontrado` });
         }
 
-        // Cifrar los datos
         const qrData = JSON.stringify({ tipo, idReferencia });
+        
+        // Si el tipo es 'compra', agregar monto y momento
+        if (tipo === 'compra') {
+            const momento = new Date().toISOString(); // Formato ISO para JSON
+            qrData.monto = monto;
+            qrData.momento = momento;
+        }
+
+        // Cifrar los datos
+        
         const encryptedData = crypto.AES.encrypt(qrData, CRYPTO_JS_KEY).toString();
 
         // Generar el QR con los datos cifrados
