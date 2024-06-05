@@ -163,11 +163,14 @@ const scanQr = async (req, res) => {
         }
 
         // Registrar el nuevo escaneo
+        //esto debe de ser al final
+        //cuando ya tenga mis puntos otorgados
         await db.escaneos.create({
             fidClient: idCliente,
             tipo,
             fidReferencia: idReferencia,
             ultimoEscaneo: new Date()  // Registra la fecha actual del escaneo
+            //puntos
         });
 
         // Si el tipo es 'evento' o 'tienda', obtener información adicional y sumar puntos
