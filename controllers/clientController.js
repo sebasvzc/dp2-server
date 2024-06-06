@@ -1136,6 +1136,23 @@ const cambiarPermisoUsuario = async (req, res,next) => {
     }
 }
 
+const IAKNN = async (req, res, next) =>{
+    let connection;
+
+    try{
+      connection = await pool.getConnection();
+     const [result] = await connection.query(`CALL eventosHistoricosIA()`)
+     const eventosObtenidos = result[0];
+     res.status(200).json(eventosObtenidos);
+  }catch(error){
+     next(error)
+  }finally {
+     if (connection){
+         connection.release();
+        }
+    }
+}
+
 
 
 module.exports = {
@@ -1161,5 +1178,6 @@ module.exports = {
     cambiarPermisoUsuario,
     listarCuponesXClientes,
     listarCuponesCategoriaRadar,
-    listarCuponesCanjeadosUsados
+    listarCuponesCanjeadosUsados,
+    IAKNN
 };
