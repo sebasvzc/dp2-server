@@ -42,6 +42,7 @@ const s3Client = new S3Client(s3Config);
 
 const Evento = db.eventos;
 const Locatario = db.locatarios;
+const Cliente = db.clients;
 const CategoriaTienda=db.categoriaTiendas;
 const EventoXCliente=db.eventoXClientes;
 const User=db.users;
@@ -634,6 +635,84 @@ const getAsistencia = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+const getAsitenciaXGeneroAgrupEdad = async (req, res) => {
+    const idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+
+    console.log('getEventosXClienteRadar - query: ', req.query.idParam);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required! getCuponesXClienteRadar");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+
+    try {
+        const today = new Date();
+
+        // Definir los rangos de edad
+        const ageGroups = [
+            [0, 10], [10, 20], [20, 30], [30, 40], [40, 50],
+            [50, 60], [60, 70], [70, 80], [80, 90], [90, 100]
+        ];
+
+        // Obtener todos los géneros únicos
+        const generos = await Cliente.findAll({
+            attributes: [[db.sequelize.fn('DISTINCT', db.sequelize.col('genero')), 'genero']],
+            raw: true
+        });
+
+        const generoList = generos.map(g => g.genero);
+
+        // Crear un array de promesas para contar la asistencia en cada grupo de edad y género
+        const promises = ageGroups.flatMap(([min, max]) => {
+            return generoList.map(genero => {
+                return EventoXCliente.count({
+                    where: {
+                        fidEvento: idParam,
+                    },
+                    include: [{
+                        model: Cliente,
+                        as: 'clienteeve',
+                        attributes: [], // No necesitamos atributos adicionales de Cliente
+                        where: {
+                            genero,
+                            fechaNacimiento: {
+                                [Op.between]: [
+                                    new Date(today.getFullYear() - max, today.getMonth(), today.getDate()),
+                                    new Date(today.getFullYear() - min, today.getMonth(), today.getDate())
+                                ]
+                            }
+                        }
+                    }]
+                }).then(conteo => ({ edadAgrup: `${min}-${max}`, genero, conteo }));
+            });
+        });
+
+        const resultados = await Promise.all(promises);
+
+        // Agrupar resultados por grupo de edad
+        const resultadosAgrupados = ageGroups.map(([min, max]) => {
+            return {
+                edadAgrup: `${min}-${max}`,
+                datos: resultados.filter(result => result.edadAgrup === `${min}-${max}`)
+            };
+        });
+
+        // Filtrar los grupos de edad que tienen todos los géneros con conteo 0
+        const resultadosFiltrados = resultadosAgrupados.filter(grupo => {
+            return grupo.datos.some(result => result.conteo > 0);
+        }).flatMap(grupo => grupo.datos);
+
+        console.log('Resultados Agrupados Filtrados: ', resultadosFiltrados);
+
+        if (resultadosFiltrados.length === 0) {
+            return res.status(204).send(); // No Content
+        }
+
+        return res.status(200).json(resultadosFiltrados);
+    } catch (error) {
+        console.log('getEventosXClienteRadar - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 
 module.exports = {
     getEventosConAsistentesYCategoria,
@@ -645,5 +724,6 @@ module.exports = {
     habilitar,
     deshabilitar,
     detalleEventoCompleto,
-    getAsistencia
+    getAsistencia,
+    getAsitenciaXGeneroAgrupEdad
 }
