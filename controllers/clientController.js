@@ -454,13 +454,14 @@ const getMisCupones = async (req, res) => {
     var options = {
         limit: +size,
         offset: (+page) * (+size),
-        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado'],
+        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado','cantidad'],
         required: true,
         include: [
             {
                 model: db.cupones,
                 association: 'cupon',
-                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos','rutaFoto'],
+                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos',
+                    'esLimitado','rutaFoto'],
                 required: true,
                 include: [
                     {
@@ -561,6 +562,7 @@ const getMisCupones = async (req, res) => {
     return{
         id: cupon.id,
         fidCupon: cupon.fidCupon,
+        cantidad: cupon.cantidad,
         fechaCompra: cupon.fechaCompra,
         //usado: cupon.usado,
 
@@ -570,6 +572,7 @@ const getMisCupones = async (req, res) => {
         cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
         cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
         cuponCostoPuntos: cupon.cupon.costoPuntos,
+        esLimitado: cupon.cupon.esLimitado,
         cuponRutaFoto: url2,
             
         locatarioNombre: cupon.cupon.locatario.nombre,
@@ -586,6 +589,7 @@ const getMisCupones = async (req, res) => {
     //console.log({total: count, cupones: formattedCupones});
     res.json({total: count, cupones: formattedCupones})
 };
+
 
 
 

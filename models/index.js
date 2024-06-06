@@ -71,6 +71,8 @@ db.eventoXClientes = require('./Evento/eventoXClienteModel') (sequelize, DataTyp
 db.escaneos = require('./escaneoQRModel') (sequelize, DataTypes) 
 db.recordatorios = require('./recordatorioModel') (sequelize, DataTypes) 
 db.marcoQRs = require('./marcosQRModel') (sequelize, DataTypes) 
+db.notificationToken = require('./notificationTokenModel') (sequelize, DataTypes) 
+
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 

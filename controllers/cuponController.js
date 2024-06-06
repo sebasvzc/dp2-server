@@ -681,7 +681,8 @@ const cuponesFiltradosGeneral = async (req, res) => {
     var options = {
         limit: +size,
         offset: (+page) * (+size),
-        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 
+            'costoPuntos', 'rutaFoto', 'esLimitado', 'cantidadDisponible'],
         required: true,
         include: [
             {
@@ -700,7 +701,13 @@ const cuponesFiltradosGeneral = async (req, res) => {
             }
         ],
         where: {
-            activo: 1
+            activo: 1,
+            fechaExpiracion: {
+                [Op.gt]: new Date() // Validar que la fecha de expiración sea mayor a la fecha actual
+            },
+            cantidadDisponible: {
+                [Op.gt]: 0 // Validar que la fecha de expiración sea mayor a la fecha actual
+            }
         }
     }
 
@@ -757,20 +764,22 @@ const cuponesFiltradosGeneral = async (req, res) => {
 
         return {
             id: cupon.id,
-            codigo: cupon.codigo,
+            //codigo: cupon.codigo,
             sumilla: cupon.sumilla,
-            descripcionCompleta: cupon.descripcionCompleta,
-            fechaExpiracion: cupon.fechaExpiracion,
-            terminosCondiciones: cupon.terminosCondiciones,
+            //descripcionCompleta: cupon.descripcionCompleta,
+            //fechaExpiracion: cupon.fechaExpiracion,
+            //terminosCondiciones: cupon.terminosCondiciones,
             costoPuntos: cupon.costoPuntos,
+            esLimitado: cupon.esLimitado,
+            cantidadDisponible: cupon.cantidadDisponible,
             rutaFoto: url2,
 
             locatarioNombre: cupon.locatario.nombre,
-            locatarioDescripcion: cupon.locatario.descripcion,
-            locatarioLocacion: cupon.locatario.locacion,
+            //locatarioDescripcion: cupon.locatario.descripcion,
+            //locatarioLocacion: cupon.locatario.locacion,
             locatarioRutaFoto: url,
 
-            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+            //categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
         };
     });
 

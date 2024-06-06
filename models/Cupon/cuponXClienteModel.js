@@ -28,6 +28,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: false
         },
+        cantidad:{
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            default: 1
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
