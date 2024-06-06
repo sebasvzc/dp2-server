@@ -1,5 +1,6 @@
 //importing modules
 const jwt = require("jsonwebtoken");
+const KNN = require('ml-knn');
 const db = require("../models");
 require('dotenv').config();
 const Sequelize = require('sequelize');
@@ -1142,8 +1143,40 @@ const IAKNN = async (req, res, next) =>{
     try{
       connection = await pool.getConnection();
      const [result] = await connection.query(`CALL eventosHistoricosIA()`)
-     const eventosObtenidos = result[0];
-     res.status(200).json(eventosObtenidos);
+     const eventosHist = result[0];
+     //Info de generos
+     // Clasifica por 0,1,2 los generos que encuentre en los eventos historicos en este caso M de masculino
+     // F de femenino y A de ambos, tienen un valor de 0 1 y 2 en ese orden
+     const generos = [...new Set(eventosHist.map(evento => evento.generoPromedio))];
+    const generoEncoder = generos.reduce((acc, val, idx) => ({ ...acc, [val]: idx }), {});
+
+ //Clasifica los tipos de eventos encontrados
+    const tiposEventos = [...new Set(eventosHist.map(evento => evento.tipoEvento))];
+    const tipoEventoEncoder = tiposEventos.reduce((acc, val, idx) => ({ ...acc, [val]: idx }), {});
+  
+    //Info para edades, establezco valores del 0 al 1 para edades
+    const edadPromedio = eventosHist.map(evento => evento.edadPromedio);
+    const edadMin = Math.min(...edadPromedio);
+    const edadMax = Math.max(...edadPromedio);
+    const scaledEdadPromedio = edadPromedio.map(val => (val - edadMin) / (edadMax - edadMin));
+
+    const datos = eventosHist.map(evento => [
+        generoEncoder[evento.generoPromedio],(evento.edadPromedio - edadMin) / (edadMax - edadMin)
+        
+      ]);
+      const etiquetas = eventosHist.map(evento => tipoEventoEncoder[evento.tipoEvento]);
+   
+    // Se viene clasificador
+    const knn = new KNN(datos, etiquetas, { k: 3 });
+    const edadPromedioNuevo = (60 - edadMin) / (edadMax - edadMin);
+    const generoPromedioNuevo = generoEncoder['M']; // Example new gender
+    const datosPrediccion = [[generoPromedioNuevo,edadPromedioNuevo]];
+    const prediccion = knn.predict(datosPrediccion);
+    //const prediccionPorClase = knn.predictProbabilities(datosPrediccion);
+    const tipoEventoPredicho = tiposEventos[prediccion[0]];
+    console.log("Predicción de tipo de evento", tipoEventoPredicho);
+    //console.log("Probabilidades por Clase", prediccionPorClase[0]);
+     res.status(200).json(eventosHist);
   }catch(error){
      next(error)
   }finally {
