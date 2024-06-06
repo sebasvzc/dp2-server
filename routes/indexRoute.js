@@ -16,6 +16,8 @@ const nodemailer = require('nodemailer');
 const cuponRouter = require('./cupones/cuponRoute');
 const qrRouter = require('./qr/qrRoute')
 const configRoute = require('./configuraciones/configuracionesRoute')
+const notificationRoute = require('./notificationsRoute');
+const { notDeepEqual } = require('assert');
 // Configurar el transporte de correo
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -38,5 +40,6 @@ router.use('/cupones', cuponRouter);
 router.use('/tipocupones', tipoCuponRoutes);
 router.use('/qr', qrRouter);
 router.use('/config', configRoute);
+router.use('/notificacion',notificationRoute)
 
 module.exports = router;
