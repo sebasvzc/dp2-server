@@ -761,22 +761,22 @@ const cuponesFiltradosGeneral = async (req, res) => {
 
         return {
             id: cupon.id,
-            codigo: cupon.codigo,
+            //codigo: cupon.codigo,
             sumilla: cupon.sumilla,
-            descripcionCompleta: cupon.descripcionCompleta,
-            fechaExpiracion: cupon.fechaExpiracion,
-            terminosCondiciones: cupon.terminosCondiciones,
+            //descripcionCompleta: cupon.descripcionCompleta,
+            //fechaExpiracion: cupon.fechaExpiracion,
+            //terminosCondiciones: cupon.terminosCondiciones,
             costoPuntos: cupon.costoPuntos,
             esLimitado: cupon.esLimitado,
             cantidadDisponible: cupon.cantidadDisponible,
             rutaFoto: url2,
 
             locatarioNombre: cupon.locatario.nombre,
-            locatarioDescripcion: cupon.locatario.descripcion,
-            locatarioLocacion: cupon.locatario.locacion,
+            //locatarioDescripcion: cupon.locatario.descripcion,
+            //locatarioLocacion: cupon.locatario.locacion,
             locatarioRutaFoto: url,
 
-            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+            //categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
         };
     });
 
