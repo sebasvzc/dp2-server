@@ -1139,8 +1139,8 @@ const cambiarPermisoUsuario = async (req, res,next) => {
 
 const IAKNN = async (req, res, next) =>{
     //Vamos a conseguir eventos de 4 formas  
-    // Si es usuario nuevo en base al genero en el que se encuentra, en el que una le da mas enfasis
-    // al genero y otro le da mas enfasis a su edad
+    // Si es usuario nuevo en base al genero en el que se encuentra, en el que una le da mas enfasis (realizado)
+    // al genero y otro le da mas enfasis a su edad (realizado)
     // en base a su id se buscara si tiene eventos a los que ha asistido para clasificar de forma mas particular
     // el recomendador
 
