@@ -678,7 +678,8 @@ const cuponesFiltradosGeneral = async (req, res) => {
     var options = {
         limit: +size,
         offset: (+page) * (+size),
-        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 
+            'costoPuntos', 'rutaFoto', 'esLimitado', 'cantidadDisponible'],
         required: true,
         include: [
             {
@@ -697,7 +698,13 @@ const cuponesFiltradosGeneral = async (req, res) => {
             }
         ],
         where: {
-            activo: 1
+            activo: 1,
+            fechaExpiracion: {
+                [Op.gt]: new Date() // Validar que la fecha de expiración sea mayor a la fecha actual
+            },
+            cantidadDisponible: {
+                [Op.gt]: 0 // Validar que la fecha de expiración sea mayor a la fecha actual
+            }
         }
     }
 
@@ -760,6 +767,8 @@ const cuponesFiltradosGeneral = async (req, res) => {
             fechaExpiracion: cupon.fechaExpiracion,
             terminosCondiciones: cupon.terminosCondiciones,
             costoPuntos: cupon.costoPuntos,
+            esLimitado: cupon.esLimitado,
+            cantidadDisponible: cupon.cantidadDisponible,
             rutaFoto: url2,
 
             locatarioNombre: cupon.locatario.nombre,

@@ -61,6 +61,7 @@ exports.sendNotification = async (req, res) => {
 
     try {
         const userTokens = await db.notificationToken.findAll({ where: { fidCliente, activo: true } });
+        console.log(userTokens)
 
         if (!userTokens.length) {
             return res.status(404).send('No tokens found for user');
