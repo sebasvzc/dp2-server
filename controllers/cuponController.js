@@ -439,11 +439,14 @@ const getCuponesXDiaCanjeado = async (req, res) => {
                 fidCupon: idParam
             },
             attributes: [
-                [db.sequelize.fn('DATE_FORMAT', db.sequelize.col('fechaCompra'), '%d/%m/%Y'), 'fecha'], // Formatear la fecha a 'dd/mm/yyyy'
+
+                [db.sequelize.literal(`DATE_FORMAT(fechaCompra, '%b %Y')`), 'fecha'],
                 [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cantidad'] // Contar el número de cupones por fecha
             ],
-            group: [db.sequelize.fn('DATE', db.sequelize.col('fechaCompra'))] ,// Agrupar por la fecha
-            order: [[db.sequelize.fn('DATE', db.sequelize.col('fechaCompra')), 'ASC']] // Ordenar por la fecha en orden ascendente
+            group: [db.sequelize.literal(`DATE_FORMAT(fechaCompra, '%b %Y')`)] ,// Agrupar por la fecha
+            order: [
+                [db.sequelize.fn('DATE', db.sequelize.col('fechaCompra')), 'ASC']
+            ]
         });
 
         // Formatear los resultados en el formato deseado

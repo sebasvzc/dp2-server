@@ -1181,6 +1181,76 @@ const listarEventosCategoria = async (req, res) => {
 }
 
 
+const getCuponesXCliente = async (req, res) => {
+    var queryType = req.query.query;
+    var idParam = parseInt(req.query.idParam);
+    // console.log(req.query.query)
+    const page = parseInt(req.query.page) || 1; // Página actual, default 1
+    const pageSize = parseInt(req.query.pageSize) || 10; // Tamaño de página, default 10
+    const offset = (page - 1) * pageSize;
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getCuponesXCliente - query: ', req.query.query);
+    if (!queryType) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required!");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        if (queryType === 'all') {
+            const cuponesAndCount = await Promise.all([
+                CuponXCliente.findAll({
+                    offset: offset,
+                    limit: pageSize,
+                    where: {
+                        fidCliente: idParam,
+                        fechaCompra: {
+                            [db.Sequelize.Op.between]: [startDate, endDate]
+                        }
+                    },
+                    include: [
+                        {
+                            model: Cupon,
+                            as: 'cupon',
+                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            include:[{
+                                model: Locatario,
+                                as: 'locatario',
+                                attributes: ["id","nombre"],
+                                include:[{
+                                    model: CategoriaTienda,
+                                    as: 'categoriaTienda',
+                                    attributes: ["id","nombre"],
+
+                                }]
+                            }]
+                        }
+                    ],
+
+                    order: [
+                        [db.sequelize.fn('DATE', db.sequelize.col('fechaCompra')), 'DESC']
+                    ]
+                }),
+                CuponXCliente.count({
+                    where: {
+                        fidCliente: idParam,
+                        fechaCompra: {
+                            [db.Sequelize.Op.between]: [startDate, endDate]
+                        }
+                    }
+
+                })
+            ]);
+            const [cuponesXCliente, totalCount] = cuponesAndCount;
+            return res.status(200).json({ cuponesXCliente, newToken: req.newToken,totalCupones:totalCount });
+        } else {
+            console.log("Estoy viendo algo que no es all")
+
+        }
+    } catch (error) {
+        console.log('getCuponesXCliente - queryType:', queryType, ' - [Error]: ', error);
+    }
+}
 module.exports = {
     login,
     signup,
@@ -1199,6 +1269,7 @@ module.exports = {
     getEventosHoy,
     getEventoDetalle,
     getCuponesEstado,
+    getCuponesXCliente,
 
     verPermisoUsuario,
     cambiarPermisoUsuario,
@@ -1206,4 +1277,5 @@ module.exports = {
     listarCuponesCategoriaRadar,
     listarCuponesCanjeadosUsados,
     listarEventosCategoria
+
 };
