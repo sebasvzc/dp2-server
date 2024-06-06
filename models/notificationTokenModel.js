@@ -1,7 +1,7 @@
 // models/notificationTokenModel.js
 module.exports = (sequelize, DataTypes) => {
     const NotificationToken = sequelize.define("notificationToken", {
-        userId: {
+        fidCliente: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
