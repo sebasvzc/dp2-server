@@ -1,8 +1,11 @@
+// routes/notificationRoutes.js
+
 const express = require('express');
 const router = express.Router();
-const notificationsController = require('../controllers/notificationsController');
+const notificationController = require('../controllers/notificationsController');
 
-router.post('/register-token', notificationsController.registerToken);
-router.post('/send-notification', notificationsController.sendNotification);
+router.post('/register-token', notificationController.registerToken);
+router.post('/unregister-token', notificationController.unregisterToken);
+router.post('/send-notification', notificationController.sendNotification);
 
 module.exports = router;
