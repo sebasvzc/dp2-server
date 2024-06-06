@@ -452,26 +452,27 @@ const getMisCupones = async (req, res) => {
     var options = {
         limit: +size,
         offset: (+page) * (+size),
-        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado'],
+        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado','cantidad'],
         required: true,
         include: [
             {
                 model: db.cupones,
                 association: 'cupon',
-                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'esLimitado', 'rutaFoto'],
+                attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos',
+                    'esLimitado','rutaFoto'],
                 required: true,
                 include: [
                     {
                         model: db.locatarios,
                         association: 'locatario',
-                        attributes: ['id', 'nombre', 'descripcion', 'locacion', 'rutaFoto'],
+                        attributes: ['id','nombre', 'descripcion', 'locacion','rutaFoto'],
                         required: true,
                         include: [
                             {
                                 model: db.categoriaTiendas,
                                 association: 'categoriaTienda',
                                 required: true,
-                                attributes: ['nombre'],
+                                attributes: ['nombre'], // Opcional: si no necesitas atributos específicos de la categoría
                             }
                         ]
                     }
@@ -485,17 +486,18 @@ const getMisCupones = async (req, res) => {
         }
     }
 
-    if (busqueda != "") {
-        options.include[0].where = {
+    if(busqueda != ""){
+        //...buscar por texto en "sumilla" en cupon
+        options.include[0].include[0].where = {
             [Op.or]: [
                 {
-                    sumilla: {
-                        [Op.like]: `%${busqueda}%`
+                    '$cupon.sumilla$': {
+                        [Op.like]: `%${busqueda}%` // Buscar sumilla que contenga el texto especificado
                     }
                 },
                 {
-                    '$locatario.nombre$': {
-                        [Op.like]: `%${busqueda}%`
+                    nombre: {
+                        [Op.like]: `%${busqueda}%` // Buscar nombre de locatario que contenga el texto especificado
                     }
                 }
             ]
@@ -503,80 +505,89 @@ const getMisCupones = async (req, res) => {
     }
 
     if (!categorias || categorias.length === 0) {
-        options.include[0].include[0].where = {};
+        options.include[0].include[0].include[0].where = {}; // Vaciar el objeto where
     } else {
-        options.include[0].include[0].where = { id: categorias };
+        options.include[0].include[0].include[0].where = {id: categorias};
     }
 
-    if (orden !== "ASC" && orden != "DESC") {
+
+    if(orden !== "ASC" && orden != "DESC"){
         orden = "ASC";
     }
 
     if (orderBy === 'fechaCompra') {
+        console.log('hola')
         options.order = [['fechaCompra', orden]];
-    } else if (orderBy === 'fechaExpiracion') {
-        options.order = [[db.Sequelize.literal("`cupon.fechaExpiracion`"), orden]];
-    } else if (orderBy === 'categoria') {
-        options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
-    } else if (orderBy === 'puntos') {
-        options.order = [[db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
-    }
+    } else{
+        if (orderBy === 'fechaExpiracion') {
+            options.order = [[db.Sequelize.literal("`cupon.fechaExpiracion`") , orden]];
+        } else{
+            if (orderBy === 'categoria') {
+                options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
+            }else{
+                if (orderBy === 'puntos') {
+                        options.order = [[ db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
+                    }
+            }
+        } 
+    } 
 
     const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll(options);
 
-    // Agrupar cupones por fidCupon
-    const cuponMap = new Map();
+    /*
+    console.log('data conseguida');
+    console.log({total:count, cupones: misCupones })
+    res.json({total:count, cupones: misCupones });*/
+    // Formatear los datos para eliminar los campos [Object] y [cupones]
+    const formattedCupones = misCupones.map(cupon => {
 
-    misCupones.forEach(cupon => {
-        const fidCupon = cupon.fidCupon;
-        const esLimitado = cupon.cupon.esLimitado;
+        const key = `tienda${cupon.cupon.locatario.id}.jpg`;
 
-        if (!cuponMap.has(fidCupon)) {
-            const key = `tienda${cupon.cupon.locatario.id}.jpg`;
-            const url = s3.getSignedUrl('getObject', {
-                Bucket: 'appdp2',
-                Key: key,
-                Expires: 8600
-            });
+        // Genera la URL firmada para el objeto en el bucket appdp2
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
 
-            const key2 = `cupon${cupon.fidCupon}.jpg`;
-            const url2 = s3.getSignedUrl('getObject', {
-                Bucket: 'appdp2',
-                Key: key2,
-                Expires: 8600
-            });
 
-            cuponMap.set(fidCupon, {
-                id: cupon.id,
-                fidCupon: cupon.fidCupon,
-                fechaCompra: cupon.fechaCompra,
-                cuponSumilla: cupon.cupon.sumilla,
-                cuponDescripcionCompleta: cupon.cupon.descripcionCompleta,
-                cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
-                cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
-                cuponCostoPuntos: cupon.cupon.costoPuntos,
-                esLimitado: cupon.cupon.esLimitado,
-                cuponRutaFoto: url2,
-                locatarioNombre: cupon.cupon.locatario.nombre,
-                locatarioDescripcion: cupon.cupon.locatario.descripcion,
-                locatarioLocacion: cupon.cupon.locatario.locacion,
-                locatarioRutaFoto: url,
-                categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre,
-                cantidad: esLimitado ? 1 : 0
-            });
+        const key2 = `cupon${cupon.fidCupon}.jpg`;
+        const url2 = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: key2,
+            Expires: 8600
+        });
+    return{
+        id: cupon.id,
+        fidCupon: cupon.fidCupon,
+        cantidad: cupon.cantidad,
+        fechaCompra: cupon.fechaCompra,
+        //usado: cupon.usado,
 
-        }
-
-        if (!esLimitado) {
-            cuponMap.get(fidCupon).cantidad += 1;
-        }
+        //cuponCodigo: cupon.cupon.codigo,
+        cuponSumilla: cupon.cupon.sumilla,
+        cuponDescripcionCompleta: cupon.cupon.descripcionCompleta,
+        cuponFechaExpiracion: cupon.cupon.fechaExpiracion,
+        cuponTerminosCondiciones: cupon.cupon.terminosCondiciones,
+        cuponCostoPuntos: cupon.cupon.costoPuntos,
+        esLimitado: cupon.cupon.esLimitado,
+        cuponRutaFoto: url2,
+            
+        locatarioNombre: cupon.cupon.locatario.nombre,
+        locatarioDescripcion: cupon.cupon.locatario.descripcion,
+        locatarioLocacion: cupon.cupon.locatario.locacion,
+        locatarioRutaFoto: url,
+                
+        categoriaTiendaNombre: cupon.cupon.locatario.categoriaTienda.nombre
+        };
     });
 
-    const formattedCupones = Array.from(cuponMap.values());
 
     console.log('data conseguida');
-    res.json({ total: count, cupones: formattedCupones });
+    //console.log({total: count, cupones: formattedCupones});
+    res.json({total: count, cupones: formattedCupones})
 };
+
 
 
 
