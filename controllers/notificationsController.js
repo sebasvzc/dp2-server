@@ -2,13 +2,13 @@
 
 const { Expo } = require('expo-server-sdk');
 const expo = new Expo();
-const NotificationToken = require('../models/notificationTokenModel')(sequelize, DataTypes);
+const db = require("../models");
 
 exports.registerToken = async (req, res) => {
     const { fidCliente, token } = req.body;
 
     try {
-        const [userToken, created] = await NotificationToken.findOrCreate({
+        const [userToken, created] = await db.notificationToken.findOrCreate({
             where: { token },
             defaults: { fidCliente, token, activo: true },
         });
@@ -30,7 +30,7 @@ exports.unregisterToken = async (req, res) => {
     const { token } = req.body;
 
     try {
-        const userToken = await NotificationToken.findOne({ where: { token } });
+        const userToken = await db.notificationToken.findOne({ where: { token } });
 
         if (userToken) {
             userToken.activo = false;
@@ -49,7 +49,7 @@ exports.sendNotification = async (req, res) => {
     const { fidCliente, title, body } = req.body;
 
     try {
-        const userTokens = await NotificationToken.findAll({ where: { fidCliente, activo: true } });
+        const userTokens = await db.notificationToken.findAll({ where: { fidCliente, activo: true } });
 
         if (!userTokens.length) {
             return res.status(404).send('No tokens found for user');
