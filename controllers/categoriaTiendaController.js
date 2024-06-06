@@ -110,7 +110,7 @@ const editarCategoriaTiendaWeb = async (req, res,next) => {
     let connection;
     const nombre = req.body.nombre ;
     const descripcion = req.body.descripcion;
-    const idCategoria = parseInt(req.body.IDcategoria);
+    const idCategoria = parseInt(req.body.idCategoria);
 
     try{
 
