@@ -5,4 +5,5 @@ const authenticateToken = require("../../middlewares/authenticateToken");
 
 categoriaTiendaRouter.post('/listarCategoriaTiendas', categoriaTiendaController.getCategoriaTiendas);
 categoriaTiendaRouter.get('/listarCategoriaTiendasWeb', authenticateToken,categoriaTiendaController.getCategoriaTiendas);
+categoriaTiendaRouter.post('/crearCategoriaTiendaWeb', categoriaTiendaController.crearCategoriaTiendaWeb);
 module.exports = categoriaTiendaRouter;

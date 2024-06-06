@@ -2,6 +2,14 @@
 const db = require("../models");
 const {getSignUrlForFile} = require("../config/s3");
 require('dotenv').config();
+const mysql = require('mysql2/promise');
+const pool = mysql.createPool({
+    host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
+      port: 3306,
+      user: 'administrador',
+      password: 'contrasenia',
+      database: 'plaza'
+      });
 const CategoriaTienda = db.categoriaTiendas;
 // Function to get active "categoriaTiendas"
 const getCategoriaTiendas = async (req, res) => {
@@ -77,8 +85,29 @@ const getCategoriaTiendasWeb = async (req, res) => {
     }
 }
 
+const crearCategoriaTiendaWeb = async (req, res,next) => {
+    let connection;
+    const {nombre,descripcion} = req.body;
+
+    try{
+
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL crearCategoriaTiendaWeb(?,?,@resultado,@mensaje)`,[nombre,descripcion])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado, @mensaje AS mensaje')
+        const resultado = row[0]
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
 
 module.exports = {
     getCategoriaTiendas,
-    getCategoriaTiendasWeb
+    getCategoriaTiendasWeb,
+    crearCategoriaTiendaWeb
 };
