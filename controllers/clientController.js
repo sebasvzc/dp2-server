@@ -1200,7 +1200,53 @@ const IAKNN = async (req, res, next) =>{
     const tipoEventoPredichoExt = tiposEventos[prediccionExt[0]];
     console.log("Predicción de tipo de evento", tipoEventoPredicho);
     console.log("Predicción de tipo de evento Adicional", tipoEventoPredichoExt);
-     res.status(200).json(eventosHist);
+    const [resultIA] = await connection.query(`CALL eventoRecomendadorIA(?)`,[tipoEventoPredicho])
+    const eventoIA = resultIA[0][0];
+
+    const keyIA = `evento${eventoIA.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyIA,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                eventoIA.urlEvento =  urlEvento 
+                eventoIA.fechaInicio= eventoIA.fechaInicio.toISOString().split('T')[0];
+                eventoIA.fechaFin=eventoIA.fechaFin.toISOString().split('T')[0];
+                eventoIA.fechaInicio=`${eventoIA.fechaInicio.split('-')[2]}-${eventoIA.fechaInicio.split('-')[1]}-${eventoIA.fechaInicio.split('-')[0]}`;
+                eventoIA.fechaFin=`${eventoIA.fechaFin.split('-')[2]}-${eventoIA.fechaFin.split('-')[1]}-${eventoIA.fechaFin.split('-')[0]}`;
+
+
+    const [resultIAExt] = await connection.query(`CALL eventoRecomendadorIA(?)`,[tipoEventoPredichoExt])
+    const eventoIAExt = resultIAExt[0][0];
+
+    const keyIAExt = `evento${eventoIAExt.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEventoExt = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyIAExt,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                eventoIAExt.urlEvento =  urlEventoExt 
+                eventoIAExt.fechaInicio= eventoIAExt.fechaInicio.toISOString().split('T')[0];
+                eventoIAExt.fechaFin=eventoIAExt.fechaFin.toISOString().split('T')[0];
+                eventoIAExt.fechaInicio=`${eventoIAExt.fechaInicio.split('-')[2]}-${eventoIAExt.fechaInicio.split('-')[1]}-${eventoIAExt.fechaInicio.split('-')[0]}`;
+                eventoIAExt.fechaFin=`${eventoIAExt.fechaFin.split('-')[2]}-${eventoIAExt.fechaFin.split('-')[1]}-${eventoIAExt.fechaFin.split('-')[0]}`;
+
+   
+    const eventoPredictorCompleto = {
+        
+        eventoIA: tipoEventoPredicho,
+        InfoEventoIA: eventoIA,
+        eventoIAExtra: tipoEventoPredichoExt,
+        InfoEventoIAExtra: eventoIAExt
+        
+    };
+    res.status(200).json(eventoPredictorCompleto);
   }catch(error){
      next(error)
   }finally {
