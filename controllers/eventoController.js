@@ -45,7 +45,10 @@ const Locatario = db.locatarios;
 const CategoriaTienda=db.categoriaTiendas;
 const EventoXCliente=db.eventoXClientes;
 const User=db.users;
-
+function parseDate(dateString) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // Restar 1 al mes porque los meses en JavaScript van de 0 a 11
+}
 const getEventosConAsistentesYCategoria = async (req, res) => {
     const { fechaInicial, fechaFinal } = req.query;
     console.log(fechaInicial);

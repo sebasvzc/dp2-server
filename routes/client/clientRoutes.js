@@ -28,6 +28,7 @@ clientRouter.post('/modificarCliente',clienController.modificarClient);
 clientRouter.post('/listarClientesActivos',clienController.listarClientesActivos);
 clientRouter.get('/listarCuponesXClientes',authenticateToken,clienController.listarCuponesXClientes);
 clientRouter.get('/listarCuponesCategoriaRadar',authenticateToken,clienController.listarCuponesCategoriaRadar);
+clientRouter.get('/listarEventosCategoria', authenticateToken,clienController.listarEventosCategoria);
 clientRouter.get('/listarCuponesCanjeadosUsados',authenticateToken,clienController.listarCuponesCanjeadosUsados);
 clientRouter.post('/eventosHoy',clienController.getEventosHoy);
 clientRouter.post('/eventoDetalle/:id_evento',clienController.getEventoDetalle);

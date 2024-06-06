@@ -33,7 +33,9 @@ const Client = db.clients;
 const Locatario = db.locatarios;
 const CategoriaTienda = db.categoriaTiendas;
 const Cupon = db.cupones;
+const Evento = db.eventos;
 const CuponXCliente = db.cuponXClientes;
+const EventoXCliente = db.eventoXClientes;
 const broadcast = (clients, method, message) => {
     if(clients){
         clients.forEach((client) => {
@@ -719,11 +721,11 @@ const listarCuponesXClientes = async (req, res) => {
     if (!startDate || !endDate) {
         return res.status(400).send("startDate and endDate are required!");
     }
-    console.log(startDate)
-    console.log(endDate)
+    console.log(startDate);
+    console.log(endDate);
     try {
-        // Obtener cupones agrupados por fecha y categoría
-        const cuponesGroupedByDateAndCategory = await CuponXCliente.findAll({
+        // Obtener cupones agrupados solo por fecha
+        const cuponesGroupedByDate = await CuponXCliente.findAll({
             where: {
                 fidCliente: idParam,
                 fechaCompra: {
@@ -732,61 +734,37 @@ const listarCuponesXClientes = async (req, res) => {
             },
             attributes: [
                 [db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`), 'fechaMesAnio'],
-                [db.sequelize.col('cupon.locatario.categoriaTienda.nombre'), 'categoria'],
                 [db.sequelize.fn('COUNT', db.sequelize.col('cuponXCliente.id')), 'cantidad'] // Contar el número de cupones por fecha
             ],
-            include: [{
-                model: Cupon,
-                as: 'cupon',
-                attributes: [], // No necesitamos atributos adicionales de Cupon
-                include: [{
-                    model: Locatario,
-                    as: 'locatario',
-                    attributes: [], // No necesitamos atributos adicionales de Locatario
-                    include: [{
-                        model: CategoriaTienda,
-                        as: 'categoriaTienda',
-                        attributes: ['nombre'] // Nombre de la categoría
-                    }]
-                }]
-            }],
             group: [
-                db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`),
-                'cupon.locatario.categoriaTienda.id',
-            ], // Agrupar por la fecha y la categoría
+                db.sequelize.literal(`DATE_FORMAT(cuponXCliente.fechaCompra, '%b %Y')`)
+            ], // Agrupar solo por la fecha
             order: [
                 [db.sequelize.fn('DATE', db.sequelize.col('cuponXCliente.fechaCompra')), 'ASC']
-            ] // Ordenar por la fecha y luego por categoría
+            ] // Ordenar por la fecha
         });
 
         // Verificar la estructura de los datos crudos
-        console.log('Datos crudos:', JSON.stringify(cuponesGroupedByDateAndCategory, null, 2));
+        console.log('Datos crudos:', JSON.stringify(cuponesGroupedByDate, null, 2));
 
-        // Crear una estructura de categorías y fechas
-        const cuponesPorCategoria = {};
+        // Crear una estructura de fechas
+        const cuponesPorFecha = {};
         const monthsRange = generarRangoMeses(startDate, endDate);
 
-        cuponesGroupedByDateAndCategory.forEach(cupon => {
+        monthsRange.forEach(month => {
+            cuponesPorFecha[month] = 0;
+        });
+
+        cuponesGroupedByDate.forEach(cupon => {
             const fechaMesAnio = cupon.get('fechaMesAnio');
             const cantidad = cupon.get('cantidad');
-            const categoria = cupon.get('categoria');
-            if (!cuponesPorCategoria[categoria]) {
-                cuponesPorCategoria[categoria] = monthsRange.map(month => ({
-                    fechaMesAnio: month,
-                    cantidad: 0
-                }));
-            }
-
-            const foundMonth = cuponesPorCategoria[categoria].find(month => month.fechaMesAnio === fechaMesAnio);
-            if (foundMonth) {
-                foundMonth.cantidad = cantidad;
-            }
+            cuponesPorFecha[fechaMesAnio] = cantidad;
         });
 
         // Convertir la estructura en el formato deseado
-        const resultado = Object.keys(cuponesPorCategoria).map(categoria => ({
-            Categoria: categoria,
-            data: cuponesPorCategoria[categoria]
+        const resultado = monthsRange.map(month => ({
+            fechaMesAnio: month,
+            cantidad: cuponesPorFecha[month]
         }));
 
         return res.status(200).json({ cupones: resultado, newToken: req.newToken });
@@ -795,7 +773,7 @@ const listarCuponesXClientes = async (req, res) => {
         console.log('getCuponXDia - queryType: - [Error]: ', error);
         return res.status(500).send('Internal Server Error');
     }
-}
+};
 const listarCuponesCategoriaRadar = async (req, res) => {
     var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
     const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
@@ -1137,6 +1115,71 @@ const cambiarPermisoUsuario = async (req, res,next) => {
 }
 
 
+const listarEventosCategoria = async (req, res) => {
+    var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getEventosXClienteRadar - query: ', req.query.idParam, startDate, endDate);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required! getCuponesXClienteRadar");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        const eventosGroupedByCategory = await EventoXCliente.findAll({
+            where: {
+                fidCliente: idParam,
+                '$eventocli.fechaInicio$': {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            attributes: [
+                [db.sequelize.col('eventocli.locatario.categoriaTienda.nombre'), 'categoria'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('eventocli.id')), 'cantidad'] // Contar el número de cupones por fecha
+            ],
+            include: [{
+                model: Evento,
+                as: 'eventocli',
+                attributes: [], // No necesitamos atributos adicionales de Cupon
+                include: [{
+                    model: Locatario,
+                    as: 'locatario',
+                    attributes: [], // No necesitamos atributos adicionales de Locatario
+                    include: [{
+                        model: CategoriaTienda,
+                        as: 'categoriaTienda',
+                        attributes: ['nombre'] // Nombre de la categoría
+                    }]
+                }]
+            }],
+            group: [
+                'eventocli.locatario.categoriaTienda.id',
+            ]
+        });
+
+        // Verificar la estructura de los datos crudos
+        console.log('Datos crudos: eventos por categ', JSON.stringify(eventosGroupedByCategory, null, 2));
+        const resultado = {
+            name: "Cliente 1",
+            data: eventosGroupedByCategory.map(cupon => cupon.get('cantidad')),
+            categoria: eventosGroupedByCategory.map(cupon => cupon.get('categoria'))
+        };
+        console.log(resultado)
+        console.log("resultado")
+        return res.status(200).json({ eventos: resultado, newToken: req.newToken });
+
+    } catch (error) {
+        console.log('getEventosXClienteRadar - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+
 
 module.exports = {
     login,
@@ -1161,5 +1204,6 @@ module.exports = {
     cambiarPermisoUsuario,
     listarCuponesXClientes,
     listarCuponesCategoriaRadar,
-    listarCuponesCanjeadosUsados
+    listarCuponesCanjeadosUsados,
+    listarEventosCategoria
 };

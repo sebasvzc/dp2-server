@@ -4,7 +4,7 @@ const multer = require('multer');
 const upload = multer();
 
 var eventoController = require('../../controllers/eventoController');
-const { getEventosConAsistentesYCategoria,getEventos,crear,modificar,deshabilitar,habilitar } = eventoController
+const { getEventosConAsistentesYCategoria,getEventos,crear,modificar,deshabilitar,habilitar} = eventoController
 
 const authenticateToken = require("../../middlewares/authenticateToken");
 const userController = require("../../controllers/userController");
@@ -18,4 +18,5 @@ eventoRouter.post('/crear',upload.any(), authenticateToken,crear);
 eventoRouter.post('/modificar',upload.any(), authenticateToken,modificar);
 eventoRouter.post('/deshabilitar', authenticateToken,deshabilitar);
 eventoRouter.post('/habilitar', authenticateToken,habilitar);
+
 module.exports = eventoRouter;
