@@ -106,8 +106,32 @@ const crearCategoriaTiendaWeb = async (req, res,next) => {
     }
 }
 
+const editarCategoriaTiendaWeb = async (req, res,next) => {
+    let connection;
+    const nombre = req.body.nombre ;
+    const descripcion = req.body.descripcion;
+    const idCategoria = parseInt(req.body.IDcategoria);
+
+    try{
+
+        connection = await pool.getConnection();
+        const [result] = await connection.query(`CALL editarCategoriaTiendaWeb(?,?,?,@resultado,@mensaje)`,[idCategoria,nombre,descripcion])
+        
+        const [row] = await connection.query ('Select @resultado AS resultado, @mensaje AS mensaje')
+        const resultado = row[0]
+        res.status(200).json(resultado);
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
 module.exports = {
     getCategoriaTiendas,
     getCategoriaTiendasWeb,
-    crearCategoriaTiendaWeb
+    crearCategoriaTiendaWeb,
+    editarCategoriaTiendaWeb
 };
