@@ -40,6 +40,6 @@ router.use('/cupones', cuponRouter);
 router.use('/tipocupones', tipoCuponRoutes);
 router.use('/qr', qrRouter);
 router.use('/config', configRoute);
-router.use('/notificacion',notificationRoute)
+router.use('/notifications',notificationRoute)
 
 module.exports = router;
