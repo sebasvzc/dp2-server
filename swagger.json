@@ -2655,6 +2655,109 @@
                 }
             }
         },
+        "/api/eventos/detalleEventoCompleto": {
+            "post": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "detalleEventoCompletoUsingGET",
+                "summary": "Detalle del evento",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "image/jpeg"
+                ],
+                "description": "Detalle de evento y retorna la imagen relacionada desde S3   ",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "detalle",
+                        "description": "Request body as following",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 1
+                                }
+                            }
+                        }
+                    },{
+                        "in": "header",
+                        "name": "authorization",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    },
+                    {
+                        "in": "header",
+                        "name": "refresh-token",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response with cupon details and image",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "detalles": {
+                                    "$ref": "#/definitions/Evento"
+                                },
+                                "image": {
+                                    "type": "string",
+                                    "description": "Base64 encoded image content, prepend with 'data:image/jpeg;base64,' to display as image in HTML.",
+                                    "example": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/tiendas/detalleTiendaCompleto": {
             "post": {
                 "tags": [

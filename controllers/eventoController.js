@@ -549,6 +549,46 @@ const deshabilitar = async (req, res) => {
         console.log('updateEvento updateItem: - [Error]: ', error)
     }
 }
+const detalleEventoCompleto = async (req, res) => {
+    try {
+        console.log(req.body)
+
+        const detalleEvento = await Evento.findOne({
+            where: { id: req.body.id },
+            include: [
+                {
+                    model: db.locatarios,
+                    as: 'locatario',
+                    attributes: ['id','nombre'],
+                },
+                {
+                    model: db.lugares,
+                    as: 'lugar',
+                    attributes: ['id','nombre'],
+                },
+                {
+                    model: db.tipoEventos,
+                    as: 'tipoEvento',
+                    attributes: ['id','nombre'],
+                }
+            ]
+        });
+
+        if (detalleEvento) {
+            const objectKey = `evento${detalleEvento.id}.jpg`;
+            const url = await getSignUrlForFile( `evento${detalleEvento.id}.jpg`);
+            console.log(detalleEvento.id)
+            console.log(url)
+            console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
+            res.status(200).json({ success: true, detalles: detalleEvento, image:url});
+        } else {
+            res.status(404).json({ success: false, message: 'Evento no encontrado'});
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ success: false, message: 'Hubo un error al procesar la solicitud' });
+    }
+}
 
 module.exports = {
     getEventosConAsistentesYCategoria,
@@ -558,5 +598,6 @@ module.exports = {
     crear,
     modificar,
     habilitar,
-    deshabilitar
+    deshabilitar,
+    detalleEventoCompleto
 }
