@@ -9,6 +9,8 @@ var catTiendaRoutes = require('./tiendas/categoriaTiendasRoute')
 var tiendasRoutes = require('./tiendas/locatariosRoute')
 var tipoCuponRoutes = require('./cupones/tipoCuponRoute')
 var eventoRoutes = require('./evento/eventoRoute')
+var tipoEventoRoutes = require('./evento/tipoEventoRoute')
+var lugarRoutes = require('./evento/lugarRoute')
 const crypto = require("crypto");
 const nodemailer = require('nodemailer');
 const cuponRouter = require('./cupones/cuponRoute');
@@ -27,6 +29,8 @@ const transporter = nodemailer.createTransport({
 router.use('/user', userRoutes(transporter,crypto));
 router.use('/client', clientRouter);
 router.use('/password', passManagerRoutes);
+router.use('/tipoEvento', tipoEventoRoutes);
+router.use('/lugares', lugarRoutes);
 router.use('/categoriaTienda', catTiendaRoutes);
 router.use('/tiendas', tiendasRoutes);
 router.use('/eventos', eventoRoutes);
