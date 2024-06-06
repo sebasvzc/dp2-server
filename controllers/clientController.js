@@ -1138,6 +1138,15 @@ const cambiarPermisoUsuario = async (req, res,next) => {
 }
 
 const IAKNN = async (req, res, next) =>{
+    //Vamos a conseguir eventos de 4 formas  
+    // Si es usuario nuevo en base al genero en el que se encuentra, en el que una le da mas enfasis
+    // al genero y otro le da mas enfasis a su edad
+    // en base a su id se buscara si tiene eventos a los que ha asistido para clasificar de forma mas particular
+    // el recomendador
+
+    const genero = req.body.genero || 'M'; // Enviame una M si es masculino, F si es femenino y una A si no es ninguno de esos casos
+    const edad = parseInt(req.body.edad) || 27; // enviame la edad de la persona
+    const idUsuario = parseInt(req.body.idUsuario)|| 1; // mandame ID del usuario para analizar sus evento recien inscritos, por ahora irving es el especifico
     let connection;
 
     try{
@@ -1168,14 +1177,29 @@ const IAKNN = async (req, res, next) =>{
    
     // Se viene clasificador
     const knn = new KNN(datos, etiquetas, { k: 3 });
-    const edadPromedioNuevo = (60 - edadMin) / (edadMax - edadMin);
-    const generoPromedioNuevo = generoEncoder['M']; // Example new gender
+    const edadPromedioNuevo = (edad - edadMin) / (edadMax - edadMin);
+    let generoPromedioNuevo = generoEncoder[genero]; 
+    let generoPromedioNuevoExt = generoEncoder['A'];
+    if(genero=='M'){
+        generoPromedioNuevo = generoEncoder[genero]; 
+        generoPromedioNuevoExt = generoEncoder['A'];
+    }else if(genero=='F'){
+         generoPromedioNuevo = generoEncoder[genero];
+         generoPromedioNuevoExt = generoEncoder['A'];
+    }else{
+         generoPromedioNuevo = generoEncoder['A'];
+         generoPromedioNuevoExt = generoEncoder['A'];
+
+    }
+    
     const datosPrediccion = [[generoPromedioNuevo,edadPromedioNuevo]];
+    const datosPrediccionExt = [[generoPromedioNuevoExt,edadPromedioNuevo]];
     const prediccion = knn.predict(datosPrediccion);
-    //const prediccionPorClase = knn.predictProbabilities(datosPrediccion);
+    const prediccionExt = knn.predict(datosPrediccionExt);
     const tipoEventoPredicho = tiposEventos[prediccion[0]];
+    const tipoEventoPredichoExt = tiposEventos[prediccionExt[0]];
     console.log("Predicción de tipo de evento", tipoEventoPredicho);
-    //console.log("Probabilidades por Clase", prediccionPorClase[0]);
+    console.log("Predicción de tipo de evento Adicional", tipoEventoPredichoExt);
      res.status(200).json(eventosHist);
   }catch(error){
      next(error)
