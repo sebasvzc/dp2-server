@@ -1286,6 +1286,81 @@
                 }
             }
         },
+        "/api/eventos/listarAsistencia": {
+            "get": {
+                "tags": [
+                    "evento-controller"
+                ],
+                "operationId": "getEventosAsistenciaUsingGET",
+                "summary": "Get evento / eventos",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al Evento Asistencia basado en el parametro. \"20% de dscto\" para unos o \"all\" para traer todos los cupones.",
+                "parameters": [
+                    {
+                        "name": "idParam",
+                        "in": "query",
+                        "required": false,
+                        "type": "string",
+                        "description": "ID"
+                    },
+
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    },
+                    {
+                        "name": "refresh-token",
+                        "in": "header",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Evento"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/cupones/listarclientesxcupon?query={emailnombre}&idParam={idParam}&page={page}&pageSize={pageSize}": {
             "get": {
                 "tags": [

@@ -590,6 +590,51 @@ const detalleEventoCompleto = async (req, res) => {
     }
 }
 
+
+const getAsistencia = async (req, res) => {
+    var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
+
+    console.log('getEventosXClienteRadar - query: ', req.query.idParam);
+    if (!idParam) {
+        console.log("Requested item wasn't found!, ?query=xxxx is required! getCuponesXClienteRadar");
+        return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
+    }
+    try {
+        // Contar el total de eventos dentro del rango de fechas
+        const totalEventos = await EventoXCliente.count({
+            where: {
+                fidEvento: idParam
+            },
+            include: [{
+                model: Evento,
+                as: 'eventocli',
+                attributes: [], // No necesitamos atributos adicionales de Cupon
+            }]
+        });
+
+        // Contar los eventos con asistencia dentro del rango de fechas
+        const totalAsistio = await EventoXCliente.count({
+            where: {
+                fidEvento: idParam,
+                asistio: true
+            },
+            include: [{
+                model: Evento,
+                as: 'eventocli',
+                attributes: [], // No necesitamos atributos adicionales de Cupon
+            }]
+        });
+
+        console.log('Total eventos: ', totalEventos);
+        console.log('Total asistencias: ', totalAsistio);
+        return res.status(200).json({ totalEventos, totalAsistio, newToken: req.newToken });
+
+    } catch (error) {
+        console.log('getEventosXClienteRadar - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+
 module.exports = {
     getEventosConAsistentesYCategoria,
     getEventosProximos,
@@ -599,5 +644,6 @@ module.exports = {
     modificar,
     habilitar,
     deshabilitar,
-    detalleEventoCompleto
+    detalleEventoCompleto,
+    getAsistencia
 }
