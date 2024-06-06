@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         tipo: {
-            type: DataTypes.ENUM('evento', 'tienda', 'cupon'),
+            type: DataTypes.ENUM('evento', 'tienda', 'cupon', 'juego', 'compra'),
             allowNull: false
         },
         fidReferencia: {
@@ -20,10 +20,15 @@ module.exports = (sequelize, DataTypes) => {
         ultimoEscaneo: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
+        },
+        puntosOtorgados: {
+            type: DataTypes.INTEGER,
+            allowNull: true
         }
     }, {
         tableName: 'escaneos',
         timestamps: true
     });
+
     return Escaneo;
 }

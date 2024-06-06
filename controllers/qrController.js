@@ -36,7 +36,7 @@ AWS.config.update({
 const s3 = new AWS.S3();
 
 const generateQr = async (req, res) => {
-    const { tipo, idReferencia } = req.body;
+    const { tipo, idReferencia, monto = 100 } = req.body;
 
     try {
         let model;
@@ -45,6 +45,9 @@ const generateQr = async (req, res) => {
                 model = db.eventos;
                 break;
             case 'tienda':
+                model = db.locatarios;
+                break;
+            case 'compra':
                 model = db.locatarios;
                 break;
             case 'cupon':
@@ -59,8 +62,17 @@ const generateQr = async (req, res) => {
             return res.status(404).json({ message: `${tipo} no encontrado` });
         }
 
-        // Cifrar los datos
         const qrData = JSON.stringify({ tipo, idReferencia });
+        
+        // Si el tipo es 'compra', agregar monto y momento
+        //if (tipo === 'compra') {
+            const momento = new Date().toISOString(); // Formato ISO para JSON
+            qrData.monto = monto;
+            qrData.momento = momento;
+        //}
+
+        // Cifrar los datos
+        
         const encryptedData = crypto.AES.encrypt(qrData, CRYPTO_JS_KEY).toString();
 
         // Generar el QR con los datos cifrados
@@ -85,11 +97,11 @@ const scanQr = async (req, res) => {
             return res.status(400).json({ message: 'Datos encriptados inválidos' });
         }
 
-        const { tipo, idReferencia } = decryptedData;
-        console.log("tipo: "+tipo+" - id: "+idReferencia);
+        const { tipo, idReferencia, monto, momento } = decryptedData;
+        console.log("tipo: "+tipo+" - id: "+idReferencia +" - monto: "+monto+" - momento: "+momento);
 
         // Validar si el tipo es uno de los permitidos
-        if (!['evento', 'tienda', 'cupon'].includes(tipo)) {
+        if (!['evento', 'tienda', 'cupon', 'compra', 'juego'].includes(tipo)) {
             return res.status(400).json({ message: 'Tipo no válido' });
         }
 
@@ -100,6 +112,9 @@ const scanQr = async (req, res) => {
                 model = db.eventos;
                 break;
             case 'tienda':
+                model = db.locatarios;
+                break;
+            case 'compra':
                 model = db.locatarios;
                 break;
             case 'cupon':
@@ -147,13 +162,6 @@ const scanQr = async (req, res) => {
             return res.status(400).json({ message: 'Este QR ya ha sido escaneado.',  puntosOtorgados:-1 });
         }
 
-        // Registrar el nuevo escaneo
-        await db.escaneos.create({
-            fidClient: idCliente,
-            tipo,
-            fidReferencia: idReferencia,
-            ultimoEscaneo: new Date()  // Registra la fecha actual del escaneo
-        });
 
         // Si el tipo es 'evento' o 'tienda', obtener información adicional y sumar puntos
         let puntosOtorgados = 0;
@@ -202,6 +210,17 @@ const scanQr = async (req, res) => {
                 Expires: 8600 // Tiempo de expiración en segundos
             });
         }
+
+        // Registrar el nuevo escaneo
+        //esto debe de ser al final
+        //cuando ya tenga mis puntos otorgados
+        await db.escaneos.create({
+            fidClient: idCliente,
+            tipo,
+            fidReferencia: idReferencia,
+            ultimoEscaneo: new Date(),  // Registra la fecha actual del escaneo
+            puntosOtorgados:puntosOtorgados 
+        });
 
         res.json({
             message: 'QR escaneado con éxito, puntos asignados.',
