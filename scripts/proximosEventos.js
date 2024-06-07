@@ -3,6 +3,7 @@ const db = require("../models");
 const Eventos = db.eventos;
 const { Op } = require("sequelize");
 const moment = require("moment");
+const { sendNotificationTodos } = require("../controllers/notificationsController");
 
 const proximoEvento = async () => {
     try {
@@ -20,7 +21,7 @@ const proximoEvento = async () => {
         for (let evento of eventos) {
             const title = "Eventos de mañana";
             const body = `Evento: ${evento.nombre}, Fecha: ${moment(evento.fechaInicio).format('LLL')}`;
-            await sendNotificationGeneral(title, body);
+            await sendNotificationTodos(title, body);
         }
     } catch (error) {
         console.error("Error al obtener los eventos de mañana:", error);
