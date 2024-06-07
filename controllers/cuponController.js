@@ -254,7 +254,7 @@ const getCuponesClientes = async (req, res) => {
         return !isNaN(number) ? number : null; // Verificar si la conversión fue exitosa
     }).filter(item => item !== null) : [];
     console.log(categoria);
-    console.log('getUser - query: ', req.query.query);
+    console.log('getCuponesClientes- query: ', req.query.query);
     if (!queryType) {
         console.log("Requested item wasn't found!, ?query=xxxx is required!");
         return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
@@ -270,7 +270,8 @@ const getCuponesClientes = async (req, res) => {
                         activo:1,
                         '$locatario.fidCategoriaTienda$': { [Op.or]: categoria }
 
-                    }
+                    },
+                    attributes:["id","cantidadDisponible","costoPuntos","esLimitado","sumilla","fidLocatario"]
                 }),
                 Cupon.count({
                     include: [{ model: Locatario, as: 'locatario', attributes: []  }],
@@ -287,7 +288,8 @@ const getCuponesClientes = async (req, res) => {
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
                     const url = await getSignUrlForFile(objectKey);
-
+                    console.log("cupon.fidLocatario")
+                    console.log(cupon.fidLocatario)
                     const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
                     const urlTienda = await getSignUrlForFile(objectKey2);
 
@@ -325,7 +327,8 @@ const getCuponesClientes = async (req, res) => {
                     where: whereCondition,
                     include: [{ model: Locatario, as: 'locatario', attributes: []  }],
                     offset: offset,
-                    limit: pageSize
+                    limit: pageSize,
+                    attributes:["id","cantidadDisponible","costoPuntos","esLimitado","sumilla","fidLocatario"]
                 }),
                 Cupon.count({
                     where: whereCondition,
@@ -334,9 +337,22 @@ const getCuponesClientes = async (req, res) => {
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
+
+                const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
+                    const objectKey = `cupon${cupon.id}.jpg`;
+                    const url = await getSignUrlForFile(objectKey);
+                    console.log("cupon.fidLocatario")
+                    console.log(cupon.fidLocatario)
+                    const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
+                    const urlTienda = await getSignUrlForFile(objectKey2);
+
+
+                    // Agregar la URL firmada al objeto del cupón
+                    return { ...cupon.dataValues, rutaFoto: url, rutaTienda: urlTienda };
+                }));
                 // console.log(users)
                 // console.log(users)
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
             } else {
                 return res.status(200).send("Cupones no encontrados con esa busqueda");
             }
