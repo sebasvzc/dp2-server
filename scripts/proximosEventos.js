@@ -17,7 +17,11 @@ const proximoEvento = async () => {
             attributes: ['nombre', 'fechaInicio'] 
         });
 
-        console.log("Eventos de mañana:", eventos);
+        for (let evento of eventos) {
+            const title = "Eventos de mañana";
+            const body = `Evento: ${evento.nombre}, Fecha: ${moment(evento.fechaInicio).format('LLL')}`;
+            await sendNotificationGeneral(title, body);
+        }
     } catch (error) {
         console.error("Error al obtener los eventos de mañana:", error);
     }
