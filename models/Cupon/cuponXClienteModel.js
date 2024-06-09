@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             default: 1
         },
+        cantidadHistorica: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1
+        },
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
