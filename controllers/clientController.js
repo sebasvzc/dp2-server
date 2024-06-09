@@ -454,7 +454,7 @@ const getMisCupones = async (req, res) => {
     var options = {
         limit: +size,
         offset: (+page) * (+size),
-        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado','cantidad'],
+        attributes: ['id', 'fidCupon', 'fechaCompra', 'usado','cantidad', 'cantidadHistorica'],
         required: true,
         include: [
             {
@@ -559,6 +559,11 @@ const getMisCupones = async (req, res) => {
             Key: key2,
             Expires: 8600
         });
+
+        var cantidadActual = cupon.cupon.esLimitado 
+            ? cupon.cantidad 
+            : (usado ? cupon.canidadHistorica-cantidad : cupon.cantidad );
+
     return{
         id: cupon.id,
         fidCupon: cupon.fidCupon,
