@@ -562,7 +562,7 @@ const getMisCupones = async (req, res) => {
 
         var cantidadActual = cupon.cupon.esLimitado 
             ? cupon.cantidad 
-            : (usado ? cupon.canidadHistorica-cantidad : cupon.cantidad );
+            : (usado ? cupon.cantidadHistorica-cupon.cantidad : cupon.cantidad );
 
     return{
         id: cupon.id,
