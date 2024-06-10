@@ -11,7 +11,12 @@ const pool = mysql.createPool({
       port: 3306,
       user: 'administrador',
       password: 'contrasenia',
-      database: 'plaza'
+      database: 'plaza',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      connectTimeout: 60000, 
+      acquireTimeout: 60000 
       });
 const {
     S3Client,
