@@ -13,7 +13,6 @@ async function verifyPermission(req, res, next) {
         } else if (req.method === 'GET') {
             permiso = req.query.permission.replace(/%/g, ' ');
         }
-        console.log(permiso)
         const user = await User.findOne({
             where: {
                 id: req.user.id
@@ -32,7 +31,6 @@ async function verifyPermission(req, res, next) {
                 }
             }
         });
-        console.log(userPerm)
         if (user && userPerm) {
             next();
         } else {

@@ -20,33 +20,43 @@ else{
 }
 
 
-const getSignUrlForFile = (key) => {
+const getSignUrlForFile = (key, defaultValue) => {
     return new Promise((resolve, reject) => {
         try {
-            const path = require('path');
-            const fileName = path.basename(key);
-
-            var params = {
+            const headParams = {
                 Bucket: process.env.AWS_S3_BUCKET_NAME,
-                Key: key,
-                Expires: 30 * 60
+                Key: key
             };
 
-            const signedUrl = s3.getSignedUrl('getObject', params);
+            const signedUrlParams = {
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: key,
+                Expires: 30 * 60 // Tiempo de expiración de la URL firmada en segundos
+            };
 
-            if (signedUrl) {
-                return resolve(signedUrl);
-            }
-            else {
-                return resolve(false);
-            }
-        }
-        catch (err) {
-            return resolve(false);
+            s3.headObject(headParams, (err, metadata) => {
+                if (err && err.code === 'NotFound') {
+                    // El archivo no existe, usar la imagen predeterminada
+                    const defaultParams = {
+                        ...signedUrlParams,
+                        Key: defaultValue
+                    };
+                    const defaultSignedUrl = s3.getSignedUrl('getObject', defaultParams);
+                    return resolve(defaultSignedUrl);
+                } else if (err) {
+                    // Otro error, rechazar la promesa
+                    return reject(err);
+                } else {
+                    // El archivo existe, devolver la URL firmada
+                    const signedUrl = s3.getSignedUrl('getObject', signedUrlParams);
+                    return resolve(signedUrl);
+                }
+            });
+        } catch (err) {
+            return reject(err);
         }
     });
-}
-
+};
 const deleteObject = (key) => {
     return new Promise((resolve, reject) => {
         try {

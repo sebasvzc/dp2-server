@@ -74,8 +74,7 @@ const getTiendas = async (req, res) => {
             if (tiendas) {
                 const updatedTiendas = await Promise.all(tiendas.map(async (tienda) => {
                     const objectKey = `tienda${tienda.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
-                    // Agregar la URL firmada al objeto del cupón
+                    const url = await getSignUrlForFile(objectKey,"defaultStore.png");
                     return { ...tienda.dataValues, rutaFoto: url };
                 }));
                 return res.status(200).json({ tiendas:updatedTiendas, newToken: req.newToken,totalTiendas:totalCount });
@@ -106,8 +105,7 @@ const getTiendas = async (req, res) => {
             if (tiendas) {
                 const updatedTiendas = await Promise.all(tiendas.map(async (tienda) => {
                     const objectKey = `tienda${tienda.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
-                    // Agregar la URL firmada al objeto del cupón
+                    const url = await getSignUrlForFile(objectKey,"defaultStore.png");
                     return { ...tienda.dataValues, rutaFoto: url };
                 }));
                 // console.log(users)
@@ -338,8 +336,9 @@ const detalleTiendaCompleto = async (req, res) => {
         });
 
         if (detalleTienda) {
-            const objectKey = `tienda${detalleTienda.id}.jpg`;
-            const url = await getSignUrlForFile( `tienda${detalleTienda.id}.jpg`);
+
+                const objectKey = `tienda${detalleTienda.id}.jpg`;
+                const url = await getSignUrlForFile(objectKey,"defaultStore.png");
             console.log(detalleTienda.id)
             console.log(url)
             console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);

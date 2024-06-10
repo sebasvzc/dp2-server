@@ -281,7 +281,7 @@ const getEventos = async (req, res) => {
             if (eventos) {
                 const updatedEventos = await Promise.all(eventos.map(async (evento) => {
                     const objectKey = `evento${evento.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
+                    const url = await getSignUrlForFile(objectKey,"defaultEvento.png");
                     // Agregar la URL firmada al objeto del cupón
                     return { ...evento.dataValues, rutaFoto: url };
                 }));
@@ -317,7 +317,7 @@ const getEventos = async (req, res) => {
                 // console.log(users)
                 const updatedEventos = await Promise.all(eventos.map(async (evento) => {
                     const objectKey = `evento${evento.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
+                    const url = await getSignUrlForFile(objectKey,"defaultEvento.png");
                     // Agregar la URL firmada al objeto del cupón
                     return { ...evento.dataValues, rutaFoto: url };
                 }));
@@ -577,7 +577,7 @@ const detalleEventoCompleto = async (req, res) => {
 
         if (detalleEvento) {
             const objectKey = `evento${detalleEvento.id}.jpg`;
-            const url = await getSignUrlForFile( `evento${detalleEvento.id}.jpg`);
+            const url = await getSignUrlForFile( objectKey,"defaultEvento.png");
             console.log(detalleEvento.id)
             console.log(url)
             console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);

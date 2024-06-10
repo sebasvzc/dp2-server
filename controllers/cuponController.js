@@ -53,8 +53,8 @@ const Locatario = db.locatarios;
 const TipoCupon = db.tipoCupons;
 const detalleCuponCompleto = async (req, res) => {
     try {
-        console.log(req.body)
-
+        console.log("detalleCuponCompleto")
+        console.log("detalleCuponCompleto")
         const detalleCupon = await Cupon.findOne({
             where: { id: req.body.id },
             include: [
@@ -73,7 +73,7 @@ const detalleCuponCompleto = async (req, res) => {
 
         if (detalleCupon) {
             const objectKey = `cupon${detalleCupon.id}.jpg`;
-            const url = await getSignUrlForFile( `cupon${detalleCupon.id}.jpg`);
+            const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
             console.log(detalleCupon.id)
             console.log(url)
             console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
@@ -193,7 +193,7 @@ const getCupones = async (req, res) => {
             if (cupones) {
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
+                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
                     // Agregar la URL firmada al objeto del cupón
                     return { ...cupon.dataValues, rutaFoto: url };
                 }));
@@ -230,7 +230,7 @@ const getCupones = async (req, res) => {
                 // console.log(users)
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
+                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
                     // Agregar la URL firmada al objeto del cupón
                     return { ...cupon.dataValues, rutaFoto: url };
                 }));
@@ -287,11 +287,11 @@ const getCuponesClientes = async (req, res) => {
                 // Iterar sobre los cupones y realizar una acción asíncrona con cada uno
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
+                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
                     console.log("cupon.fidLocatario")
                     console.log(cupon.fidLocatario)
                     const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
-                    const urlTienda = await getSignUrlForFile(objectKey2);
+                    const urlTienda = await getSignUrlForFile(objectKey2,"defaultStore.png");
 
 
                     // Agregar la URL firmada al objeto del cupón
@@ -340,11 +340,11 @@ const getCuponesClientes = async (req, res) => {
 
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey);
+                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
                     console.log("cupon.fidLocatario")
                     console.log(cupon.fidLocatario)
                     const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
-                    const urlTienda = await getSignUrlForFile(objectKey2);
+                    const urlTienda = await getSignUrlForFile(objectKey2,"defaultStore.png");
 
 
                     // Agregar la URL firmada al objeto del cupón

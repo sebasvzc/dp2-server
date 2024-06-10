@@ -273,7 +273,6 @@ const getUserPerms = async (req, res) => {
         });
         console.log("acagetuserParamsdsp3")
         if (userPerm.length > 0) {
-            console.log(userPerm);
             return res.status(200).send({ permissions: userPerm, newToken: req.newToken });
         } else {
             console.log('No permissions found for this user.');
