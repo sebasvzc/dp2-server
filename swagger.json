@@ -41,6 +41,10 @@
             "description": "Tienda Controller"
         },
         {
+            "name": "categoria-tienda-controller",
+            "description": "Categ Tienda Controller"
+        },
+        {
             "name": "tipo-cupones-controller",
             "description": "Tipo de Cupon Controller"
         }
@@ -1629,14 +1633,14 @@
         "/api/tiendas/listarCuponesxTienda?query={nombre}&idParam={idParam}&page={page}&pageSize={pageSize}": {
             "get": {
                 "tags": [
-                    "tienda-controller"
+                    "categoria-tienda-controller"
                 ],
-                "operationId": "getCuponesxTiendaUsingGET",
+                "operationId": "getCategXTiendaUsingGET",
                 "summary": "Get cupones por tienda",
                 "consumes": [
                     "application/json"
                 ],
-                "description": "Fetch al Cupon basado en el parametro en el id de la tienda.",
+                "description": "Fetch al Categ basado en el parametro en el id de la tienda.",
                 "parameters": [
                     {
                         "name": "nombre",
@@ -2172,12 +2176,12 @@
                 }
             }
         },
-        "/api/categoriaTienda/listarCategoriaTiendasWeb?query={nombre}&page={page}&pageSize={pageSize}": {
+        "/api/categoriaTienda/listarCategoriaTiendasWeb": {
             "get": {
                 "tags": [
-                    "tienda-controller"
+                    "categoria-tienda-controller"
                 ],
-                "operationId": "getCatTiendasCategUsingGET",
+                "operationId": "getCatTiendasWEBCategUsingGET",
                 "summary": "Get Cat tienda / Cat tiendas",
                 "consumes": [
                     "application/json"
@@ -2185,21 +2189,24 @@
                 "description": "Fetch al Cat Tienda basado en el parametro.",
                 "parameters": [
                     {
-                        "name": "nombre",
+
+                        "in": "query",
+                        "name": "query",
                         "required": false,
-                        "in": "path",
                         "type": "string",
                         "description": "Nombre de la categoria de tienda"
                     },{
+
+                        "in": "query",
                         "name": "page",
                         "required": false,
-                        "in": "path",
                         "type": "integer",
                         "description": "Pagina solicitada"
                     },{
+
+                        "in": "query",
                         "name": "pageSize",
                         "required": false,
-                        "in": "path",
                         "type": "integer",
                         "description": "Tamanio de pagina solicitada"
                     },{

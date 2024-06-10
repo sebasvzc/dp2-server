@@ -45,7 +45,7 @@ const getSignUrlForFile = (key, defaultValue) => {
                     return resolve(defaultSignedUrl);
                 } else if (err) {
                     // Otro error, rechazar la promesa
-                    return reject(err);
+                    return resolve(null);
                 } else {
                     // El archivo existe, devolver la URL firmada
                     const signedUrl = s3.getSignedUrl('getObject', signedUrlParams);
@@ -53,7 +53,7 @@ const getSignUrlForFile = (key, defaultValue) => {
                 }
             });
         } catch (err) {
-            return reject(err);
+            return resolve(null);
         }
     });
 };

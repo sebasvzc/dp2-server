@@ -3,6 +3,8 @@ const db = require("../models");
 const {getSignUrlForFile} = require("../config/s3");
 require('dotenv').config();
 const mysql = require('mysql2/promise');
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 const pool = mysql.createPool({
     host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
       port: 3306,
@@ -30,6 +32,7 @@ const getCategoriaTiendasWeb = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
     const pageSize = parseInt(req.query.pageSize) || 6; // Tamaño de página, default 10
     const offset = (page - 1) * pageSize;
+    console.log('getCategoriaTienda - query: ')
     console.log('getCategoriaTienda - query: ', req.query.query);
     if (!queryType) {
         console.log("Requested item wasn't found!, ?query=xxxx is required!");
