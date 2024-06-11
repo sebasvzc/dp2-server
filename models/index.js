@@ -72,6 +72,8 @@ db.escaneos = require('./escaneoQRModel') (sequelize, DataTypes)
 db.recordatorios = require('./recordatorioModel') (sequelize, DataTypes) 
 db.marcoQRs = require('./marcosQRModel') (sequelize, DataTypes) 
 db.notificationToken = require('./notificationTokenModel') (sequelize, DataTypes) 
+db.interaccionesCupon = require('./interaccionesCuponModel') (sequelize, DataTypes) 
+
 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
@@ -87,6 +89,14 @@ db.permission.hasMany(db.rolePermission,{foreignKey: "fidPermission", as: 'permi
 db.users.belongsTo(db.rol, {foreignKey: 'fidRol', as: 'role'});
 db.rol.hasMany(db.users, { foreignKey: 'fidRol', as: 'role'});
 
+///////////////////////////////////////////////////
+/*
+db.interaccionesCupon.belongsTo(db.clients, {foreignKey: 'fidCliente', as: 'interaccionXcliente'});
+db.interaccionesCupon.belongsTo(db.cupones, {foreignKey: 'fidCupon', as: 'interaccionXcupon'});
+db.clients.hasMany(db.interaccionesCupon, {foreignKey: 'fidCliente', as: 'interaccionXcliente'});
+db.cupones.belongsTo(db.interaccionesCupon, {foreignKey: 'fidCupon', as: 'interaccionXcupon'});*/
+
+///////////////////////////////////////////////////
 
 db.locatarios.belongsTo(db.categoriaTiendas, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
 db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as: 'categoriaTienda'});
