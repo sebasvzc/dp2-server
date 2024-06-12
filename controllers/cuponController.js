@@ -868,7 +868,7 @@ const cuponesFavoritos = async (req, res) => {
             categoriaNombre: cupon.locatario.categoriaTienda ? cupon.locatario.categoriaTienda.nombre : null,
             numInteracciones: interaccionesMap[cupon.id] || 0
         }));
-
+        cuponesFormatted.sort((a, b) => b.numInteracciones - a.numInteracciones);
         // Devolver la respuesta
         res.status(200).json({
             cantidad: cuponesFormatted.length,
