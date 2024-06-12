@@ -23,4 +23,5 @@ cuponRouter.get('/listarcuponesxdiacanjeado', getCuponesXDiaCanjeado);
 
 cuponRouter.post('/listarCuponesFiltradosGeneral', cuponController.cuponesFiltradosGeneral);
 cuponRouter.post('/comprarCuponCliente', cuponController.comprarCuponCliente);
+cuponRouter.post('/cuponesFavoritos', cuponController.cuponesFavoritos);
 module.exports = cuponRouter;

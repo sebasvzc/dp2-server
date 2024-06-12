@@ -804,7 +804,82 @@ const cuponesFiltradosGeneral = async (req, res) => {
     res.json({total: count, cupones: formattedCupones})
 };
 
+const cuponesFavoritos = async (req, res) => {
+    try {
+        const { idCliente } = req.body;
+        const tablaCupon = db.cupones;
+        //const tablaCategoria = db.categoriaTiendas;
+        //const tablaLocatario = db.locatarios;
+        const tablaInteracciones = db.interaccionesCupon;
 
+        // Obtener el top 3 de cupones con más interacciones para el cliente específico
+        const topCupones = await tablaInteracciones.findAll({
+            attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+            where: { activo: true, fidCliente: idCliente },
+            order: [
+                ['numInteracciones', 'DESC'],
+                ['updatedAt', 'DESC']
+            ],
+            limit: 3
+        });
+
+        //console.log(topCupones)
+
+        const cuponIds = topCupones.map(interaccion => interaccion.fidCupon);
+
+        if (cuponIds.length === 0) {
+            return res.status(200).json({ cantidad: 0, cupones: [] });
+        }
+        //console.log(cuponIds)
+
+        // Obtener detalles de los cupones en el top 3
+        const cupones = await tablaCupon.findAll({
+            where: { id: cuponIds },
+            attributes: ['id', 'sumilla', 'costoPuntos'],
+            include: [
+                {
+                    model: db.locatarios,
+                    as: 'locatario',
+                    attributes: ['nombre', 'id'],
+                    required: true, // Esto convierte el LEFT JOIN en INNER JOIN
+                    include: [{
+                        model: db.categoriaTiendas,
+                        as: 'categoriaTienda',
+                        attributes: ['id', 'nombre']
+                    }]
+                }
+            ]
+        });
+
+        // Crear un objeto para mapear el número de interacciones por cupón
+        const interaccionesMap = topCupones.reduce((acc, interaccion) => {
+            acc[interaccion.fidCupon] = interaccion.numInteracciones;
+            return acc;
+        }, {});
+
+        // Formatear los resultados
+        const cuponesFormatted = cupones.map(cupon => ({
+            idCupon: cupon.id,
+            sumilla: cupon.sumilla,
+            costo: cupon.costoPuntos,
+            locatarioId: cupon.locatario ? cupon.locatario.id : null,
+            locatarioNombre: cupon.locatario ? cupon.locatario.nombre : null,
+            categoriaId: cupon.locatario.categoriaTienda ? cupon.locatario.categoriaTienda.id : null,
+            categoriaNombre: cupon.locatario.categoriaTienda ? cupon.locatario.categoriaTienda.nombre : null,
+            numInteracciones: interaccionesMap[cupon.id] || 0
+        }));
+
+        // Devolver la respuesta
+        res.status(200).json({
+            cantidad: cuponesFormatted.length,
+            cupones: cuponesFormatted
+        });
+
+    } catch (error) {
+        console.error('Error al obtener los cupones favoritos:', error);
+        res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
+    }
+};
 
 const comprarCuponCliente = async (req, res,next) => {
     let connection;
@@ -830,7 +905,7 @@ const comprarCuponCliente = async (req, res,next) => {
 const nuevaInteraccion = async (idCupon, idCliente) => {
     try {
         // Busca si ya existe una interacción para el cliente y el cupón
-        const interaccion = await InteraccionesCupon.findOne({
+        const interaccion = await db.interaccionesCupon.findOne({
             where: {
                 fidCupon: idCupon,
                 fidCliente: idCliente
@@ -844,7 +919,7 @@ const nuevaInteraccion = async (idCupon, idCliente) => {
             });
         } else {
             // Si no existe, crea una nueva interacción con numInteracciones igual a 1
-            await InteraccionesCupon.create({
+            await db.interaccionesCupon.create({
                 fidCupon: idCupon,
                 fidCliente: idCliente,
                 numInteracciones: 1,
@@ -873,6 +948,7 @@ module.exports = {
     getCuponesXDiaCanjeado,
     cuponesFiltradosGeneral,
 
-    comprarCuponCliente
+    comprarCuponCliente,
+    cuponesFavoritos
 
 }
