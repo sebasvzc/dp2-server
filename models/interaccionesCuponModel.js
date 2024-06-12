@@ -1,12 +1,20 @@
 module.exports = (sequelize, DataTypes) => {
     const InteraccionesCupon = sequelize.define( "interaccionesCupon", {
         fidCliente: {
-            type: DataTypes.STRING,
-            allowNull: false
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'clients', // Nombre de la tabla a la que se hace referencia
+                key: 'id' // Clave a la que se hace referencia en la tabla clients
+            }
         },
         fidCupon: {
-            type: DataTypes.STRING,
-            allowNull: false
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'cupons', // Nombre de la tabla a la que se hace referencia
+                key: 'id' // Clave a la que se hace referencia en la tabla cupons
+            }
         },
         numInteracciones: {
             type : DataTypes.INTEGER,

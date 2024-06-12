@@ -90,11 +90,11 @@ db.users.belongsTo(db.rol, {foreignKey: 'fidRol', as: 'role'});
 db.rol.hasMany(db.users, { foreignKey: 'fidRol', as: 'role'});
 
 ///////////////////////////////////////////////////
-/*
+
 db.interaccionesCupon.belongsTo(db.clients, {foreignKey: 'fidCliente', as: 'interaccionXcliente'});
 db.interaccionesCupon.belongsTo(db.cupones, {foreignKey: 'fidCupon', as: 'interaccionXcupon'});
 db.clients.hasMany(db.interaccionesCupon, {foreignKey: 'fidCliente', as: 'interaccionXcliente'});
-db.cupones.belongsTo(db.interaccionesCupon, {foreignKey: 'fidCupon', as: 'interaccionXcupon'});*/
+db.cupones.hasMany(db.interaccionesCupon, {foreignKey: 'fidCupon', as: 'interaccionXcupon'});
 
 ///////////////////////////////////////////////////
 
