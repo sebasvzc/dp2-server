@@ -90,8 +90,9 @@ const detalleCuponCompleto = async (req, res) => {
 // arreglar
 const detalleCupon = async (req, res) => {
     try {
-        let { idCupon } = req.body;
-
+        let { idCupon,  idCliente = 1} = req.body;
+        await nuevaInteraccion(idCupon, idCliente);
+        
         const detalles = await db.cupones.findOne({
             where: { id: idCupon },
             attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
@@ -826,7 +827,37 @@ const comprarCuponCliente = async (req, res,next) => {
     }
 }
 
+const nuevaInteraccion = async (idCupon, idCliente) => {
+    try {
+        // Busca si ya existe una interacción para el cliente y el cupón
+        const interaccion = await InteraccionesCupon.findOne({
+            where: {
+                fidCupon: idCupon,
+                fidCliente: idCliente
+            }
+        });
 
+        if (interaccion) {
+            // Si existe, incrementa el número de interacciones en 1
+            await interaccion.update({
+                numInteracciones: interaccion.numInteracciones + 1
+            });
+        } else {
+            // Si no existe, crea una nueva interacción con numInteracciones igual a 1
+            await InteraccionesCupon.create({
+                fidCupon: idCupon,
+                fidCliente: idCliente,
+                numInteracciones: 1,
+                activo: true,
+                //usuarioCreacion: 'system', // Ajusta según sea necesario
+                //usuarioActualizacion: 'system' // Ajusta según sea necesario
+            });
+        }
+    } catch (error) {
+        console.error('Error al registrar la nueva interacción:', error);
+        throw new Error('Error al registrar la nueva interacción');
+    }
+};
 
 module.exports = {
     detalleCupon,
