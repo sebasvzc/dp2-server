@@ -5,23 +5,38 @@ const moment = require("moment");
 const { sendNotificationTodos } = require("../controllers/notificationsController");
 const admin = require('../firebaseAdmin');
 
-const sendNotification = (token, title, message) => {
-    const messagePayload = {
-        notification: {
-            title: title,
-            body: message
-        },
-        token: token
-    };
+const validateToken = async (token) => {
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        return decodedToken ? true : false;
+    } catch (error) {
+        console.error('Invalid token:', error);
+        return false;
+    }
+};
 
-    admin.messaging().send(messagePayload)
-        .then(response => {
-            console.log('Notification sent successfully:', response);
-        })
-        .catch(error => {
-            console.error('Error sending notification:', error);
-        });
-};  
+
+const sendNotification = async (token, title, message) => {
+    if (await validateToken(token)) {
+        const messagePayload = {
+            notification: {
+                title: title,
+                body: message
+            },
+            token: token
+        };
+
+        admin.messaging().send(messagePayload)
+            .then(response => {
+                console.log('Notification sent successfully:', response);
+            })
+            .catch(error => {
+                console.error('Error sending notification:', error);
+            });
+    } else {
+        console.error('Invalid token, notification not sent.');
+    }
+};
 
 const cuponesPorVencer = async () => {
     plazoDias = 5;
@@ -83,7 +98,7 @@ const cuponesPorVencer = async () => {
 
                     let messages = [];
                     for (let token of userTokens) {
-                        sendNotification(token,title,body)
+                        await sendNotification(token,title,body)
                         console.log("### "+title+"\n"+body+"\n"+token)
                     }
 
