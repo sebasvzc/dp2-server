@@ -12,7 +12,12 @@ const pool = mysql.createPool({
       port: 3306,
       user: 'administrador',
       password: 'contrasenia',
-      database: 'plaza'
+      database: 'plaza',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      connectTimeout: 60000, 
+      acquireTimeout: 60000 
       });
       const AWS = require('aws-sdk');
 const {getSignUrlForFile} = require("../config/s3");
@@ -136,7 +141,12 @@ const getEventosProximos = async (req, res,next) => {
     const offset = (page - 1) * pageSize; // Calcular el offset
     const cantidad =parseInt(req.body.maxValores) || 10
     const valoresFaltantes = cantidad - ((page-1)*pageSize)
+    const intentosMax =3;
+    let intentos=0;
+    let exito = false;
+
     let connection;
+    while(intentos <= intentosMax && !exito){
     try{
          connection = await pool.getConnection();
         const [result] = await connection.query(`CALL eventosProximos(?,?,?)`,[pageSize,offset,valoresFaltantes])
@@ -178,14 +188,21 @@ const getEventosProximos = async (req, res,next) => {
             })
           };
         res.status(200).json(respuesta);
+        exito=true;
     }catch(error){
-        next(error)
+        intentos++;
+        if(intentos>intentosMax){
+            next(error);
+        }else{
+            console.error(`Intento ${intentos} fallido. Reviviendo...`, error)
+        }
     }finally {
         if (connection){
             connection.release();
+            }
         }
     }
-}
+};
 
 // Aparece en su pagina unica todos los que hay
 const getEventosProxTotales= async (req, res,next) => {

@@ -36,4 +36,6 @@ clientRouter.post('/eventosHoy',clienController.getEventosHoy);
 clientRouter.post('/eventoDetalle/:id_evento',clienController.getEventoDetalle);
 clientRouter.post('/verPermisoUsuario/:id_cliente',clienController.verPermisoUsuario);
 clientRouter.post('/cambiarPermisoUsuario',clienController.cambiarPermisoUsuario);
+clientRouter.post('/IAKNNCompartido',clienController.IAKNNCompartido);
+clientRouter.post('/IARecomendadorPersonalizado',clienController.IARecomendadorPersonalizado);
 module.exports = clientRouter;

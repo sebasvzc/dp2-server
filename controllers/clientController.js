@@ -1,5 +1,6 @@
 //importing modules
 const jwt = require("jsonwebtoken");
+const KNN = require('ml-knn');
 const db = require("../models");
 require('dotenv').config();
 const Sequelize = require('sequelize');
@@ -7,12 +8,19 @@ const Op = Sequelize.Op;
 const WebSocket = require("ws");
 const crypto = require("crypto");
 const mysql = require('mysql2/promise');
+const natural = require('natural');
+const TfIdf = natural.TfIdf;
 const pool = mysql.createPool({
     host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
       port: 3306,
       user: 'administrador',
       password: 'contrasenia',
-      database: 'plaza'
+      database: 'plaza',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      connectTimeout: 60000, 
+      acquireTimeout: 60000 
       });
 const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } = process.env;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
@@ -1010,17 +1018,27 @@ const getEventosHoy = async (req, res,next) => {
             })
           };
         res.status(200).json(respuesta);
+        exito=true;
     }catch(error){
-        next(error)
+        intentos++;
+        if(intentos>intentosMax){
+            next(error);
+        }else{
+            console.error(`Intento ${intentos} fallido. Reviviendo...`, error)
+        }
     }finally {
         if (connection){
             connection.release();
         }
     }
-}
+};
 
 const getEventoDetalle = async (req, res,next) => {
     let connection;
+    const intentosMax =3;
+    let intentos=0;
+    let exito = false;
+    while(intentos <= intentosMax && !exito){
     try{
         const {id_evento} = req.params
         connection = await pool.getConnection();
@@ -1048,6 +1066,7 @@ const getEventoDetalle = async (req, res,next) => {
     }finally {
         if (connection){
             connection.release();
+            }
         }
     }
 }
@@ -1122,8 +1141,229 @@ const cambiarPermisoUsuario = async (req, res,next) => {
         }
     }
 }
+// KNN PARA RECOMENDACIONS GENERALES PARA EL USUARIO BASANDONOS EN SU EDAD Y GENERO. PARA QUE NO TENGA
+// SOLO RECOMENDACIONES DE LO QUE LE GUSTA
+const IAKNNCompartido = async (req, res, next) =>{
+    //Vamos a conseguir eventos de 4 formas  
+    // Si es usuario nuevo en base al genero en el que se encuentra, en el que una le da mas enfasis (realizado)
+    // al genero y otro le da mas enfasis a su edad (realizado)
+    // en base a su id se buscara si tiene eventos a los que ha asistido para clasificar de forma mas particular
+    // el recomendador
+
+    const genero = req.body.genero || 'M'; // Enviame una M si es masculino, F si es femenino y una A si no es ninguno de esos casos
+    const edad = parseInt(req.body.edad) || 27; // enviame la edad de la persona
+    //const idUsuario = parseInt(req.body.idUsuario)|| 1; // mandame ID del usuario para analizar sus evento recien inscritos, por ahora irving es el especifico
+    let connection;
+
+    try{
+      connection = await pool.getConnection();
+     const [result] = await connection.query(`CALL eventosHistoricosIA()`)
+     const eventosHist = result[0];
+     //Info de generos
+     // Clasifica por 0,1,2 los generos que encuentre en los eventos historicos en este caso M de masculino
+     // F de femenino y A de ambos, tienen un valor de 0 1 y 2 en ese orden
+     const generos = [...new Set(eventosHist.map(evento => evento.generoPromedio))];
+    const generoEncoder = generos.reduce((acc, val, idx) => ({ ...acc, [val]: idx }), {});
+
+ //Clasifica los tipos de eventos encontrados
+    const tiposEventos = [...new Set(eventosHist.map(evento => evento.tipoEvento))];
+    const tipoEventoEncoder = tiposEventos.reduce((acc, val, idx) => ({ ...acc, [val]: idx }), {});
+  
+    //Info para edades, establezco valores del 0 al 1 para edades
+    const edadPromedio = eventosHist.map(evento => evento.edadPromedio);
+    const edadMin = Math.min(...edadPromedio);
+    const edadMax = Math.max(...edadPromedio);
+    const scaledEdadPromedio = edadPromedio.map(val => (val - edadMin) / (edadMax - edadMin));
+
+    const datos = eventosHist.map(evento => [
+        generoEncoder[evento.generoPromedio],(evento.edadPromedio - edadMin) / (edadMax - edadMin)
+        
+      ]);
+      const etiquetas = eventosHist.map(evento => tipoEventoEncoder[evento.tipoEvento]);
+   
+    // Se viene clasificador
+    const knn = new KNN(datos, etiquetas, { k: 3 });
+    const edadPromedioNuevo = (edad - edadMin) / (edadMax - edadMin);
+    let generoPromedioNuevo = generoEncoder[genero]; 
+    let generoPromedioNuevoExt = generoEncoder['A'];
+    if(genero=='M'){
+        generoPromedioNuevo = generoEncoder[genero]; 
+        generoPromedioNuevoExt = generoEncoder['A'];
+    }else if(genero=='F'){
+         generoPromedioNuevo = generoEncoder[genero];
+         generoPromedioNuevoExt = generoEncoder['A'];
+    }else{
+         generoPromedioNuevo = generoEncoder['A'];
+         generoPromedioNuevoExt = generoEncoder['A'];
+
+    }
+    
+    const datosPrediccion = [[generoPromedioNuevo,edadPromedioNuevo]];
+    const datosPrediccionExt = [[generoPromedioNuevoExt,edadPromedioNuevo]];
+    const prediccion = knn.predict(datosPrediccion);
+    const prediccionExt = knn.predict(datosPrediccionExt);
+    const tipoEventoPredicho = tiposEventos[prediccion[0]];
+    const tipoEventoPredichoExt = tiposEventos[prediccionExt[0]];
+    console.log("Predicción de tipo de evento", tipoEventoPredicho);
+    console.log("Predicción de tipo de evento Adicional", tipoEventoPredichoExt);
+    const [resultIA] = await connection.query(`CALL eventoRecomendadorIA(?)`,[tipoEventoPredicho])
+    const eventoIA = resultIA[0][0];
+
+    const keyIA = `evento${eventoIA.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyIA,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                eventoIA.urlEvento =  urlEvento 
+                eventoIA.fechaInicio= eventoIA.fechaInicio.toISOString().split('T')[0];
+                eventoIA.fechaFin=eventoIA.fechaFin.toISOString().split('T')[0];
+                eventoIA.fechaInicio=`${eventoIA.fechaInicio.split('-')[2]}-${eventoIA.fechaInicio.split('-')[1]}-${eventoIA.fechaInicio.split('-')[0]}`;
+                eventoIA.fechaFin=`${eventoIA.fechaFin.split('-')[2]}-${eventoIA.fechaFin.split('-')[1]}-${eventoIA.fechaFin.split('-')[0]}`;
 
 
+
+    const [resultIAExt] = await connection.query(`CALL eventoRecomendadorIA(?)`,[tipoEventoPredichoExt])
+    const eventoIAExt = resultIAExt[0][0];
+
+    const keyIAExt = `evento${eventoIAExt.idEvento}.jpg`;
+
+                // Genera la URL firmada para el objeto en el bucket appdp2
+                const urlEventoExt = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: keyIAExt,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                eventoIAExt.urlEvento =  urlEventoExt 
+                eventoIAExt.fechaInicio= eventoIAExt.fechaInicio.toISOString().split('T')[0];
+                eventoIAExt.fechaFin=eventoIAExt.fechaFin.toISOString().split('T')[0];
+                eventoIAExt.fechaInicio=`${eventoIAExt.fechaInicio.split('-')[2]}-${eventoIAExt.fechaInicio.split('-')[1]}-${eventoIAExt.fechaInicio.split('-')[0]}`;
+                eventoIAExt.fechaFin=`${eventoIAExt.fechaFin.split('-')[2]}-${eventoIAExt.fechaFin.split('-')[1]}-${eventoIAExt.fechaFin.split('-')[0]}`;
+
+   
+    const eventoPredictorCompleto = {
+        
+        eventoIA: tipoEventoPredicho,
+        InfoEventoIA: eventoIA,
+        eventoIAExtra: tipoEventoPredichoExt,
+        InfoEventoIAExtra: eventoIAExt
+        
+    };
+    res.status(200).json(eventoPredictorCompleto);
+  }catch(error){
+     next(error)
+  }finally {
+     if (connection){
+         connection.release();
+        }
+    }
+}
+
+
+// formula para funcion coseno
+function cosineSimilarity(vectorA, vectorB) {
+    const dotProduct = vectorA.reduce((sum, a, idx) => sum + a * vectorB[idx], 0);
+    const magnitudeA = Math.sqrt(vectorA.reduce((sum, val) => sum + val * val, 0));
+    const magnitudeB = Math.sqrt(vectorB.reduce((sum, val) => sum + val * val, 0));
+    return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
+}
+
+const IARecomendadorPersonalizado = async (req, res, next) =>{
+    const idUsuario = parseInt(req.body.idUsuario)|| 1;
+    let connection;
+
+    try{
+      connection = await pool.getConnection();
+      // Me da los ultimos 5 eventos a los que se ha inscrito
+     const [result] = await connection.query(`CALL IAUltimosEventosCumplidos(?)`,[idUsuario])
+     const eventosUsuario = result[0];
+        // me da los eventos disponibles
+     const [resultProximos] = await connection.query(`CALL OpcionesIAProxEventos()`)
+     const eventosProximos = resultProximos[0];
+
+     const [resultListaTipoEventos] = await connection.query(`CALL listaTiposEventos()`)
+     const listaTipoEventos = resultListaTipoEventos[0];
+     const listaArrayTipoEventos = listaTipoEventos.map(categoria => categoria.nombre);
+     console.log("Eventos al que inscribio usuario")
+     console.log(eventosUsuario);
+
+     console.log("Eventos al que puede ir usuario")
+     console.log(eventosProximos);
+
+     const documentosUsuario = eventosUsuario.map(evento => `${evento.descripcionEvento} ${evento.nombreTipoEvento} ${evento.nombreEvento}  `);
+    const documentosProximos = eventosProximos.map(evento => `${evento.descripcionEvento} ${evento.tipoEvento} ${evento.nombreEvento} `);
+
+    const tfidf = new TfIdf();
+    documentosUsuario.concat(documentosProximos).forEach(doc => tfidf.addDocument(doc));
+    console.log(documentosProximos);
+    console.log(documentosUsuario);
+    console.log("soy tifd");
+    console.log(tfidf)
+    console.log("soy tifd alguno");
+    console.log(tfidf.documents[0].listTerms);
+    
+    // Calcular la similitud coseno
+    const similitudes = [];
+    eventosProximos.forEach((eventoProx, indexProx) => {
+        let maxSimilitud = 0;
+        eventosUsuario.forEach((eventoUser, indexUser) => {
+            /*console.log("valor de evento prox: ")
+            console.log(eventoProx);
+
+            console.log("valor de evento index: ")
+            console.log(indexProx);*/
+
+            console.log("valor de evento usuario: ")
+            console.log(eventoUser);
+
+            console.log("valor de evento index usuario: ")
+            console.log(indexUser);
+
+            const vectorUser = tfidf.documents[indexUser]; // Verifica la nulidad de vectorUser
+            const vectorProx = tfidf.documents[eventosUsuario.length + indexProx]; // Verifica la nulidad de vectorProx
+
+            if (vectorUser && vectorProx) { // Verifica que ambos vectores no sean nulos
+                const userTerms = Object.keys(vectorUser)
+                .filter(key => vectorUser[key] !== undefined)
+                .map(key => vectorUser[key]);
+                const proxTerms = Object.keys(vectorProx)
+                .filter(key => vectorProx[key] !== undefined)
+                .map(key => vectorProx[key]);
+
+                console.log("user termss");
+                console.log(userTerms);
+                console.log("user prox");
+                console.log(proxTerms);
+                const sim = cosineSimilarity(userTerms, proxTerms) * (eventoUser.asistencia? 1 : 0.9);
+                if (sim > maxSimilitud) {
+                    maxSimilitud = sim;
+                }
+            }else{
+                console.log("gaa nulo")
+            }
+        });
+        similitudes.push({ ...eventoProx, similitud: maxSimilitud });
+    });
+
+    // Ordenar los eventos por similitud de mayor a menor
+    similitudes.sort((a, b) => b.similitud - a.similitud);
+
+    console.log(similitudes);
+
+    res.status(200).json(similitudes);
+  }catch(error){
+     next(error)
+  }finally {
+     if (connection){
+         connection.release();
+        }
+    }
+
+}
 const listarEventosCategoria = async (req, res) => {
     var idParam = parseInt(req.query.idParam); // IdParam es el id del cliente
     const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
@@ -1285,6 +1525,11 @@ module.exports = {
     listarCuponesXClientes,
     listarCuponesCategoriaRadar,
     listarCuponesCanjeadosUsados,
-    listarEventosCategoria
 
+    listarEventosCategoria,
+    IAKNNCompartido,
+    IARecomendadorPersonalizado
 };
+
+
+
