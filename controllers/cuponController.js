@@ -887,6 +887,29 @@ const cuponesFavoritos = async (req, res) => {
     }
 };
 
+const allInteracciones = async (req, res) => {
+    try{
+        const tablaInteracciones = db.interaccionesCupon;
+
+        const todos = await tablaInteracciones.findAll({
+            attributes: ['fidCliente','fidCupon','numInteracciones', 'updatedAt'],
+            where: { activo: true},
+            order: [
+                ['numInteracciones', 'DESC'],
+                ['updatedAt', 'DESC']
+            ],
+        });
+        res.status(200).json({
+            todos
+        })
+    }catch (error) {
+        console.error('Error al obtener los cupones favoritos:', error);
+        res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
+    }
+    
+
+}
+
 const comprarCuponCliente = async (req, res,next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
@@ -966,6 +989,7 @@ module.exports = {
     cuponesFiltradosGeneral,
 
     comprarCuponCliente,
-    cuponesFavoritos
+    cuponesFavoritos,
+    allInteracciones
 
 }
