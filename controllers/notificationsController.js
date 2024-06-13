@@ -6,34 +6,42 @@ const db = require("../models");
 
 
 exports.registerToken = async (req, res) => {
-    //console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+req.body)
-    const { fidCliente, token } = req.body;
+    console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+JSON.stringify(req.body))
+    const { token,fidcliente } = req.body;
 
     // Validar que fidCliente y token están presentes
-    if (!fidCliente || !token) {
-        return res.status(400).json({ error: 'fidCliente y token son requeridos' });
+    if (!fidcliente || !token) {
+        return res.status(400).json({ error: 'fidcliente y token son requeridos' });
     }
+    console.log("AQUIE ESTA TOKEN: ")
+    console.log(token)
+    console.log("AQUIE ESTA el cleinte: ")
+    console.log(fidcliente)
 
     // Validar que fidCliente es un número
-    if (isNaN(fidCliente) || fidCliente < 1) {
-        return res.status(400).json({ error: 'fidCliente debe ser un numero mayor o igual a 1' });
+    // Validar que fidCliente es un número
+    if (isNaN(fidcliente) || fidcliente < 1) {
+        console.log("fidcliente debe ser un numero mayor o igual a 1")
+        return res.status(400).json({ error: 'fidcliente debe ser un numero mayor o igual a 1' });
     }
 
     try {
         const [userToken, created] = await db.notificationToken.findOrCreate({
             where: { token },
-            defaults: { fidCliente, token, activo: true },
+            defaults: { fidCliente: fidcliente, token, activo: true },
         });
 
         if (!created) {
-            userToken.fidCliente = fidCliente;
+            userToken.fidCliente = fidcliente;
             userToken.activo = true;
             await userToken.save();
         }
 
+        console.log("status: Token registered successfully")
         res.status(201).json({ message: 'Token registered successfully' });
     } catch (error) {
         console.error(error);
+        console.log("status: Error registering token")
         res.status(500).json({ error: 'Error registering token' });
     }
 };

@@ -3,13 +3,46 @@ const cuponXCliente = db.cuponXClientes;
 const { Op } = require("sequelize");
 const moment = require("moment");
 const { sendNotificationTodos } = require("../controllers/notificationsController");
+const admin = require('../firebaseAdmin');
 
-const { Expo } = require('expo-server-sdk');
-const expo = new Expo();
+const validateToken = async (token) => {
+    try {
+        console.log("verificando a: "+ token)
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        return decodedToken ? true : false;
+    } catch (error) {
+        console.error('Invalid token:', error);
+        return false;
+    }
+};
+
+
+const sendNotification = async (token, title, message) => {
+    //if (await validateToken(token)) {
+        const messagePayload = {
+            notification: {
+                title: title,
+                body: message
+            },
+            token: token
+        };
+
+        admin.messaging().send(messagePayload)
+            .then(response => {
+                console.log('Notification sent successfully:', response);
+            })
+            .catch(error => {
+                console.error('Error sending notification:', error);
+            });
+    /*} else {
+        console.error('Invalid token, notification not sent.');
+    }*/
+};
 
 const cuponesPorVencer = async () => {
     plazoDias = 5;
     //obteniendo los datos
+    console.log("voy a ejecutar")
     try {
         const users = await db.notificationToken.findAll({ where: { activo: true } });
         const today = moment().startOf('day').toDate();
@@ -67,31 +100,10 @@ const cuponesPorVencer = async () => {
 
                     let messages = [];
                     for (let token of userTokens) {
-                        if (!Expo.isExpoPushToken(token)) {
-                            console.error(`Push token ${token} is not a valid Expo push token`);
-                            continue;
-                        }
-
-                        messages.push({
-                            to: token,
-                            sound: 'default',
-                            title,
-                            body,
-                            data: { cuponId: cupon.id },
-                        });
+                        await sendNotification(token,title,body)
                         console.log("### "+title+"\n"+body+"\n"+token)
                     }
 
-                    /*let chunks = expo.chunkPushNotifications(messages);
-                    let tickets = [];
-                    for (let chunk of chunks) {
-                        try {
-                            let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-                            tickets.push(...ticketChunk);
-                        } catch (error) {
-                            console.error(error);
-                        }
-                    }*/
                 }
                 console.log(`Notifications sent successfully for cliente ${idCliente}`);
             } else {
