@@ -7,6 +7,24 @@ const { sendNotificationTodos } = require("../controllers/notificationsControlle
 const { Expo } = require('expo-server-sdk');
 const expo = new Expo();
 
+const sendNotification = (token, title, message) => {
+    const messagePayload = {
+        notification: {
+            title: title,
+            body: message
+        },
+        token: token
+    };
+
+    admin.messaging().send(messagePayload)
+        .then(response => {
+            console.log('Notification sent successfully:', response);
+        })
+        .catch(error => {
+            console.error('Error sending notification:', error);
+        });
+};  
+
 const cuponesPorVencer = async () => {
     plazoDias = 5;
     //obteniendo los datos
@@ -67,7 +85,7 @@ const cuponesPorVencer = async () => {
 
                     let messages = [];
                     for (let token of userTokens) {
-                        if (!Expo.isExpoPushToken(token)) {
+                        /*if (!Expo.isExpoPushToken(token)) {
                             console.error(`Push token ${token} is not a valid Expo push token`);
                             continue;
                         }
@@ -78,7 +96,8 @@ const cuponesPorVencer = async () => {
                             title,
                             body,
                             data: { cuponId: cupon.id },
-                        });
+                        });*/
+                        sendNotification(token,title,body)
                         console.log("### "+title+"\n"+body+"\n"+token)
                     }
 
