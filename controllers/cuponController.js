@@ -11,7 +11,12 @@ const pool = mysql.createPool({
       port: 3306,
       user: 'administrador',
       password: 'contrasenia',
-      database: 'plaza'
+      database: 'plaza',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      connectTimeout: 60000, 
+      acquireTimeout: 60000 
       });
 const {
     S3Client,
@@ -34,6 +39,7 @@ const s3Client = new S3Client(s3Config);
 
 // USADO PARA LEER LO QUE SE ENCUENTRA DENTRO DEL S3
 const AWS = require('aws-sdk');
+const { exit } = require("process");
 AWS.config.update({
     accessKeyId: AWS_ACCESS_KEY,
     secretAccessKey: AWS_ACCESS_SECRET,
@@ -885,22 +891,33 @@ const comprarCuponCliente = async (req, res,next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
     const idCupon = parseInt (req.body.idCupon)
+    const intentosMax =3;
+    let intentos=0;
+    let exito = false;
+    while(intentos <= intentosMax && !exito){
     try{
-
         connection = await pool.getConnection();
         const [result] = await connection.query(`CALL comprarCupon(?,?,@resultado,@mensaje)`,[idCliente,idCupon])
         
         const [row] = await connection.query ('Select @resultado AS resultado, @mensaje AS mensaje')
         const resultado = row[0]
         res.status(200).json(resultado);
+        exito=true;
     }catch(error){
-        next(error)
+        intentos++;
+        if(intentos>intentosMax){
+            next(error);
+        }else{
+            console.error(`Intento ${intentos} fallido. Reviviendo...`, error)
+        }
+        
     }finally {
         if (connection){
             connection.release();
+            }
         }
     }
-}
+};
 
 const nuevaInteraccion = async (idCupon, idCliente) => {
     try {
