@@ -1437,7 +1437,12 @@ const getCuponesXCliente = async (req, res) => {
     const offset = (page - 1) * pageSize;
     const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
     const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
-
+    const startDateExp = req.query.startDateExp ? parseDate(req.query.startDateExp) : null;
+    const endDateExp = req.query.endDateExp ? parseDate(req.query.endDateExp) : null;
+    const idTienda = req.query.idTienda ? parseInt(req.query.idTienda) : null;
+    const idCategoriaTienda = req.query.idCategoriaTienda ? parseInt(req.query.idCategoriaTienda) : null;
+    console.log('getCuponesXCliente - idTienda: ', idTienda)
+    console.log('getCuponesXCliente - idCategoriaTienda: ', idCategoriaTienda)
     console.log('getCuponesXCliente - query: ', req.query.query);
     if (!queryType) {
         console.log("Requested item wasn't found!, ?query=xxxx is required!");
@@ -1460,14 +1465,27 @@ const getCuponesXCliente = async (req, res) => {
                             model: Cupon,
                             as: 'cupon',
                             attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            where: {
+                                ...(startDateExp && endDateExp && {
+                                    fechaExpiracion: {
+                                        [db.Sequelize.Op.between]: [startDateExp, endDateExp]
+                                    }
+                                })
+                            },
                             include:[{
                                 model: Locatario,
                                 as: 'locatario',
                                 attributes: ["id","nombre"],
+                                where: {
+                                    ...(idTienda && { id: idTienda })
+                                },
                                 include:[{
                                     model: CategoriaTienda,
                                     as: 'categoriaTienda',
                                     attributes: ["id","nombre"],
+                                    where: {
+                                        ...(idCategoriaTienda && { id: idCategoriaTienda })
+                                    }
 
                                 }]
                             }]
@@ -1484,7 +1502,38 @@ const getCuponesXCliente = async (req, res) => {
                         fechaCompra: {
                             [db.Sequelize.Op.between]: [startDate, endDate]
                         }
-                    }
+                    },
+                    include: [
+                        {
+                            model: Cupon,
+                            as: 'cupon',
+                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            where: {
+                                ...(startDateExp && endDateExp && {
+                                    fechaExpiracion: {
+                                        [db.Sequelize.Op.between]: [startDateExp, endDateExp]
+                                    }
+                                })
+                            },
+                            include:[{
+                                model: Locatario,
+                                as: 'locatario',
+                                attributes: ["id","nombre"],
+                                where: {
+                                    ...(idTienda && { id: idTienda })
+                                },
+                                include:[{
+                                    model: CategoriaTienda,
+                                    as: 'categoriaTienda',
+                                    attributes: ["id","nombre"],
+                                    where: {
+                                        ...(idCategoriaTienda && { id: idCategoriaTienda })
+                                    }
+
+                                }]
+                            }]
+                        }
+                    ]
 
                 })
             ]);
