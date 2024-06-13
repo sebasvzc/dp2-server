@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const router = express.Router();
 const admin = require('../firebaseAdmin');
 const cron = require('node-cron');
@@ -18,7 +18,7 @@ const sendNotification = (token, title, message) => {
     },
     token: token
   };
-
+ 
   admin.messaging().send(messagePayload)
     .then(response => {
       console.log('Notification sent successfully:', response);
@@ -49,5 +49,14 @@ cron.schedule('0 9 * * *', () => { // Esto programará la tarea para las 9 AM to
     sendNotification(token, 'Daily Notification', 'This is your daily notification.');
   });
 });
+
+module.exports = router;*/
+const express = require('express');
+const router = express.Router();
+const notificationController = require('../controllers/notificationsController');
+
+router.post('/register-token', notificationController.registerToken);
+router.post('/unregister-token', notificationController.unregisterToken);
+router.post('/send-notification', notificationController.sendNotification);
 
 module.exports = router;

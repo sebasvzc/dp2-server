@@ -6,7 +6,7 @@ const db = require("../models");
 
 
 exports.registerToken = async (req, res) => {
-    console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+req.body)
+    //console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+req.body)
     const { fidCliente, token } = req.body;
 
     // Validar que fidCliente y token están presentes
