@@ -16,8 +16,8 @@ const pool = mysql.createPool({
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
-      connectTimeout: 60000, 
-      acquireTimeout: 60000 
+      connectTimeout: 600000
+     
       });
       const AWS = require('aws-sdk');
 const {getSignUrlForFile} = require("../config/s3");
