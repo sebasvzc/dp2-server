@@ -1290,6 +1290,168 @@
                 }
             }
         },
+        "/api/tiendas/getTopTiendasAsist": {
+            "get": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "getTopTiendaUsingGET",
+                "summary": "Get TopTienda / TopTienda",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al TopTienda basado en el parametro",
+                "parameters": [
+                    {
+                        "name": "startDate",
+                        "required": false,
+                        "in": "query",
+                        "type": "string",
+                        "description": "Fecha Inicial"
+                    },
+                    {
+                        "name": "endDate",
+                        "required": false,
+                        "in": "query",
+                        "type": "string",
+                        "description": "Fecha final"
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    },
+                    {
+                        "name": "refresh-token",
+                        "in": "header",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Evento"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
+        "/api/tiendas/getBottomTiendasAsist": {
+            "get": {
+                "tags": [
+                    "tienda-controller"
+                ],
+                "operationId": "getBottompTiendaUsingGET",
+                "summary": "Get Bottom Tienda / Bottom Tienda",
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Fetch al Bottom tIenda basado en el parametro",
+                "parameters": [
+                    {
+                        "name": "startDate",
+                        "required": false,
+                        "in": "query",
+                        "type": "string",
+                        "description": "Fecha Inicial"
+                    },
+                    {
+                        "name": "endDate",
+                        "required": false,
+                        "in": "query",
+                        "type": "string",
+                        "description": "Fecha final"
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "description": "Access Token JWT",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    },
+                    {
+                        "name": "refresh-token",
+                        "in": "header",
+                        "description": "Refresh Token",
+                        "required": true,
+                        "type": "string",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC..."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "schema": {
+                            "$ref": "#/definitions/Evento"
+                        },
+                        "description": "A JSON array of user information"
+                    },
+                    "400": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 400
+                                },
+                                "message": {
+                                    "type": "string", "example": "Invalid request body"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "integer", "example": 409
+                                },
+                                "message": {
+                                    "type": "string", "example": "Requested item wasn't found!"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                }
+            }
+        },
         "/api/eventos/listarAsistencia": {
             "get": {
                 "tags": [

@@ -5,11 +5,13 @@ const upload = multer();
 var tiendaController = require('../../controllers/tiendaController');
 const authenticateToken = require("../../middlewares/authenticateToken");
 
-const { getTiendas,deshabilitar, habilitar,crear, modificar,detalleTiendaCompleto,listarCuponesMesxTienda,getCuponesXTienda} = tiendaController
+const { getTiendas,deshabilitar, habilitar,crear, modificar,detalleTiendaCompleto,listarCuponesMesxTienda,getCuponesXTienda,getTopTiendasAsist,getBottomTiendasAsist} = tiendaController
 var tiendaRouter = express.Router();
 
 tiendaRouter.get('/listartiendas', authenticateToken ,getTiendas);
 tiendaRouter.post('/deshabilitar', authenticateToken ,deshabilitar);
+tiendaRouter.get('/getTopTiendasAsist', authenticateToken ,getTopTiendasAsist);
+tiendaRouter.get('/getBottomTiendasAsist', authenticateToken ,getBottomTiendasAsist);
 tiendaRouter.post('/crear', authenticateToken,upload.any(),crear);
 tiendaRouter.post('/modificar', authenticateToken,upload.any(),modificar);
 tiendaRouter.post('/habilitar', authenticateToken ,habilitar);
