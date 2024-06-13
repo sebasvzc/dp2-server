@@ -21,8 +21,6 @@ const cuponesPorVencer = async () => {
         for (let idCliente of fidClientes) {
             // Configurar las opciones para la consulta de cuponXClientes
             const options = {
-                limit: +size,
-                offset: (+page) * (+size),
                 attributes: ['id', 'fidCupon'],
                 required: true,
                 include: [
@@ -79,9 +77,10 @@ const cuponesPorVencer = async () => {
                             body,
                             data: { cuponId: cupon.id },
                         });
+                        console.log("### "+title+"\n"+body+"\n"+token)
                     }
 
-                    let chunks = expo.chunkPushNotifications(messages);
+                    /*let chunks = expo.chunkPushNotifications(messages);
                     let tickets = [];
                     for (let chunk of chunks) {
                         try {
@@ -90,7 +89,7 @@ const cuponesPorVencer = async () => {
                         } catch (error) {
                             console.error(error);
                         }
-                    }
+                    }*/
                 }
                 console.log(`Notifications sent successfully for cliente ${idCliente}`);
             } else {
