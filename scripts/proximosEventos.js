@@ -81,8 +81,8 @@ const proximoEvento = async () => {
                         body,
                         data: { withSome: 'data' },
                     });*/
-                    await sendNotification(userToken.token,title,body)
-                    console.log("### "+title+"\n"+body+"\n"+token)
+                    await sendNotification(userToken.token, title,body)
+                    console.log("### "+title+"\n"+body+"\n"+ userToken.token)
                 }
         
                 /*let chunks = expo.chunkPushNotifications(messages);

@@ -945,6 +945,7 @@ const nuevasRecomendaciones = async (req, res) => {
 const cuponesRecomendadosGeneral = async (req, res) => {
     try{
         const { idCliente } = req.body;
+        console.log(idCliente)
         //devolver el id el cupon y su sumilla
         const tablaInteracciones = db.interaccionesCupon;
         const tablaRecomendacionGeneral = db.recomendacionGeneral;
