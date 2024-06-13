@@ -132,9 +132,39 @@ const editarCategoriaTiendaWeb = async (req, res,next) => {
     }
 }
 
+const habilitarCategoria = async (req, res,next) => {
+    let connection;
+    const ids = req.body.ids || [1, 2, 3, 4, 5]; //ids en lista GA
+    const categoriasHabilitadas = [];
+    try{
+        connection = await pool.getConnection();
+        for (let i = 0; i < ids.length; i++) {
+            const idSub = ids[i];
+            await connection.query(`CALL habilitarCategorias(?)`, [idSub]);
+        
+            const [rows] = await connection.query(`SELECT nombre FROM categoriaTiendas WHERE id = ?`, [idSub]);
+            if (rows.length > 0) {
+                categoriasHabilitadas.push(rows[0].nombre);
+            }
+        
+        }
+
+
+
+    res.status(200).json({ message: 'Categorías habilitadas correctamente', categorias: categoriasHabilitadas });
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
 module.exports = {
     getCategoriaTiendas,
     getCategoriaTiendasWeb,
     crearCategoriaTiendaWeb,
-    editarCategoriaTiendaWeb
+    editarCategoriaTiendaWeb,
+    habilitarCategoria
 };
