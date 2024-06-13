@@ -525,22 +525,20 @@ const getMisCupones = async (req, res) => {
         orden = "ASC";
     }
 
+    const orderCriteria = [];
     if (orderBy === 'fechaCompra') {
-        console.log('hola')
-        options.order = [['fechaCompra', orden]];
-    } else{
-        if (orderBy === 'fechaExpiracion') {
-            options.order = [[db.Sequelize.literal("`cupon.fechaExpiracion`") , orden]];
-        } else{
-            if (orderBy === 'categoria') {
-                options.order = [[db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]];
-            }else{
-                if (orderBy === 'puntos') {
-                        options.order = [[ db.Sequelize.literal("`cupon.costoPuntos`"), orden]];
-                    }
-            }
-        } 
-    } 
+        orderCriteria.push(['fechaCompra', orden]);
+    } else if (orderBy === 'fechaExpiracion') {
+        orderCriteria.push([db.Sequelize.literal("`cupon.fechaExpiracion`"), orden]);
+    } else if (orderBy === 'categoria') {
+        orderCriteria.push([db.Sequelize.literal("`cupon.locatario.categoriaTienda.nombre`"), orden]);
+    } else if (orderBy === 'puntos') {
+        orderCriteria.push([db.Sequelize.literal("`cupon.costoPuntos`"), orden]);
+    }
+    // Añadir el criterio de orden por fidCupon como secundario
+    orderCriteria.push(['fidCupon', 'ASC']);
+
+    options.order = orderCriteria;
 
     const { count, rows: misCupones } = await db.cuponXClientes.findAndCountAll(options);
 
