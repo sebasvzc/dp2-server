@@ -11,7 +11,11 @@ const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_
 
 // Assigning users to the variable User
 const User = db.users;
-
+const Escaneo = db.escaneos;
+function parseDate(dateString) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // Restar 1 al mes porque los meses en JavaScript van de 0 a 11
+}
 const UserInv = db.usersInv;
 const broadcast = (clients, method, message) => {
     if(clients){
@@ -525,7 +529,44 @@ const deleteUser = async (req, res) => {
         console.log('deleteUser - email:', email, ' - [Error]: ', error)
     }
 }
+const getUsersPlayRA = async (req, res) => {
 
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getUsersPlayRA - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+
+    try {
+
+        // Obtener todos los géneros únicos
+        const usuariosGenRa = await Escaneo.findAll({
+            where: {
+                ultimoEscaneo: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                },
+                tipo: 'juego'
+            },
+            attributes: [
+                [db.sequelize.fn('COUNT', db.sequelize.fn('DISTINCT', db.sequelize.col('fidClient'))), 'cantidad']
+            ],
+            group: [
+                db.Sequelize.literal(`fidClient`),
+            ]
+        });
+
+        console.log(usuariosGenRa[0])
+        return res.status(200).json(usuariosGenRa[0]);
+    } catch (error) {
+        console.log('getUsersPlayRA - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 module.exports = {
     login,
     signup,
@@ -535,5 +576,6 @@ module.exports = {
     comprobarTokenRegistroUsuario,
     deshabilitar,
     habilitar,
-    modificar,getUserData,getUserPerms
+    modificar,getUserData,getUserPerms,
+    getUsersPlayRA
 };

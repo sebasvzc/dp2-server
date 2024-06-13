@@ -657,6 +657,42 @@ const getBottomTiendasAsist= async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+
+const getPuntosTiendasAsitencia = async (req, res) => {
+
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getPuntosTiendasAsitencia - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+
+    try {
+
+        // Obtener todos los géneros únicos
+        const tiendaEscPuntos = await Escaneo.findAll({
+            where: {
+                ultimoEscaneo: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                },
+                tipo: 'tienda'
+            },
+            attributes: [
+                [db.sequelize.fn('SUM', db.sequelize.col('puntosOtorgados')), 'totalPuntosOtorgadosTienda']
+            ]
+        });
+
+        console.log(tiendaEscPuntos[0])
+        return res.status(200).json(tiendaEscPuntos[0]);
+    } catch (error) {
+        console.log('getPuntosTiendasAsitencia - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 module.exports = {
     habilitar,
     deshabilitar,
@@ -667,5 +703,6 @@ module.exports = {
     listarCuponesMesxTienda,
     getCuponesXTienda,
     getTopTiendasAsist,
-    getBottomTiendasAsist
+    getBottomTiendasAsist,
+    getPuntosTiendasAsitencia
 };
