@@ -1031,7 +1031,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         }));
 
         // Devolver los datos formateados
-        res.status(200).json(cuponesConImagenes);
+        res.status(200).json({ cupones: cuponesConImagenes });
 
     }catch (error) {
         console.error('Error al obtener los cupones favoritos:', error);
