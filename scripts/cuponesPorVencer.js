@@ -3,9 +3,7 @@ const cuponXCliente = db.cuponXClientes;
 const { Op } = require("sequelize");
 const moment = require("moment");
 const { sendNotificationTodos } = require("../controllers/notificationsController");
-
-const { Expo } = require('expo-server-sdk');
-const expo = new Expo();
+const admin = require('../firebaseAdmin');
 
 const sendNotification = (token, title, message) => {
     const messagePayload = {
@@ -85,32 +83,10 @@ const cuponesPorVencer = async () => {
 
                     let messages = [];
                     for (let token of userTokens) {
-                        /*if (!Expo.isExpoPushToken(token)) {
-                            console.error(`Push token ${token} is not a valid Expo push token`);
-                            continue;
-                        }
-
-                        messages.push({
-                            to: token,
-                            sound: 'default',
-                            title,
-                            body,
-                            data: { cuponId: cupon.id },
-                        });*/
                         sendNotification(token,title,body)
                         console.log("### "+title+"\n"+body+"\n"+token)
                     }
 
-                    /*let chunks = expo.chunkPushNotifications(messages);
-                    let tickets = [];
-                    for (let chunk of chunks) {
-                        try {
-                            let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-                            tickets.push(...ticketChunk);
-                        } catch (error) {
-                            console.error(error);
-                        }
-                    }*/
                 }
                 console.log(`Notifications sent successfully for cliente ${idCliente}`);
             } else {
