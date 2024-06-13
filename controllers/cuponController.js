@@ -759,13 +759,17 @@ const cuponesFiltradosGeneral = async (req, res) => {
         orden = "ASC";
     }
 
+    const orderCriteria = [];
     if (orderBy === 'fechaExpiracion') {
-        options.order = [['fechaExpiracion', orden]];
+        orderCriteria.push([['fechaExpiracion', orden]]);
     } else if (orderBy === 'categoria') {
-        options.order = [[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]];
+        orderCriteria.push([[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]]);
     } else if (orderBy === 'puntos') {
-        options.order = [['costoPuntos', orden]];
+        orderCriteria.push([['costoPuntos', orden]]);
     }
+
+    orderCriteria.push([['id', 'ASC']]);
+    options.order = orderCriteria;
 
     const { count, rows: cupones } = await db.cupones.findAndCountAll(options);
 
@@ -887,10 +891,36 @@ const cuponesFavoritos = async (req, res) => {
     }
 };
 
+const allInteracciones = async (req, res) => {
+    try{
+        const tablaInteracciones = db.interaccionesCupon;
+
+        const todos = await tablaInteracciones.findAll({
+            attributes: ['fidCliente','fidCupon','numInteracciones', 'updatedAt'],
+            where: { activo: true},
+            order: [
+                ['numInteracciones', 'DESC'],
+                ['updatedAt', 'DESC']
+            ],
+        });
+        res.status(200).json({
+            todos
+        })
+    }catch (error) {
+        console.error('Error al obtener los cupones favoritos:', error);
+        res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
+    }
+    
+
+}
+
 const comprarCuponCliente = async (req, res,next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
     const idCupon = parseInt (req.body.idCupon)
+
+    await nuevaInteraccion(idCupon, idCliente, 3);
+
     const intentosMax =3;
     let intentos=0;
     let exito = false;
@@ -919,7 +949,7 @@ const comprarCuponCliente = async (req, res,next) => {
     }
 };
 
-const nuevaInteraccion = async (idCupon, idCliente) => {
+const nuevaInteraccion = async (idCupon, idCliente, peso=1) => {
     try {
         // Busca si ya existe una interacción para el cliente y el cupón
         const interaccion = await db.interaccionesCupon.findOne({
@@ -932,7 +962,7 @@ const nuevaInteraccion = async (idCupon, idCliente) => {
         if (interaccion) {
             // Si existe, incrementa el número de interacciones en 1
             await interaccion.update({
-                numInteracciones: interaccion.numInteracciones + 1
+                numInteracciones: interaccion.numInteracciones + peso
             });
         } else {
             // Si no existe, crea una nueva interacción con numInteracciones igual a 1
@@ -966,6 +996,7 @@ module.exports = {
     cuponesFiltradosGeneral,
 
     comprarCuponCliente,
-    cuponesFavoritos
+    cuponesFavoritos,
+    allInteracciones
 
 }

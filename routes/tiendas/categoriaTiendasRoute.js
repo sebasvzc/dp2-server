@@ -7,4 +7,6 @@ categoriaTiendaRouter.post('/listarCategoriaTiendas', categoriaTiendaController.
 categoriaTiendaRouter.get('/listarCategoriaTiendasWeb', authenticateToken,categoriaTiendaController.getCategoriaTiendasWeb);
 categoriaTiendaRouter.post('/crearCategoriaTiendaWeb', categoriaTiendaController.crearCategoriaTiendaWeb);
 categoriaTiendaRouter.post('/editarCategoriaTiendaWeb', categoriaTiendaController.editarCategoriaTiendaWeb);
+categoriaTiendaRouter.post('/habilitarCategoriaTiendaWeb',categoriaTiendaController.habilitarCategoria);
+categoriaTiendaRouter.post('/deshabilitarCategoriaTiendaWeb',categoriaTiendaController.deshabilitarCategoria);
 module.exports = categoriaTiendaRouter;
