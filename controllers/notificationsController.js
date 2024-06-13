@@ -7,28 +7,28 @@ const db = require("../models");
 
 exports.registerToken = async (req, res) => {
     console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+JSON.stringify(req.body))
-    const { fidCliente, token } = req.body;
+    const { token,fidcliente } = req.body;
 
     // Validar que fidCliente y token están presentes
-    if (!fidCliente || !token) {
-        return res.status(400).json({ error: 'fidCliente y token son requeridos' });
+    if (!fidcliente || !token) {
+        return res.status(400).json({ error: 'fidcliente y token son requeridos' });
     }
     console.log("AQUIE ESTA TOKEN: ")
     console.log(token)
 
     // Validar que fidCliente es un número
-    if (isNaN(fidCliente) || fidCliente < 1) {
-        return res.status(400).json({ error: 'fidCliente debe ser un numero mayor o igual a 1' });
+    if (isNaN(fidcliente) || fidcliente < 1) {
+        return res.status(400).json({ error: 'fidcliente debe ser un numero mayor o igual a 1' });
     }
 
     try {
         const [userToken, created] = await db.notificationToken.findOrCreate({
             where: { token },
-            defaults: { fidCliente, token, activo: true },
+            defaults: { fidcliente, token, activo: true },
         });
 
         if (!created) {
-            userToken.fidCliente = fidCliente;
+            userToken.fidcliente = fidcliente;
             userToken.activo = true;
             await userToken.save();
         }
