@@ -155,9 +155,6 @@ const habilitarCategoria = async (req, res,next) => {
             }
         
         }
-
-
-
     res.status(200).json({ message: 'Categorías habilitadas correctamente', categorias: categoriasHabilitadas });
     }catch(error){
         next(error)
@@ -168,10 +165,46 @@ const habilitarCategoria = async (req, res,next) => {
     }
 }
 
+
+const deshabilitarCategoria = async (req, res,next) => {
+    let connection;
+    let ids = req.body.selected || [1, 2, 3, 4, 5]; //ids en lista GA
+
+    if (typeof ids === 'string') {
+        ids = JSON.parse(ids).map(id => parseInt(id, 10));
+    } else if (Array.isArray(ids)) {
+        ids = ids.map(id => parseInt(id, 10));
+    }
+
+    const categoriasHabilitadas = [];
+    try{
+        connection = await pool.getConnection();
+        for (let i = 0; i < ids.length; i++) {
+            const idSub = ids[i];
+            await connection.query(`CALL deshabilitarCategorias(?)`, [idSub]);
+        
+            const [rows] = await connection.query(`SELECT nombre FROM categoriaTiendas WHERE id = ?`, [idSub]);
+            if (rows.length > 0) {
+                categoriasHabilitadas.push(rows[0].nombre);
+            }
+        
+        }
+    res.status(200).json({ message: 'Categorías deshabilitadas correctamente', categorias: categoriasHabilitadas });
+    }catch(error){
+        next(error)
+    }finally {
+        if (connection){
+            connection.release();
+        }
+    }
+}
+
+
 module.exports = {
     getCategoriaTiendas,
     getCategoriaTiendasWeb,
     crearCategoriaTiendaWeb,
     editarCategoriaTiendaWeb,
-    habilitarCategoria
+    habilitarCategoria,
+    deshabilitarCategoria
 };
