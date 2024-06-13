@@ -29,6 +29,11 @@ const cuponesPorVencer = async () => {
                         association: 'cupon',
                         attributes: ['codigo', 'sumilla', 'fechaExpiracion'],
                         required: true,
+                        where:{
+                            fechaExpiracion: {
+                                [Op.between]: [today, daysLater]
+                            }
+                        },
                         include: [
                             {
                                 model: db.locatarios,
@@ -43,9 +48,6 @@ const cuponesPorVencer = async () => {
                     fidCliente: idCliente,
                     usado: 0,
                     activo: 1,
-                    fechaExpiracion: {
-                        [Op.between]: [today, daysLater]
-                    }
                 }
             };
 
