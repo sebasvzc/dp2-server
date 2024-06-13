@@ -914,6 +914,99 @@ const allInteracciones = async (req, res) => {
 
 }
 
+const cuponesRecomendadosGeneral = async (req, res) => {
+    try{
+        const { idCliente } = req.body;
+        //devolver el id el cupon y su sumilla
+        const tablaInteracciones = db.interaccionesCupon;
+        const tablaRecomendacionGeneral = db.recomendacionGeneral;
+        const tablaCupon = db.cupones;
+
+        // 1. Obtener el cupón "favorito" de un cliente
+        const favorito = await tablaInteracciones.findOne({
+            attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+            where: { activo: true, fidCliente: idCliente },
+            order: [
+                ['numInteracciones', 'DESC'],
+                ['updatedAt', 'DESC']
+            ]
+        });
+
+        if (!favorito) {
+            favorito = await tablaInteracciones.findOne({
+                attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+                where: { activo: true},
+                order: [
+                    ['numInteracciones', 'DESC'],
+                    ['updatedAt', 'DESC']
+                ]
+            });
+            if (!favorito) {
+                return res.status(404).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
+            }
+        }
+
+        const cuponFavoritoId = favorito.fidCupon;
+        // 2. Buscar en la tabla recomendacionGenerals por la fecha de hoy y el cuponFavorito
+        const today = moment().startOf('day');
+        const tomorrow = moment().endOf('day');
+
+        const recomendaciones = await tablaRecomendacionGeneral.findAll({
+            where: {
+                cuponFavorito: cuponFavoritoId,
+                createdAt: {
+                    [Op.between]: [today.toDate(), tomorrow.toDate()]
+                }
+            }
+        });
+        if (!recomendaciones.length) {
+            //si no encuentro busco con los 4 últimos
+            recomendaciones = await tablaRecomendacionGeneral.findAll({
+                where: {
+                    cuponFavorito: cuponFavoritoId,
+                    createdAt: {
+                        [Op.between]: [today.toDate(), tomorrow.toDate()]
+                    }
+                },
+                order: [
+                    ['updatedAt', 'DESC']
+                ],
+                limit: 4
+            });
+            if (!recomendaciones.length){
+                return res.status(404).json({ message: 'No se encontraron recomendaciones para el cupón favorito en la fecha actual, tampoco buscando entre los ultimos de la tabla' });
+            }
+        }
+
+        // 3. Obtener los detalles de los cupones recomendados
+        const cuponRecomendadoIds = recomendaciones.map(rec => rec.cuponRecomendado);
+
+        const cuponesRecomendados = await tablaCupon.findAll({
+            where: { id: cuponRecomendadoIds },
+            attributes: ['id', 'sumilla'],
+            include: [
+                {
+                    model: db.locatarios,
+                    as: 'locatario',
+                    attributes: ['nombre'],
+                    required: true,
+                }
+            ]
+        });
+
+        if (!cuponesRecomendados.length) {
+            return res.status(404).json({ message: 'No se encontraron detalles para los cupones recomendados.' });
+        }
+        
+
+    }catch (error) {
+        console.error('Error al obtener los cupones favoritos:', error);
+        res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
+    }
+    
+
+}
+
 const comprarCuponCliente = async (req, res,next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
