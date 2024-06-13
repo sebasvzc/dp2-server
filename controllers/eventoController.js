@@ -46,6 +46,7 @@ s3Config = {
 const s3Client = new S3Client(s3Config);
 
 const Evento = db.eventos;
+const Escaneo = db.escaneos;
 const Locatario = db.locatarios;
 const Cliente = db.clients;
 const CategoriaTienda=db.categoriaTiendas;
@@ -731,6 +732,78 @@ const getAsitenciaXGeneroAgrupEdad = async (req, res) => {
     }
 }
 
+
+const getPersonasAsistente = async (req, res) => {
+
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getPersonasAsistente - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+
+    try {
+
+        // Obtener todos los géneros únicos
+        const asistentesEventos = await EventoXCliente.findAll({
+            where: {
+                createdAt: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                },
+                asistio: true
+            },
+            attributes: [
+                [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cantidad']
+            ]
+        });
+
+        console.log(asistentesEventos[0])
+        return res.status(200).json(asistentesEventos[0]);
+    } catch (error) {
+        console.log('getPersonasAsistente - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+
+const getPuntosEventosAsitencia = async (req, res) => {
+
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getPuntosEventosAsitencia - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+
+    try {
+
+        // Obtener todos los géneros únicos
+        const eventosEsc = await Escaneo.findAll({
+            where: {
+                ultimoEscaneo: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                },
+                tipo: 'evento'
+            },
+            attributes: [
+                [db.sequelize.fn('SUM', db.sequelize.col('puntosOtorgados')), 'totalPuntosOtorgadosEvento']
+            ]
+        });
+
+        console.log(eventosEsc[0])
+        return res.status(200).json(eventosEsc[0]);
+    } catch (error) {
+        console.log('getPuntosEventosAsitencia - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 module.exports = {
     getEventosConAsistentesYCategoria,
     getEventosProximos,
@@ -742,5 +815,7 @@ module.exports = {
     deshabilitar,
     detalleEventoCompleto,
     getAsistencia,
-    getAsitenciaXGeneroAgrupEdad
+    getAsitenciaXGeneroAgrupEdad,
+    getPersonasAsistente,
+    getPuntosEventosAsitencia
 }
