@@ -3,7 +3,7 @@ const db = require("../models");
 const Eventos = db.eventos;
 const { Op } = require("sequelize");
 const moment = require("moment");
-
+const admin = require('../firebaseAdmin');
 
 const validateToken = async (token) => {
     try {

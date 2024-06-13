@@ -916,6 +916,32 @@ const allInteracciones = async (req, res) => {
 
 }
 
+const nuevasRecomendaciones = async (req, res) => {
+    try {
+        const { cuponFavorito, cuponRecomendado, prioridad } = req.body;
+
+        // Validar que los campos requeridos están presentes
+        if (!cuponFavorito || !cuponRecomendado || !prioridad) {
+            return res.status(400).json({ message: 'Todos los campos son requeridos: cuponFavorito, cuponRecomendado, prioridad' });
+        }
+
+        // Crear un nuevo registro en la tabla recomendacionGenerals
+        const nuevaRecomendacion = await db.recomendacionGeneral.create({
+            cuponFavorito,
+            cuponRecomendado,
+            prioridad,
+            activo: true
+        });
+
+        // Devolver la nueva recomendación creada
+        res.status(201).json({ message: 'Registro exitoso' });
+    } catch (error) {
+        console.error('Error al crear el registro:', error);
+        res.status(500).json({ message: 'Error al crear el registro' });
+    }
+};
+
+
 const cuponesRecomendadosGeneral = async (req, res) => {
     try{
         const { idCliente } = req.body;
@@ -1126,6 +1152,7 @@ module.exports = {
     cuponesFavoritos,
     allInteracciones,
 
-    cuponesRecomendadosGeneral
+    cuponesRecomendadosGeneral,
+    nuevasRecomendaciones
 
 }

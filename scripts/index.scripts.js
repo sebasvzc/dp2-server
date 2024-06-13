@@ -5,7 +5,7 @@ const cuponesXVencer = require("./cuponesPorVencer")
 //const otraTarea = require("./otraTarea");
 
 // Programar la tarea de proximoEvento para las 9 pm todos los días
-cron.schedule('26 19 * * *', () => {
+cron.schedule('39 17 * * *', () => {
     console.log("Ejecutando tarea programada para eventos de mañana");
     proximoEvento();
 }, {
