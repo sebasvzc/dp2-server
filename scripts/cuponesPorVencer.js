@@ -7,6 +7,7 @@ const admin = require('../firebaseAdmin');
 
 const validateToken = async (token) => {
     try {
+        console.log("verificando a: "+ token)
         const decodedToken = await admin.auth().verifyIdToken(token);
         return decodedToken ? true : false;
     } catch (error) {
@@ -17,7 +18,7 @@ const validateToken = async (token) => {
 
 
 const sendNotification = async (token, title, message) => {
-    if (await validateToken(token)) {
+    //if (await validateToken(token)) {
         const messagePayload = {
             notification: {
                 title: title,
@@ -33,14 +34,15 @@ const sendNotification = async (token, title, message) => {
             .catch(error => {
                 console.error('Error sending notification:', error);
             });
-    } else {
+    /*} else {
         console.error('Invalid token, notification not sent.');
-    }
+    }*/
 };
 
 const cuponesPorVencer = async () => {
     plazoDias = 5;
     //obteniendo los datos
+    console.log("voy a ejecutar")
     try {
         const users = await db.notificationToken.findAll({ where: { activo: true } });
         const today = moment().startOf('day').toDate();
