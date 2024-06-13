@@ -99,7 +99,9 @@ const cuponesPorVencer = async () => {
                     const body = `Cupón: ${cupon.codigo}, ${cupon.sumilla}. Vence: ${moment(cupon.fechaExpiracion).format('LLL')}. Locatario: ${locatario.nombre}`;
 
                     let messages = [];
+                    console.log("enviado al CUPON... "+ cupon.sumilla)
                     for (let token of userTokens) {
+                        console.log("INTENTANDO ENVIAR A... "+token )
                         await sendNotification(token,title,body)
                         console.log("### "+title+"\n"+body+"\n"+token)
                     }
