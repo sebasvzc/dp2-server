@@ -546,22 +546,22 @@ const getUsersPlayRA = async (req, res) => {
 
         // Obtener todos los géneros únicos
         const usuariosGenRa = await Escaneo.findAll({
+            attributes: [
+                'fidClient',
+                [db.sequelize.fn('COUNT', db.sequelize.col('fidClient')), 'count']
+            ],
             where: {
                 ultimoEscaneo: {
-                    [db.Sequelize.Op.between]: [startDate, endDate]
+                    [Op.between]: [startDate, endDate]
                 },
                 tipo: 'juego'
             },
-            attributes: [
-                [db.sequelize.fn('COUNT', db.sequelize.fn('DISTINCT', db.sequelize.col('fidClient'))), 'cantidad']
-            ],
-            group: [
-                db.Sequelize.literal(`fidClient`),
-            ]
+            group: ['fidClient']
         });
 
-        console.log(usuariosGenRa[0])
-        return res.status(200).json(usuariosGenRa[0]);
+// Contar el número de grupos
+        const totalCount = usuariosGenRa.length;
+        return res.status(200).json({ cantidad: totalCount });
     } catch (error) {
         console.log('getUsersPlayRA - queryType: - [Error]: ', error);
         return res.status(500).send('Internal Server Error');
