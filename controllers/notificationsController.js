@@ -6,13 +6,15 @@ const db = require("../models");
 
 
 exports.registerToken = async (req, res) => {
-    //console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+req.body)
+    console.log("BOOOOOOOOOOOODDDDDDDDDDDDYYYYYYYYYYY: "+JSON.stringify(req.body))
     const { fidCliente, token } = req.body;
 
     // Validar que fidCliente y token están presentes
     if (!fidCliente || !token) {
         return res.status(400).json({ error: 'fidCliente y token son requeridos' });
     }
+    console.log("AQUIE ESTA TOKEN: ")
+    console.log(token)
 
     // Validar que fidCliente es un número
     if (isNaN(fidCliente) || fidCliente < 1) {
@@ -30,6 +32,7 @@ exports.registerToken = async (req, res) => {
             userToken.activo = true;
             await userToken.save();
         }
+
 
         res.status(201).json({ message: 'Token registered successfully' });
     } catch (error) {
