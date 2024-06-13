@@ -18,6 +18,7 @@ exports.registerToken = async (req, res) => {
 
     // Validar que fidCliente es un número
     if (isNaN(fidcliente) || fidcliente < 1) {
+        console.log("fidcliente debe ser un numero mayor o igual a 1")
         return res.status(400).json({ error: 'fidcliente debe ser un numero mayor o igual a 1' });
     }
 
@@ -33,10 +34,11 @@ exports.registerToken = async (req, res) => {
             await userToken.save();
         }
 
-
+        console.log("status: Token registered successfully")
         res.status(201).json({ message: 'Token registered successfully' });
     } catch (error) {
         console.error(error);
+        console.log("status: Error registering token")
         res.status(500).json({ error: 'Error registering token' });
     }
 };
