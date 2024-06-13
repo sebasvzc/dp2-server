@@ -759,13 +759,17 @@ const cuponesFiltradosGeneral = async (req, res) => {
         orden = "ASC";
     }
 
+    const orderCriteria = [];
     if (orderBy === 'fechaExpiracion') {
-        options.order = [['fechaExpiracion', orden]];
+        orderCriteria.push([['fechaExpiracion', orden]]);
     } else if (orderBy === 'categoria') {
-        options.order = [[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]];
+        orderCriteria.push([[db.Sequelize.literal("`locatario.categoriaTienda.nombre`"), orden]]);
     } else if (orderBy === 'puntos') {
-        options.order = [['costoPuntos', orden]];
+        orderCriteria.push([['costoPuntos', orden]]);
     }
+
+    orderCriteria.push([['id', 'ASC']]);
+    options.order = orderCriteria;
 
     const { count, rows: cupones } = await db.cupones.findAndCountAll(options);
 
