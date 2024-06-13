@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const db = require("../models");
 require('dotenv').config();
 const Sequelize = require('sequelize');
+const { QueryTypes } = require('sequelize');
 const Op = Sequelize.Op;
 const WebSocket = require("ws");
 const crypto = require("crypto");
@@ -34,6 +35,7 @@ const CategoriaTienda = db.categoriaTiendas;
 const Cupon = db.cupones;
 const CuponXCliente = db.cuponXClientes;
 const Cliente = db.clients;
+const Escaneo = db.escaneos;
 
 
 function generarRangoMeses(start, end) {
@@ -552,6 +554,109 @@ const getCuponesXTienda = async (req, res) => {
     }
 }
 
+const getTopTiendasAsist= async (req, res) => {
+
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getTopTiendasAsist - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        // Obtener cupones agrupados por fecha y categoría para cupones canjeados
+        const escaneo = await db.sequelize.query(
+            `
+                SELECT
+                    
+                    locatario.nombre AS NombreTienda,
+                    COALESCE(c.cantidad, 0) AS cantidad
+                FROM
+                    locatarios AS locatario
+                        LEFT JOIN
+                    (
+                        SELECT
+                            fidReferencia,
+                            COUNT(*) AS cantidad
+                        FROM
+                            escaneos
+                        WHERE
+                            ultimoEscaneo BETWEEN :startDate AND :endDate
+                          AND tipo = 'tienda'
+                        GROUP BY
+                            fidReferencia
+                    ) AS c ON locatario.id = c.fidReferencia
+                ORDER BY
+                    cantidad
+                    DESC
+                    LIMIT 10`, {
+            replacements: { startDate, endDate },
+            type: QueryTypes.SELECT
+        });
+        console.log("resultados topTiendas Asitencias")
+        console.log(escaneo)
+        return res.status(200).json({ resultadoTopTiendas: escaneo, newToken: req.newToken });
+    } catch (error) {
+        console.log('getCuponXTienda - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+
+const getBottomTiendasAsist= async (req, res) => {
+
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getTopTiendasAsist - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        // Obtener cupones agrupados por fecha y categoría para cupones canjeados
+        const escaneo = await db.sequelize.query(
+            `
+                SELECT
+                    
+                    locatario.nombre AS NombreTienda,
+                    COALESCE(c.cantidad, 0) AS cantidad
+                FROM
+                    locatarios AS locatario
+                        LEFT JOIN
+                    (
+                        SELECT
+                            fidReferencia,
+                            COUNT(*) AS cantidad
+                        FROM
+                            escaneos
+                        WHERE
+                            ultimoEscaneo BETWEEN :startDate AND :endDate
+                          AND tipo = 'tienda'
+                        GROUP BY
+                            fidReferencia
+                    ) AS c ON locatario.id = c.fidReferencia
+                ORDER BY
+                    cantidad
+                    ASC
+                    LIMIT 10`, {
+                replacements: { startDate, endDate },
+                type: QueryTypes.SELECT
+            });
+        console.log("resultados topTiendas Asitencias")
+        console.log(escaneo)
+        return res.status(200).json({ resultadoTopTiendas: escaneo, newToken: req.newToken });
+    } catch (error) {
+        console.log('getCuponXTienda - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 module.exports = {
     habilitar,
     deshabilitar,
@@ -560,5 +665,7 @@ module.exports = {
     modificar,
     detalleTiendaCompleto,
     listarCuponesMesxTienda,
-    getCuponesXTienda
+    getCuponesXTienda,
+    getTopTiendasAsist,
+    getBottomTiendasAsist
 };
