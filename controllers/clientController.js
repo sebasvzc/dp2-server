@@ -986,7 +986,7 @@ const getEventosHoy = async (req, res,next) => {
         const respuesta = {
             totalEncontrados: cantidad,
             totalPaginas: totalPages,
-            cupones: eventosObtenidos.map(evento => {
+            eventos: eventosObtenidos.map(evento => {
                 const key = `evento${evento.idEvento}.jpg`;
 
                 // Genera la URL firmada para el objeto en el bucket appdp2
