@@ -28,7 +28,7 @@ exports.registerToken = async (req, res) => {
         });
 
         if (!created) {
-            userToken.fidcliente = fidcliente;
+            userToken.fidCliente = fidcliente;
             userToken.activo = true;
             await userToken.save();
         }
