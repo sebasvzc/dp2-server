@@ -102,3 +102,4 @@ const cuponesPorVencer = async () => {
     }
 
 }
+module.exports = cuponesPorVencer;
