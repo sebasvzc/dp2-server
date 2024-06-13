@@ -983,7 +983,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
 
         const cuponesRecomendados = await tablaCupon.findAll({
             where: { id: cuponRecomendadoIds },
-            attributes: ['id', 'sumilla'],
+            attributes: ['id', 'sumilla', 'costoPuntos','esLimitado','cantidadDisponible'],
             include: [
                 {
                     model: db.locatarios,
@@ -997,7 +997,37 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         if (!cuponesRecomendados.length) {
             return res.status(404).json({ message: 'No se encontraron detalles para los cupones recomendados.' });
         }
-        
+
+        // 4. Obtener las imágenes
+        const cuponesConImagenes = await Promise.all(cuponesRecomendados.map(async (cupon) => {
+            const keyCupon = `cupon${cupon.id}.jpg`;
+            const urlCupon = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: keyCupon,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
+
+            const keyLocatario = `tienda${cupon.locatario.id}.jpg`;
+            const urlTienda = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: keyLocatario,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
+
+            return {
+                id: cupon.id,
+                sumilla: cupon.sumilla,
+                costoPuntos: cupon.costoPuntos,
+                esLimitado: cupon.esLimitado,
+                cantidadDisponible: cupon.cantidadDisponible,
+                locatario: cupon.locatario.nombre,
+                rutaFoto: urlCupon,
+                rutaTienda: urlTienda
+            };
+        }));
+
+        // Devolver los datos formateados
+        res.status(200).json(cuponesConImagenes);
 
     }catch (error) {
         console.error('Error al obtener los cupones favoritos:', error);
@@ -1090,6 +1120,8 @@ module.exports = {
 
     comprarCuponCliente,
     cuponesFavoritos,
-    allInteracciones
+    allInteracciones,
+
+    cuponesRecomendadosGeneral
 
 }
