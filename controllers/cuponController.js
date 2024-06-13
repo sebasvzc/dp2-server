@@ -918,6 +918,9 @@ const comprarCuponCliente = async (req, res,next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
     const idCupon = parseInt (req.body.idCupon)
+
+    await nuevaInteraccion(idCupon, idCliente, 3);
+
     const intentosMax =3;
     let intentos=0;
     let exito = false;
@@ -946,7 +949,7 @@ const comprarCuponCliente = async (req, res,next) => {
     }
 };
 
-const nuevaInteraccion = async (idCupon, idCliente) => {
+const nuevaInteraccion = async (idCupon, idCliente, peso=1) => {
     try {
         // Busca si ya existe una interacción para el cliente y el cupón
         const interaccion = await db.interaccionesCupon.findOne({
@@ -959,7 +962,7 @@ const nuevaInteraccion = async (idCupon, idCliente) => {
         if (interaccion) {
             // Si existe, incrementa el número de interacciones en 1
             await interaccion.update({
-                numInteracciones: interaccion.numInteracciones + 1
+                numInteracciones: interaccion.numInteracciones + peso
             });
         } else {
             // Si no existe, crea una nueva interacción con numInteracciones igual a 1
