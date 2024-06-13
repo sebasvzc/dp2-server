@@ -134,7 +134,14 @@ const editarCategoriaTiendaWeb = async (req, res,next) => {
 
 const habilitarCategoria = async (req, res,next) => {
     let connection;
-    const ids = req.body.ids || [1, 2, 3, 4, 5]; //ids en lista GA
+    let ids = req.body.selected || [1, 2, 3, 4, 5]; //ids en lista GA
+
+    if (typeof ids === 'string') {
+        ids = JSON.parse(ids).map(id => parseInt(id, 10));
+    } else if (Array.isArray(ids)) {
+        ids = ids.map(id => parseInt(id, 10));
+    }
+
     const categoriasHabilitadas = [];
     try{
         connection = await pool.getConnection();
