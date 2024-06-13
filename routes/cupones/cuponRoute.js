@@ -25,4 +25,6 @@ cuponRouter.post('/listarCuponesFiltradosGeneral', cuponController.cuponesFiltra
 cuponRouter.post('/comprarCuponCliente', cuponController.comprarCuponCliente);
 cuponRouter.post('/cuponesFavoritos', cuponController.cuponesFavoritos);
 cuponRouter.post('/interacciones', cuponController.allInteracciones);
+
+cuponRouter.post('/recomendacionGeneral', cuponController.cuponesRecomendadosGeneral);
 module.exports = cuponRouter;

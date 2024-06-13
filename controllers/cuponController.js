@@ -6,6 +6,8 @@ const crypto = require("crypto");
 const Op = Sequelize.Op;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 const mysql = require('mysql2/promise');
+const moment = require("moment");
+
 const pool = mysql.createPool({
     host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
       port: 3306,
@@ -914,6 +916,131 @@ const allInteracciones = async (req, res) => {
 
 }
 
+const cuponesRecomendadosGeneral = async (req, res) => {
+    try{
+        const { idCliente } = req.body;
+        //devolver el id el cupon y su sumilla
+        const tablaInteracciones = db.interaccionesCupon;
+        const tablaRecomendacionGeneral = db.recomendacionGeneral;
+        const tablaCupon = db.cupones;
+        
+        // 1. Obtener el cupón "favorito" de un cliente
+        let favorito = await tablaInteracciones.findOne({
+            attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+            where: { activo: true, fidCliente: idCliente },
+            order: [
+                ['numInteracciones', 'DESC'],
+                ['updatedAt', 'DESC']
+            ]
+        });
+
+        if (!favorito) {
+            favorito = await tablaInteracciones.findOne({
+                attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+                where: { activo: true},
+                order: [
+                    ['numInteracciones', 'DESC'],
+                    ['updatedAt', 'DESC']
+                ]
+            });
+            if (!favorito) {
+                return res.status(404).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
+            }
+        }
+
+        const cuponFavoritoId = favorito.fidCupon;
+        console.log("fav: "+ cuponFavoritoId)
+        // 2. Buscar en la tabla recomendacionGenerals por la fecha de hoy y el cuponFavorito
+        const today = moment().startOf('day');
+        const tomorrow = moment().endOf('day');
+        console.log("antes de recomendaciones")
+        let recomendaciones = await tablaRecomendacionGeneral.findAll({
+            where: {
+                cuponFavorito: cuponFavoritoId,
+                createdAt: {
+                    [Op.between]: [today.toDate(), tomorrow.toDate()]
+                }
+            }
+        });
+        if (!recomendaciones.length) {
+            console.log("vacio de recomendaciones")
+            //si no encuentro busco con los 4 últimos
+            recomendaciones = await tablaRecomendacionGeneral.findAll({
+                where: {
+                    cuponFavorito: cuponFavoritoId,
+                    createdAt: {
+                        [Op.between]: [today.toDate(), tomorrow.toDate()]
+                    }
+                },
+                order: [
+                    ['updatedAt', 'DESC']
+                ],
+                limit: 4
+            });
+            if (!recomendaciones.length){
+                return res.status(404).json({ message: 'No se encontraron recomendaciones para el cupón favorito en la fecha actual, tampoco buscando entre los ultimos de la tabla' });
+            }
+        }
+
+        // 3. Obtener los detalles de los cupones recomendados
+        const cuponRecomendadoIds = recomendaciones.map(rec => rec.cuponRecomendado);
+
+        const cuponesRecomendados = await tablaCupon.findAll({
+            where: { id: cuponRecomendadoIds },
+            attributes: ['id', 'sumilla', 'costoPuntos','esLimitado','cantidadDisponible'],
+            include: [
+                {
+                    model: db.locatarios,
+                    as: 'locatario',
+                    attributes: ['nombre'],
+                    required: true,
+                }
+            ]
+        });
+
+        if (!cuponesRecomendados.length) {
+            return res.status(404).json({ message: 'No se encontraron detalles para los cupones recomendados.' });
+        }
+
+        // 4. Obtener las imágenes
+        const cuponesConImagenes = await Promise.all(cuponesRecomendados.map(async (cupon) => {
+            const keyCupon = `cupon${cupon.id}.jpg`;
+            const urlCupon = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: keyCupon,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
+
+            const keyLocatario = `tienda${cupon.locatario.id}.jpg`;
+            const urlTienda = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: keyLocatario,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
+
+            return {
+                id: cupon.id,
+                sumilla: cupon.sumilla,
+                costoPuntos: cupon.costoPuntos,
+                esLimitado: cupon.esLimitado,
+                cantidadDisponible: cupon.cantidadDisponible,
+                locatario: cupon.locatario.nombre,
+                rutaFoto: urlCupon,
+                rutaTienda: urlTienda
+            };
+        }));
+
+        // Devolver los datos formateados
+        res.status(200).json({ cupones: cuponesConImagenes });
+
+    }catch (error) {
+        console.error('Error al obtener los cupones favoritos:', error);
+        res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
+    }
+    
+
+}
+
 const comprarCuponCliente = async (req, res,next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
@@ -997,6 +1124,8 @@ module.exports = {
 
     comprarCuponCliente,
     cuponesFavoritos,
-    allInteracciones
+    allInteracciones,
+
+    cuponesRecomendadosGeneral
 
 }
