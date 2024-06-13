@@ -768,7 +768,48 @@ const getPersonasAsistente = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+const getGeneroPorcEventos = async (req, res) => {
 
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getGeneroPorcEventos - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+
+    try {
+
+        // Obtener todos los géneros únicos
+        const asistentesEventos = await EventoXCliente.findAll({
+            where: {
+                fechaInscripcion: {
+                    [db.Sequelize.Op.between]: [startDate, endDate]
+                },
+                asistio: true
+            },
+            attributes: [
+                [db.sequelize.col('clienteeve.genero'), 'genero'],
+                [db.sequelize.fn('COUNT', db.sequelize.col('fidEvento')), 'cantidad']
+            ],
+            include: [{
+                model: Cliente,
+                as: 'clienteeve',
+                attributes: [],
+            }],
+            group: [db.sequelize.col('clienteeve.genero')]
+        });
+
+        console.log(asistentesEventos)
+        return res.status(200).json(asistentesEventos);
+    } catch (error) {
+        console.log('getGeneroPorcEventos - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 const getPuntosEventosAsitencia = async (req, res) => {
 
     const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
@@ -817,5 +858,6 @@ module.exports = {
     getAsistencia,
     getAsitenciaXGeneroAgrupEdad,
     getPersonasAsistente,
-    getPuntosEventosAsitencia
+    getPuntosEventosAsitencia,
+    getGeneroPorcEventos
 }

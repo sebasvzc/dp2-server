@@ -4,6 +4,7 @@ const {getSignUrlForFile} = require("../config/s3");
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 const Sequelize = require("sequelize");
+const {QueryTypes} = require("sequelize");
 const Op = Sequelize.Op;
 const pool = mysql.createPool({
     host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
@@ -13,6 +14,10 @@ const pool = mysql.createPool({
       database: 'plaza'
       });
 const CategoriaTienda = db.categoriaTiendas;
+function parseDate(dateString) {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day); // Restar 1 al mes porque los meses en JavaScript van de 0 a 11
+}
 // Function to get active "categoriaTiendas"
 const getCategoriaTiendas = async (req, res) => {
     try {
@@ -199,12 +204,93 @@ const deshabilitarCategoria = async (req, res,next) => {
     }
 }
 
+const getTopCategoriasAsist= async (req, res) => {
 
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getTopCategoriassAsist - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        // Obtener cupones agrupados por fecha y categoría para cupones canjeados
+        const escaneo = await db.sequelize.query(
+            `
+                SELECT
+                    ct.nombre AS nombre_categoria,
+                    COUNT(e.id) AS cantidad_escaneos
+                FROM
+                    categoriaTiendas ct
+                        LEFT JOIN locatarios l ON ct.id = l.fidCategoriaTienda
+                        LEFT JOIN escaneos e ON e.tipo = 'tienda' AND e.fidReferencia = l.id AND e.ultimoEscaneo BETWEEN :startDate AND :endDate
+                GROUP BY
+                    ct.id
+                ORDER BY
+                    cantidad_escaneos  DESC
+                    LIMIT 10`, {
+                replacements: { startDate, endDate },
+                type: QueryTypes.SELECT
+            });
+        console.log("resultados topTiendas Asitencias")
+        console.log(escaneo)
+        return res.status(200).json({ resultado: escaneo, newToken: req.newToken });
+    } catch (error) {
+        console.log('getTopCategoriassAsist - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
+const getBottomCategoriasAsist= async (req, res) => {
+
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getTopCategoriassAsist - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+    console.log(startDate)
+    console.log(endDate)
+    try {
+        // Obtener cupones agrupados por fecha y categoría
+        // Obtener cupones agrupados por fecha y categoría para cupones canjeados
+        const escaneo = await db.sequelize.query(
+            `
+                SELECT
+                    ct.nombre AS nombre_categoria,
+                    COUNT(e.id) AS cantidad_escaneos
+                FROM
+                    categoriaTiendas ct
+                        LEFT JOIN locatarios l ON ct.id = l.fidCategoriaTienda
+                        LEFT JOIN escaneos e ON e.tipo = 'tienda' AND e.fidReferencia = l.id AND e.ultimoEscaneo BETWEEN :startDate AND :endDate
+                GROUP BY
+                    ct.id
+                ORDER BY
+                    cantidad_escaneos  ASC
+                    LIMIT 10`, {
+                replacements: { startDate, endDate },
+                type: QueryTypes.SELECT
+            });
+        console.log("resultados topTiendas Asitencias")
+        console.log(escaneo)
+        return res.status(200).json({ resultado: escaneo, newToken: req.newToken });
+    } catch (error) {
+        console.log('getTopCategoriassAsist - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 module.exports = {
     getCategoriaTiendas,
     getCategoriaTiendasWeb,
     crearCategoriaTiendaWeb,
     editarCategoriaTiendaWeb,
     habilitarCategoria,
-    deshabilitarCategoria
+    deshabilitarCategoria,
+    getTopCategoriasAsist,
+    getBottomCategoriasAsist
 };

@@ -5,6 +5,8 @@ const authenticateToken = require("../../middlewares/authenticateToken");
 
 categoriaTiendaRouter.post('/listarCategoriaTiendas', categoriaTiendaController.getCategoriaTiendas);
 categoriaTiendaRouter.get('/listarCategoriaTiendasWeb', authenticateToken,categoriaTiendaController.getCategoriaTiendasWeb);
+categoriaTiendaRouter.get('/getTopCategoriasAsist', authenticateToken,categoriaTiendaController.getTopCategoriasAsist);
+categoriaTiendaRouter.get('/getBottomCategoriasAsist', authenticateToken,categoriaTiendaController.getBottomCategoriasAsist);
 categoriaTiendaRouter.post('/crearCategoriaTiendaWeb', categoriaTiendaController.crearCategoriaTiendaWeb);
 categoriaTiendaRouter.post('/editarCategoriaTiendaWeb', categoriaTiendaController.editarCategoriaTiendaWeb);
 categoriaTiendaRouter.post('/habilitarCategoriaTiendaWeb',categoriaTiendaController.habilitarCategoria);

@@ -4,7 +4,7 @@ const multer = require('multer');
 const upload = multer();
 
 var eventoController = require('../../controllers/eventoController');
-const { getEventosConAsistentesYCategoria,getEventos,crear,modificar,deshabilitar,habilitar,getPersonasAsistente,detalleEventoCompleto,getAsistencia,getAsitenciaXGeneroAgrupEdad,getPuntosEventosAsitencia} = eventoController
+const { getGeneroPorcEventos,getEventosConAsistentesYCategoria,getEventos,crear,modificar,deshabilitar,habilitar,getPersonasAsistente,detalleEventoCompleto,getAsistencia,getAsitenciaXGeneroAgrupEdad,getPuntosEventosAsitencia} = eventoController
 
 const authenticateToken = require("../../middlewares/authenticateToken");
 const userController = require("../../controllers/userController");
@@ -13,6 +13,7 @@ var eventoRouter = express.Router();
 
 eventoRouter.get('/getEventosAsisCateg', authenticateToken,getEventosConAsistentesYCategoria);
 eventoRouter.get('/getPersonasAsistente', authenticateToken,getPersonasAsistente);
+eventoRouter.get('/getGeneroPorcEventos', authenticateToken,getGeneroPorcEventos);
 eventoRouter.get('/getPuntosEventosAsitencia', authenticateToken,getPuntosEventosAsitencia);
 eventoRouter.post('/getEventosProximos', eventoController.getEventosProximos);
 eventoRouter.post('/detalleEventoCompleto',authenticateToken, detalleEventoCompleto);
