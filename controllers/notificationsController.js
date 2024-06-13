@@ -15,7 +15,10 @@ exports.registerToken = async (req, res) => {
     }
     console.log("AQUIE ESTA TOKEN: ")
     console.log(token)
+    console.log("AQUIE ESTA el cleinte: ")
+    console.log(fidcliente)
 
+    // Validar que fidCliente es un número
     // Validar que fidCliente es un número
     if (isNaN(fidcliente) || fidcliente < 1) {
         console.log("fidcliente debe ser un numero mayor o igual a 1")
@@ -25,7 +28,7 @@ exports.registerToken = async (req, res) => {
     try {
         const [userToken, created] = await db.notificationToken.findOrCreate({
             where: { token },
-            defaults: { fidcliente, token, activo: true },
+            defaults: { fidCliente: fidcliente, token, activo: true },
         });
 
         if (!created) {
