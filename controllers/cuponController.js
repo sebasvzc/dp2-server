@@ -6,6 +6,8 @@ const crypto = require("crypto");
 const Op = Sequelize.Op;
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN } = process.env;
 const mysql = require('mysql2/promise');
+const moment = require("moment");
+
 const pool = mysql.createPool({
     host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
       port: 3306,
@@ -921,9 +923,9 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         const tablaInteracciones = db.interaccionesCupon;
         const tablaRecomendacionGeneral = db.recomendacionGeneral;
         const tablaCupon = db.cupones;
-
+        
         // 1. Obtener el cupón "favorito" de un cliente
-        const favorito = await tablaInteracciones.findOne({
+        let favorito = await tablaInteracciones.findOne({
             attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
             where: { activo: true, fidCliente: idCliente },
             order: [
@@ -947,11 +949,12 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         }
 
         const cuponFavoritoId = favorito.fidCupon;
+        console.log("fav: "+ cuponFavoritoId)
         // 2. Buscar en la tabla recomendacionGenerals por la fecha de hoy y el cuponFavorito
         const today = moment().startOf('day');
         const tomorrow = moment().endOf('day');
-
-        const recomendaciones = await tablaRecomendacionGeneral.findAll({
+        console.log("antes de recomendaciones")
+        let recomendaciones = await tablaRecomendacionGeneral.findAll({
             where: {
                 cuponFavorito: cuponFavoritoId,
                 createdAt: {
@@ -960,6 +963,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
             }
         });
         if (!recomendaciones.length) {
+            console.log("vacio de recomendaciones")
             //si no encuentro busco con los 4 últimos
             recomendaciones = await tablaRecomendacionGeneral.findAll({
                 where: {
