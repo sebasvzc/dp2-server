@@ -74,6 +74,7 @@ db.marcoQRs = require('./marcosQRModel') (sequelize, DataTypes)
 db.notificationToken = require('./notificationTokenModel') (sequelize, DataTypes) 
 db.interaccionesCupon = require('./interaccionesCuponModel') (sequelize, DataTypes) 
 
+db.recomendacionGeneral = require('./recomenacionesGeneralesModel') (sequelize, DataTypes) 
 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
@@ -88,6 +89,14 @@ db.permission.hasMany(db.rolePermission,{foreignKey: "fidPermission", as: 'permi
 
 db.users.belongsTo(db.rol, {foreignKey: 'fidRol', as: 'role'});
 db.rol.hasMany(db.users, { foreignKey: 'fidRol', as: 'role'});
+
+///////////////////////////////////////////////////
+
+db.recomendacionGeneral.belongsTo(db.cupones, { foreignKey: 'cuponFavorito', as: 'favorito' });
+db.cupones.hasMany(db.recomendacionGeneral, { foreignKey: 'cuponFavorito', as: 'favorito' });
+
+db.recomendacionGeneral.belongsTo(db.cupones, { foreignKey: 'cuponRecomendado', as: 'recomendado' });
+db.cupones.hasMany(db.recomendacionGeneral, { foreignKey: 'cuponRecomendado', as: 'recomendado' });
 
 ///////////////////////////////////////////////////
 
