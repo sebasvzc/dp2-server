@@ -22,7 +22,7 @@ module.exports = (transporter,crypto) => {
             expiresIn: Date.now() + (60 * 60 * 1000), // 5 minutos en milisegundos
         };
         const token = sign(tokenData, 'secretKey');
-        const link = `http://localhost:3030/register?token=${token}`;
+        const link = `http://3.218.68.113/register?token=${token}`;
 
 
 
