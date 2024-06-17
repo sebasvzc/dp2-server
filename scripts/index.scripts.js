@@ -13,7 +13,7 @@ cron.schedule('15 19 * * *', () => {
     timezone: "America/Lima"
 });
 
-cron.schedule('8 22 * * *', () => {
+cron.schedule('36 23 * * *', () => {
     console.log("Ejecutando tarea programada para cupones x vencer");
     cuponesXVencer();
 }, {
