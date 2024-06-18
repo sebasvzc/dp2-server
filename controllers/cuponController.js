@@ -99,7 +99,7 @@ const detalleCuponCompleto = async (req, res) => {
 const detalleCupon = async (req, res) => {
     try {
         let { idCupon,  idCliente = 1} = req.body;
-        await nuevaInteraccion(idCupon, idCliente);
+        await nuevaInteraccion(idCupon, idCliente, "detalle");
         
         const detalles = await db.cupones.findOne({
             where: { id: idCupon },
@@ -1073,7 +1073,7 @@ const comprarCuponCliente = async (req, res,next) => {
     const idCliente = parseInt(req.body.idCliente)
     const idCupon = parseInt (req.body.idCupon)
 
-    await nuevaInteraccion(idCupon, idCliente, 3);
+    await nuevaInteraccion(idCupon, idCliente, "canje");
 
     const intentosMax =3;
     let intentos=0;
@@ -1103,20 +1103,22 @@ const comprarCuponCliente = async (req, res,next) => {
     }
 };
 
-const nuevaInteraccion = async (idCupon, idCliente, peso=1) => {
+const nuevaInteraccion = async (idCupon, idCliente, tipo) => {
     try {
         // Busca si ya existe una interacción para el cliente y el cupón
         const interaccion = await db.interaccionesCupon.findOne({
             where: {
                 fidCupon: idCupon,
-                fidCliente: idCliente
+                fidCliente: idCliente,
+                tipo: tipo,
+                dia: Sequelize.literal('CURRENT_DATE')
             }
         });
 
         if (interaccion) {
             // Si existe, incrementa el número de interacciones en 1
             await interaccion.update({
-                numInteracciones: interaccion.numInteracciones + peso
+                numInteracciones: interaccion.numInteracciones + 1
             });
         } else {
             // Si no existe, crea una nueva interacción con numInteracciones igual a 1
@@ -1124,6 +1126,8 @@ const nuevaInteraccion = async (idCupon, idCliente, peso=1) => {
                 fidCupon: idCupon,
                 fidCliente: idCliente,
                 numInteracciones: 1,
+                tipo: tipo,
+                dia: new Date(), 
                 activo: true,
                 //usuarioCreacion: 'system', // Ajusta según sea necesario
                 //usuarioActualizacion: 'system' // Ajusta según sea necesario
