@@ -898,11 +898,11 @@ const allInteracciones = async (req, res) => {
         const tablaInteracciones = db.interaccionesCupon;
 
         const todos = await tablaInteracciones.findAll({
-            attributes: ['fidCliente','fidCupon','numInteracciones', 'updatedAt'],
+            attributes: ['fidCliente','fidCupon','numInteracciones', 'tipo', 'dia'],
             where: { activo: true},
             order: [
                 ['numInteracciones', 'DESC'],
-                ['updatedAt', 'DESC']
+                ['dia', 'DESC']
             ],
         });
         res.status(200).json({
