@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const InteraccionesCupon = sequelize.define( "interaccionesCupon", {
+    const InteraccionesCupon = sequelize.define("interaccionesCupon", {
         fidCliente: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         numInteracciones: {
-            type : DataTypes.INTEGER,
+            type: DataTypes.INTEGER,
             default: 0,
             allowNull: false
         },
@@ -25,15 +25,23 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: false
         },
-        usuarioCreacion:{
+        usuarioCreacion: {
             type: DataTypes.STRING,
             allowNull: true
         },
-        usuarioActualizacion:{
+        usuarioActualizacion: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        tipo: {
+            type: DataTypes.ENUM('detalle', 'canje', 'uso'),
+            allowNull: false
+        },
+        dia: {
+            type: DataTypes.DATEONLY,
+            allowNull: false
         }
-    }, {timestamps: true} )
+    }, {timestamps: true})
 
     return InteraccionesCupon
 }

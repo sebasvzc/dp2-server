@@ -75,7 +75,7 @@ db.notificationToken = require('./notificationTokenModel') (sequelize, DataTypes
 db.interaccionesCupon = require('./interaccionesCuponModel') (sequelize, DataTypes) 
 
 db.recomendacionGeneral = require('./recomenacionesGeneralesModel') (sequelize, DataTypes) 
-
+db.tareas = require('./notificacionesModel') (sequelize, DataTypes) 
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
 

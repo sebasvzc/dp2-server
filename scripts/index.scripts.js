@@ -1,22 +1,38 @@
-// /scripts/index.scripts.js
-const cron = require("node-cron");
+// controllers/configController.js
+const db = require('../models');
+const cron = require('node-cron');
 const proximoEvento = require("./proximosEventos");
 const cuponesXVencer = require("./cuponesPorVencer")
-//const otraTarea = require("./otraTarea");
 
-// Programar la tarea de proximoEvento para las 9 pm todos los días
-cron.schedule('15 19 * * *', () => {
-    console.log("Ejecutando tarea programada para eventos de mañana");
-    proximoEvento();
-}, {
-    scheduled: true,
-    timezone: "America/Lima"
-});
+let scheduledTasks = {}; // Para almacenar las tareas programadas
 
-cron.schedule('36 23 * * *', () => {
-    console.log("Ejecutando tarea programada para cupones x vencer");
-    cuponesXVencer();
-}, {
-    scheduled: true,
-    timezone: "America/Lima"
-});
+const scheduleTasks = async () => {
+    const configs = await db.tareas.findAll({ where: { activo: true } });
+
+    configs.forEach(config => {
+        if (config.id === 1) {
+            scheduleTask(config.id, config.cronExpression, cuponesXVencer);
+        } else if (config.id === 2) {
+            scheduleTask(config.id, config.cronExpression, proximoEvento);
+        }
+    });
+};
+
+const scheduleTask = (id, cronExpression, taskFunction) => {
+    if (scheduledTasks[id]) {
+        scheduledTasks[id].stop();
+    }
+
+    scheduledTasks[id] = cron.schedule(cronExpression, taskFunction, {
+        scheduled: true,
+        timezone: "America/Lima"
+    });
+};
+
+// Llama a la función para programar las tareas al inicio
+scheduleTasks();
+
+module.exports = {
+    scheduledTasks,
+    scheduleTask
+};
