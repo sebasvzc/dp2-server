@@ -28,4 +28,5 @@ cuponRouter.post('/interacciones', cuponController.allInteracciones);
 
 cuponRouter.post('/recomendacionGeneral', cuponController.cuponesRecomendadosGeneral);
 cuponRouter.post('/nuevaRecomendacionGeneral', cuponController.nuevasRecomendaciones);
+cuponRouter.post('/cuponesParaIA', cuponController.cuponesParaIA);
 module.exports = cuponRouter;

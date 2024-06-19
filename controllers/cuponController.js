@@ -1139,6 +1139,68 @@ const nuevaInteraccion = async (idCupon, idCliente, tipo) => {
     }
 };
 
+
+const cuponesParaIA= async (req, res) => {
+    //console.log("Req ", req.query, req.body)
+
+    var options = {
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 
+            'costoPuntos', 'esLimitado', 'cantidadDisponible'],
+        required: true,
+        include: [
+            {
+                model: db.locatarios,
+                association: 'locatario',
+                attributes: ['id', 'nombre', 'descripcion', 'locacion'],
+                required: true,
+                include: [
+                    {
+                        model: db.categoriaTiendas,
+                        association: 'categoriaTienda',
+                        required: true,
+                        attributes: ['id','nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                    }
+                ]
+            }
+        ],
+        where: {
+            activo: 1,
+            fechaExpiracion: {
+                [Op.gt]: new Date() // Validar que la fecha de expiración sea mayor a la fecha actual
+            },
+            cantidadDisponible: {
+                [Op.gt]: 0 // Validar que la fecha de expiración sea mayor a la fecha actual
+            }
+        }
+    }
+
+    const cupones = await db.cupones.findAll(options);
+
+    const formattedCupones = cupones.map(cupon => {
+
+        return {
+            idCupon: cupon.id,
+            //codigo: cupon.codigo,
+            sumilla: cupon.sumilla,
+            descripcionCompleta: cupon.descripcionCompleta,
+            //fechaExpiracion: cupon.fechaExpiracion,
+            //terminosCondiciones: cupon.terminosCondiciones,
+            costoPuntos: cupon.costoPuntos,
+            esLimitado: cupon.esLimitado,
+            cantidadDisponible: cupon.cantidadDisponible,
+            idLocatario: cupon.locatario.id,
+            locatarioNombre: cupon.locatario.nombre,
+            //locatarioDescripcion: cupon.locatario.descripcion,
+            //locatarioLocacion: cupon.locatario.locacion,
+            categoriaTiendaID: cupon.locatario.categoriaTienda.id,
+            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+        };
+    });
+
+    console.log('data conseguida');
+    res.json({cupones: formattedCupones})
+};
+
 module.exports = {
     detalleCupon,
     detalleCuponCompleto,
@@ -1158,6 +1220,7 @@ module.exports = {
     allInteracciones,
 
     cuponesRecomendadosGeneral,
-    nuevasRecomendaciones
+    nuevasRecomendaciones,
+    cuponesParaIA
 
 }
