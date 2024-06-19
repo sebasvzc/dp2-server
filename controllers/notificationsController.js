@@ -115,7 +115,7 @@ exports.listNotifications = async (req, res) => {
             };
         });
 
-        res.json(formattedTasks);
+        res.json({notificaciones: formattedTasks});
     } catch (error) {
         res.status(500).json({ message: 'Error fetching tasks', error });
     }
