@@ -87,8 +87,36 @@ exports.updateTaskConfig = async (req, res) => {
             scheduleTask(id, cronExpression, proximoEvento);
         }
 
-        res.json(config);
+        res.json({ message: 'Success' });
     } catch (error) {
         res.status(500).json({ message: 'Error updating task configuration', error });
+    }
+};
+
+exports.listNotifications = async (req, res) => {
+    try {
+        const tasks = await db.tareas.findAll({
+            attributes: ['id', 'taskName', 'cronExpression']
+        });
+
+        const formattedTasks = tasks.map(task => {
+            const [minute, hour, dayOfMonth, month, dayOfWeek] = task.cronExpression.split(' ');
+
+            return {
+                id: task.id,
+                name: task.taskName,
+                cron: {
+                    minute,
+                    hour,
+                    dayOfMonth,
+                    month,
+                    dayOfWeek
+                }
+            };
+        });
+
+        res.json(formattedTasks);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching tasks', error });
     }
 };

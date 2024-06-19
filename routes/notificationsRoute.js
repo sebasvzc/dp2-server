@@ -59,5 +59,6 @@ router.post('/register-token', notificationController.registerToken);
 router.post('/unregister-token', notificationController.unregisterToken);
 //router.post('/send-notification', notificationController.sendNotification);
 router.post('/configurarNotificacion', notificationController.updateTaskConfig);
+router.post('/listarNotificacion', notificationController.listNotifications);
 
 module.exports = router;
