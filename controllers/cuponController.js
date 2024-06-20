@@ -916,6 +916,26 @@ const allInteracciones = async (req, res) => {
 
 }
 
+const getAllInteracciones = async () => {
+    try {
+        const tablaInteracciones = db.interaccionesCupon;
+
+        const todos = await tablaInteracciones.findAll({
+            attributes: ['fidCliente', 'fidCupon', 'numInteracciones', 'tipo', 'dia'],
+            where: { activo: true },
+            order: [
+                ['numInteracciones', 'DESC'],
+                ['dia', 'DESC']
+            ],
+        });
+
+        return todos;
+    } catch (error) {
+        console.error('Error al obtener las interacciones:', error);
+        throw error;
+    }
+};
+
 const nuevasRecomendaciones = async (req, res) => {
     try {
         const { cuponFavorito, cuponRecomendado, prioridad, tipoAlgoritmo=1 } = req.body;
