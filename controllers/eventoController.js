@@ -569,10 +569,18 @@ const deshabilitar = async (req, res) => {
 }
 const detalleEventoCompleto = async (req, res) => {
     try {
+        let where = {};
+        console.log("RequUSer es ", req.user)
+        if (req.user.fidLocatario !== null) {
+            where.fidTienda = req.user.fidLocatario;
+        }
+        where[Op.and] = [
+            { id: req.body.id }
+        ];
         console.log(req.body)
 
         const detalleEvento = await Evento.findOne({
-            where: { id: req.body.id },
+            where,
             include: [
                 {
                     model: db.locatarios,

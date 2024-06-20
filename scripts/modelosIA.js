@@ -31,7 +31,7 @@ const getAllInteracciones = async () => {
 const callCollaborativeFilteringAPI = async (todos) => {
     try {
         const payload = { todos };
-        await vaciarRecomendaciones();
+        await vaciarRecomendaciones(1);
         const url = `http://${FASTAPI_BASE_URL}/ia/collaborative_filtering`;
         console.log("LLAMANDO A: "+url)
         const response = await axios.post(url, payload);
@@ -47,7 +47,7 @@ const callCollaborativeFilteringAPI = async (todos) => {
 const callContentBasedFilteringAPI = async (todos) => {
     try {
         const payload = { cupones: todos }; // Ajusta esto según el formato esperado por la API
-        await vaciarRecomendaciones();
+        await vaciarRecomendaciones(2);
         const url = `http://${FASTAPI_BASE_URL}/ia/content_based_filtering`
         console.log("LLAMANDO A: "+ url)
         const response = await axios.post(url, payload);
@@ -79,11 +79,11 @@ const contentBasedFilteringTask = async () => {
     }
 };
 
-const vaciarRecomendaciones = async () => {
+const vaciarRecomendaciones = async (tipoAlgoritmo) => {
     try {
-        const query = 'DELETE FROM recomendacionGenerals WHERE id >= 1';
+        const query = `DELETE FROM recomendacionGenerals WHERE id >= 1 AND tipoAlgoritmo = ${tipoAlgoritmo}`;
         await db.sequelize.query(query);
-        console.log('La consulta "DELETE FROM recomendacionGenerals WHERE id >= 1" ha sido ejecutada.');
+        console.log('La consulta '+query+' ha sido ejecutada.');
     } catch (error) {
         console.error('Error al eliminar los registros:', error);
     }
