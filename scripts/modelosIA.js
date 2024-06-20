@@ -31,6 +31,7 @@ const getAllInteracciones = async () => {
 const callCollaborativeFilteringAPI = async (todos) => {
     try {
         const payload = { todos };
+        await vaciarRecomendaciones();
         const url = `http://${FASTAPI_BASE_URL}/ia/collaborative_filtering`;
         console.log("LLAMANDO A: "+url)
         const response = await axios.post(url, payload);
@@ -46,6 +47,7 @@ const callCollaborativeFilteringAPI = async (todos) => {
 const callContentBasedFilteringAPI = async (todos) => {
     try {
         const payload = { cupones: todos }; // Ajusta esto según el formato esperado por la API
+        await vaciarRecomendaciones();
         const url = `http://${FASTAPI_BASE_URL}/ia/content_based_filtering`
         console.log("LLAMANDO A: "+ url)
         const response = await axios.post(url, payload);
@@ -74,6 +76,16 @@ const contentBasedFilteringTask = async () => {
         console.log('Content-Based Filtering Task executed successfully:', response);
     } catch (error) {
         console.error('Error executing Content-Based Filtering Task:', error);
+    }
+};
+
+const vaciarRecomendaciones = async () => {
+    try {
+        const query = 'DELETE FROM recomendacionGenerals WHERE id >= 1';
+        await db.sequelize.query(query);
+        console.log('La consulta "DELETE FROM recomendacionGenerals WHERE id >= 1" ha sido ejecutada.');
+    } catch (error) {
+        console.error('Error al eliminar los registros:', error);
     }
 };
 
