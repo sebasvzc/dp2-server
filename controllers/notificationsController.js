@@ -95,8 +95,24 @@ exports.updateTaskConfig = async (req, res) => {
 
 exports.listNotifications = async (req, res) => {
     try {
-        const tasks = await db.tareas.findAll({
-            attributes: ['id', 'taskName', 'cronExpression']
+        const { page = 1, pageSize = 6, searchName = '' } = req.query;
+
+        const offset = (page - 1) * pageSize;
+        const limit = parseInt(pageSize, 10);
+
+        const whereCondition = searchName
+            ? {
+                taskName: {
+                    [db.Sequelize.Op.like]: `%${searchName}%`
+                }
+            }
+            : {};
+
+        const { count, rows: tasks } = await db.tareas.findAndCountAll({
+            attributes: ['id', 'taskName', 'cronExpression'],
+            where: whereCondition,
+            offset,
+            limit
         });
 
         const formattedTasks = tasks.map(task => {
@@ -115,7 +131,12 @@ exports.listNotifications = async (req, res) => {
             };
         });
 
-        res.json({notificaciones: formattedTasks});
+        res.json({
+            notificaciones: formattedTasks,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page, 10),
+            totalItems: count
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching tasks', error });
     }
