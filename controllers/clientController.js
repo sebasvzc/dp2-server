@@ -1057,7 +1057,7 @@ const getEventoDetalle = async (req, res,next) => {
                 eventoDetallado.fechaFin=eventoDetallado.fechaFin.toISOString().split('T')[0];
                 eventoDetallado.fechaInicio=`${eventoDetallado.fechaInicio.split('-')[2]}-${eventoDetallado.fechaInicio.split('-')[1]}-${eventoDetallado.fechaInicio.split('-')[0]}`;
                 eventoDetallado.fechaFin=`${eventoDetallado.fechaFin.split('-')[2]}-${eventoDetallado.fechaFin.split('-')[1]}-${eventoDetallado.fechaFin.split('-')[0]}`;
-        res.status(200).json(eventoDetallado);
+       return res.status(200).json(eventoDetallado);
     }catch(error){
         next(error)
     }finally {
