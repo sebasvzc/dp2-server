@@ -1156,7 +1156,7 @@ const IAKNNCompartido = async (req, res, next) =>{
       connection = await pool.getConnection();
      const [result] = await connection.query(`CALL eventosHistoricosIA()`)
      const eventosHist = result[0];
-     if(eventos.eventosHist.length==0){
+     if(eventosHist.length== 0){
         res.status(200).json("No hay eventos historicos");
      }else{
      //Info de generos
