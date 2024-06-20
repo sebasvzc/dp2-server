@@ -3,12 +3,12 @@ const cron = require('node-cron');
 const modelosIA = require("./modelosIA")
 
 // Programar tareas
-cron.schedule('48 16 * * *', modelosIA.collaborativeFilteringTask, {
+cron.schedule('11 17 * * *', modelosIA.collaborativeFilteringTask, {
     scheduled: true,
     timezone: "America/Lima"
 });
 
-cron.schedule('0 4 * * *', modelosIA.contentBasedFilteringTask, {
+cron.schedule('17 17 * * *', modelosIA.contentBasedFilteringTask, {
     scheduled: true,
     timezone: "America/Lima"
 });

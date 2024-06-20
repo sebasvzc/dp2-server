@@ -995,7 +995,7 @@ const calcularCuponFavorito = (interacciones) => {
 
 const cuponesRecomendadosGeneral = async (req, res) => {
     try {
-        const { idCliente } = req.body;
+        const { idCliente, tipoAlgoritmo=1 } = req.body;
         //console.log("acaaaaaaaaaaaaaaaaaa "+idCliente)
         //devolver el id el cupon y su sumilla
         const tablaInteracciones = db.interaccionesCupon;
@@ -1035,7 +1035,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         let recomendaciones = await tablaRecomendacionGeneral.findAll({
             where: {
                 cuponFavorito: cuponFavoritoId,
-                tipoAlgoritmo: 1,
+                tipoAlgoritmo: tipoAlgoritmo,
                 createdAt: {
                     [Op.between]: [today.toDate(), tomorrow.toDate()]
                 }
@@ -1047,7 +1047,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
             recomendaciones = await tablaRecomendacionGeneral.findAll({
                 where: {
                     cuponFavorito: cuponFavoritoId,
-                    tipoAlgoritmo: 1,
+                    tipoAlgoritmo: tipoAlgoritmo,
                     createdAt: {
                         [Op.between]: [today.toDate(), tomorrow.toDate()]
                     }
@@ -1100,16 +1100,30 @@ const cuponesRecomendadosGeneral = async (req, res) => {
                 Expires: 8600 // Tiempo de expiración en segundos
             });
 
-            return {
-                id: cupon.id,
-                sumilla: cupon.sumilla,
-                costoPuntos: cupon.costoPuntos,
-                esLimitado: cupon.esLimitado,
-                cantidadDisponible: cupon.cantidadDisponible,
-                locatario: cupon.locatario.nombre,
-                rutaFoto: urlCupon,
-                rutaTienda: urlTienda
-            };
+            if (tipoAlgoritmo == 1){
+                return {
+                    id: cupon.id,
+                    sumilla: cupon.sumilla,
+                    costoPuntos: cupon.costoPuntos,
+                    esLimitado: cupon.esLimitado,
+                    cantidadDisponible: cupon.cantidadDisponible,
+                    locatario: cupon.locatario.nombre,
+                    rutaFoto: urlCupon,
+                    rutaTienda: urlTienda
+                };
+            }else{
+                if(tipoAlgoritmo == 2){
+                    return {
+                        id: cupon.id,
+                        rutaFoto: urlCupon
+                    };
+                }else{
+                    return{
+                        mensaje: "ERROR FATAL PIPIPIPI"
+                    }
+                }
+            }
+                
         }));
 
         // Devolver los datos formateados
