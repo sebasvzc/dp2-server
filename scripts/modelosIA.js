@@ -83,7 +83,7 @@ const vaciarRecomendaciones = async (tipoAlgoritmo) => {
     try {
         const query = `DELETE FROM recomendacionGenerals WHERE id >= 1 AND tipoAlgoritmo = ${tipoAlgoritmo}`;
         await db.sequelize.query(query);
-        console.log('La consulta "DELETE FROM recomendacionGenerals WHERE id >= 1" ha sido ejecutada.');
+        console.log('La consulta '+query+' ha sido ejecutada.');
     } catch (error) {
         console.error('Error al eliminar los registros:', error);
     }
