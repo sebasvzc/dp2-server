@@ -42,12 +42,23 @@ module.exports = (sequelize, DataTypes) => {
         usuarioActualizacion:{
             type: DataTypes.STRING,
             allowNull: true
-        }
+        },
+        fidLocatario: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: 'locatarios',  // nombre de la tabla en la base de datos (en plural)
+                key: 'id'        // nombre de la columna en la tabla User
+            }
+        },
     }, {timestamps: true} )
 
     User.associate = (models) => {
         User.belongsTo(models.role, {
             foreignKey: 'fidRol'
+        });
+        User.belongsTo(models.locatario, {
+            foreignKey: 'fidLocatario'
         });
     };
     return User

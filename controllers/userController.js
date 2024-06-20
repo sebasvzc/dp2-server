@@ -11,6 +11,8 @@ const { ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_
 
 // Assigning users to the variable User
 const User = db.users;
+const Rol = db.rol;
+const Tienda = db.locatarios;
 const Escaneo = db.escaneos;
 function parseDate(dateString) {
     const [day, month, year] = dateString.split('/').map(Number);
@@ -237,8 +239,32 @@ const getUserData = async (req, res) => {
                 },
                 attributes: {exclude: ['contrasenia']}
             });
+
+
             if(findUser){
                 if(findUser.activo===1){
+                    if (findUser.fidLocatario !== null) {
+                        const findRol = await Rol.findOne({
+                            where: { id: findUser.fidRol }
+                        });
+                        const findTienda = await Tienda.findOne({
+                            where: { id: findUser.fidLocatario }
+                        });
+
+                        if (findRol && findTienda) {
+                            // Concatenar los nombres y asignarlo al atributo rol
+                            findUser.dataValues.rol = `${findRol.nombre} ${findTienda.nombre}`;
+                        }
+                    } else {
+                        const findRol = await Rol.findOne({
+                            where: { id: findUser.fidRol }
+                        });
+
+                        if (findRol) {
+                            // Asignar el nombre del rol al atributo rol
+                            findUser.dataValues.rol = findRol.nombre;
+                        }
+                    }
                     return res.status(200).send({ findUser, newToken: req.newToken});
                 }else{
                     console.log('Access denied. User not active in db.');

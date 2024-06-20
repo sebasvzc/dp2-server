@@ -179,6 +179,7 @@ const detalleCupon = async (req, res) => {
     }
 }
 const getCupones = async (req, res) => {
+    console.log("Entre a getCupones")
     var queryType = req.query.query;
     // console.log(req.query.query)
     const page = parseInt(req.query.page) || 1; // Página actual, default 1
@@ -189,14 +190,20 @@ const getCupones = async (req, res) => {
         console.log("Requested item wasn't found!, ?query=xxxx is required!");
         return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
     }
+    let where = {};
+    console.log("RequUSer es ",req.user)
+    if (req.user.fidLocatario !== null) {
+        where.fidLocatario = req.user.fidLocatario;
+    }
     try {
         if (queryType === 'all') {
             const cuponesAndCount = await Promise.all([
                 Cupon.findAll({
+                    where,
                     offset: offset,
                     limit: pageSize
                 }),
-                Cupon.count({})
+                Cupon.count({where})
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
@@ -212,25 +219,18 @@ const getCupones = async (req, res) => {
             }
         } else {
             console.log("Estoy viendo algo que no es all")
-
+            where[Op.or] = [
+                { sumilla: { [Op.like]: `%${queryType}%` } },
+                { descripcionCompleta: { [Op.like]: `%${queryType}%` } }
+            ];
             const cuponesAndCount = await Promise.all([
                 Cupon.findAll({
-                    where: {
-                        [Op.or]: [
-                            { sumilla: { [Op.like]: `%${queryType}%` } },
-                            { descripcionCompleta: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
-                        ]
-                    },
+                    where,
                     offset: offset,
                     limit: pageSize
                 }),
                 Cupon.count({
-                    where: {
-                        [Op.or]: [
-                            { sumilla: { [Op.like]: `%${queryType}%` } },
-                            { descripcionCompleta: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
-                        ]
-                    }
+                    where
                 })
             ]);
             const [cupones, totalCount] = cuponesAndCount;

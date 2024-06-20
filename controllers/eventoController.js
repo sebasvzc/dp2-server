@@ -286,14 +286,20 @@ const getEventos = async (req, res) => {
         console.log("Requested item wasn't found!, ?query=xxxx is required!");
         return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
     }
+    let where = {};
+    console.log("RequUSer es ",req.user)
+    if (req.user.fidLocatario !== null) {
+        where.fidTienda = req.user.fidLocatario;
+    }
     try {
         if (queryType === 'all') {
             const eventosAndCount = await Promise.all([
                 Evento.findAll({
+                    where,
                     offset: offset,
                     limit: pageSize
                 }),
-                Evento.count({})
+                Evento.count({where})
             ]);
             const [eventos, totalCount] = eventosAndCount;
             if (eventos) {
@@ -309,24 +315,17 @@ const getEventos = async (req, res) => {
             }
         } else {
             console.log("Estoy viendo algo que no es all")
-
+            where[Op.or] = [
+                { nombre: { [Op.like]: `%${queryType}%` } },
+            ];
             const eventosAndCount = await Promise.all([
                 Evento.findAll({
-                    where: {
-                        [Op.or]: [
-                            { nombre: { [Op.like]: `%${queryType}%` } }
-
-                        ]
-                    },
+                    where,
                     offset: offset,
                     limit: pageSize
                 }),
                 Evento.count({
-                    where: {
-                        [Op.or]: [
-                            { nombre: { [Op.like]: `%${queryType}%` } }
-                        ]
-                    }
+                    where
                 })
             ]);
             const [eventos, totalCount] = eventosAndCount;

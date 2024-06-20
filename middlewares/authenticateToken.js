@@ -33,7 +33,7 @@ function authenticateToken(req, res, next) {
             if(findUser){
                 if(findUser.activo===1){
 
-                    req.user = decoded;
+                    req.user = findUser;
                     next();
                 }else{
                     console.log('Access denied. User not active in db.');
@@ -80,7 +80,7 @@ function verifyRefreshToken(refreshToken, req, res, next) {
             if(findUser.activo===1){
                 console.log("estoy dandon nuevos tokens")
                 req.newToken = newAccessToken;
-                req.user = decoded;
+                req.user = findUser;
                 next();
             }else{
                 console.log('Access denied. User not active in db.');
