@@ -81,7 +81,7 @@ const contentBasedFilteringTask = async () => {
 
 const vaciarRecomendaciones = async () => {
     try {
-        const query = 'DELETE FROM recomendacionGenerals WHERE id >= 1';
+        const query = 'DELETE FROM recomendacionGenerals WHERE id >= 1 and tipoAlgoritmo = 1';
         await db.sequelize.query(query);
         console.log('La consulta "DELETE FROM recomendacionGenerals WHERE id >= 1" ha sido ejecutada.');
     } catch (error) {
