@@ -8,7 +8,7 @@ cron.schedule('11 17 * * *', modelosIA.collaborativeFilteringTask, {
     timezone: "America/Lima"
 });
 
-cron.schedule('0 4 * * *', modelosIA.contentBasedFilteringTask, {
+cron.schedule('17 17 * * *', modelosIA.contentBasedFilteringTask, {
     scheduled: true,
     timezone: "America/Lima"
 });

@@ -47,7 +47,7 @@ const callCollaborativeFilteringAPI = async (todos) => {
 const callContentBasedFilteringAPI = async (todos) => {
     try {
         const payload = { cupones: todos }; // Ajusta esto según el formato esperado por la API
-        await vaciarRecomendaciones(1);
+        await vaciarRecomendaciones(2);
         const url = `http://${FASTAPI_BASE_URL}/ia/content_based_filtering`
         console.log("LLAMANDO A: "+ url)
         const response = await axios.post(url, payload);
