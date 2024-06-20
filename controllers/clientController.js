@@ -710,11 +710,13 @@ const listarClientesActivos = async (req, res) => {
 
         // Calcular el número total de páginas
         const totalPages = Math.ceil(totalClientes / pageSize);
-
+        console.log("clientes" , clientes);
+        console.log("totalPages",clientes);
         // Enviar la lista de clientes activos junto con la información de paginación como respuesta
         return res.status(200).json({
             clientes,
-            totalPages
+            totalPages,
+            totalClientes
         });
 
     } catch (error) {
@@ -1156,6 +1158,9 @@ const IAKNNCompartido = async (req, res, next) =>{
       connection = await pool.getConnection();
      const [result] = await connection.query(`CALL eventosHistoricosIA()`)
      const eventosHist = result[0];
+     if(eventos.eventosHist.length==0){
+        res.status(200).json("No hay eventos historicos");
+     }else{
      //Info de generos
      // Clasifica por 0,1,2 los generos que encuentre en los eventos historicos en este caso M de masculino
      // F de femenino y A de ambos, tienen un valor de 0 1 y 2 en ese orden
@@ -1251,6 +1256,7 @@ const IAKNNCompartido = async (req, res, next) =>{
         
     };
     res.status(200).json(eventoPredictorCompleto);
+}
   }catch(error){
      next(error)
   }finally {

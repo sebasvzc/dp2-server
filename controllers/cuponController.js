@@ -60,11 +60,20 @@ const CuponXCliente = db.cuponXClientes;
 const Locatario = db.locatarios;
 const TipoCupon = db.tipoCupons;
 const detalleCuponCompleto = async (req, res) => {
+
     try {
+        let where = {};
+        console.log("RequUSer es ", req.user)
+        if (req.user.fidLocatario !== null) {
+            where.fidLocatario = req.user.fidLocatario;
+        }
+        where[Op.and] = [
+            { id: req.body.id }
+        ];
         console.log("detalleCuponCompleto")
         console.log("detalleCuponCompleto")
         const detalleCupon = await Cupon.findOne({
-            where: { id: req.body.id },
+            where,
             include: [
                 {
                     model: db.locatarios,

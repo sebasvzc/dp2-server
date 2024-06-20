@@ -569,10 +569,18 @@ const deshabilitar = async (req, res) => {
 }
 const detalleEventoCompleto = async (req, res) => {
     try {
+        let where = {};
+        console.log("RequUSer es ", req.user)
+        if (req.user.fidLocatario !== null) {
+            where.fidTienda = req.user.fidLocatario;
+        }
+        where[Op.and] = [
+            { id: req.body.id }
+        ];
         console.log(req.body)
 
         const detalleEvento = await Evento.findOne({
-            where: { id: req.body.id },
+            where,
             include: [
                 {
                     model: db.locatarios,
@@ -809,6 +817,78 @@ const getGeneroPorcEventos = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+const getEdadPorcEventos = async (req, res) => {
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate and endDate are required!");
+    }
+
+    try {
+        const today = new Date();
+
+        // Definir los rangos de edad y sus etiquetas correspondientes
+        const ageGroups = [
+            { range: [0, 12], label: 'Niño' },
+            { range: [12, 18], label: 'Adolescente' },
+            { range: [18, 30], label: 'Joven' },
+            { range: [30, 60], label: 'Adulto' },
+            { range: [60, 120], label: 'Adulto Mayor' }
+        ];
+
+        // Crear un array de promesas para contar la asistencia en cada grupo de edad
+        const promises = ageGroups.map(({ range, label }) => {
+            const [min, max] = range;
+            return EventoXCliente.count({
+                where: {
+                    fechaInscripcion: {
+                        [db.Sequelize.Op.between]: [startDate, endDate]
+                    },
+                    asistio: true
+                },
+                include: [{
+                    model: Cliente,
+                    as: 'clienteeve',
+                    attributes: [],
+                    where: {
+                        fechaNacimiento: {
+                            [db.Sequelize.Op.between]: [
+                                new Date(today.getFullYear() - max, today.getMonth(), today.getDate()),
+                                new Date(today.getFullYear() - min, today.getMonth(), today.getDate())
+                            ]
+                        }
+                    }
+                }]
+            }).then(conteo => ({
+                edadAgrup: `${min}-${max}`,
+                label: `${label} [${min}-${max}]`,
+                conteo
+            }));
+        });
+
+        const resultados = await Promise.all(promises);
+
+        // Filtrar los grupos de edad que tienen conteo > 0
+        const resultadosFiltrados = resultados.filter(result => result.conteo > 0);
+
+        if (resultadosFiltrados.length === 0) {
+            return res.status(204).send(); // No Content
+        }
+
+        // Modificar los resultados para incluir las etiquetas y rangos como strings
+        const resultadosModificados = resultadosFiltrados.map(result => ({
+            rango: result.label,
+            conteo: result.conteo
+        }));
+
+        console.log('Resultados Modificados: ', resultadosModificados);
+        return res.status(200).json(resultadosModificados);
+    } catch (error) {
+        console.log('getEdadPorcEventos - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+}
 const getPuntosEventosAsitencia = async (req, res) => {
 
     const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
@@ -858,5 +938,6 @@ module.exports = {
     getAsitenciaXGeneroAgrupEdad,
     getPersonasAsistente,
     getPuntosEventosAsitencia,
-    getGeneroPorcEventos
+    getGeneroPorcEventos,
+    getEdadPorcEventos
 }

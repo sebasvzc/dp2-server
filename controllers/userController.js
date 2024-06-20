@@ -70,9 +70,21 @@ const login = async (req, res) => {
                         REFRESH_TOKEN_SECRET,
                         { expiresIn: REFRESH_TOKEN_EXPIRY }
                     );
+                    const userPerm = await db.rolePermission.findAll({
+                        where: {
+                            fidRol: user.fidRol
+                        },
+                        include:{
+                            model: db.permission,
+                            as: 'permission',
+                        }
+                    });
                     res.status(200).send({
                         token: accessToken,
-                        refreshToken: refreshToken
+                        refreshToken: refreshToken,
+                        permisos: userPerm,
+                        rol: user.fidRol,
+                        tiendaId: user.fidLocatario
                     });
                 } else {
                     return res.status(401).send("Authentication failed");
