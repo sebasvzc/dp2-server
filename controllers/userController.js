@@ -334,6 +334,10 @@ const getUser = async (req, res) => {
                         rol: {[Op.not]: 'admin'}
 
                     },
+                    include: [
+                        { model: Tienda, as: 'locatarioUser' },
+                        { model: Rol, as: 'role' },
+                    ],
                     offset: offset,
                     limit: pageSize
                 }),
@@ -344,6 +348,7 @@ const getUser = async (req, res) => {
                 })
             ]);
             const [users, totalCount] = usersAndCount;
+
             if (users) {
                 return res.status(200).json({ users, newToken: req.newToken,totalUsers:totalCount });
             } else {
@@ -362,6 +367,10 @@ const getUser = async (req, res) => {
                             { nombre: { [Op.like]: `%${queryType}%` } } // Asumiendo que el campo se llama 'name'
                         ]
                     },
+                    include: [
+                        { model: Tienda, as: 'locatarioUser' },
+                        { model: Rol, as: 'role' },
+                    ],
                     offset: offset,
                     limit: pageSize
                 }),
@@ -475,13 +484,19 @@ const modificar = async (req, res) => {
             console.log("Requested "+email+" esta duplicado, por favor no colocar un email ya existente")
             return res.status(403).send("Requested "+email+" esta duplicado, por favor no colocar un email ya existente");
         }
+        console.log(req.body)
+        // Determinar el valor de fidLocatario
+        const fidLocatario = req.body.rolSeleccionado === "2" ? req.body.tiendaSeleccionada : null;
+
         await User.update(
             {
                 nombre: nombre,
                 apellido: apellido,
                 email: email,
                 activo: activo,
-                rol: rol
+                rol: rol,
+                fidRol: req.body.rolSeleccionado,
+                fidLocatario: fidLocatario,
             },
             {
                 where: { id: id }
