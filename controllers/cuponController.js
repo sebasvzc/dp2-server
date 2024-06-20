@@ -942,6 +942,47 @@ const nuevasRecomendaciones = async (req, res) => {
     }
 };
 
+const calcularCuponFavorito = (interacciones) => {
+    // 1. Calcular las interacciones ponderadas
+    const hoy = moment();
+    const interaccionesPonderadas = interacciones.map(interaccion => {
+        const diasTranscurridos = hoy.diff(moment(interaccion.dia), 'days');
+        const numInteraccionF = interaccion.numInteracciones * (180 - (diasTranscurridos / 180));
+        return {
+            fidCupon: interaccion.fidCupon,
+            tipo: interaccion.tipo,
+            numInteraccionF
+        };
+    });
+
+    // 2. Calcular la sumatoria de las interacciones ponderadas por tipo de interacción
+    const sumatorias = interaccionesPonderadas.reduce((acc, interaccion) => {
+        const { fidCupon, tipo, numInteraccionF } = interaccion;
+        if (!acc[fidCupon]) {
+            acc[fidCupon] = { ver: 0, canjear: 0, utilizar: 0 };
+        }
+        if (tipo === 'detalle') {
+            acc[fidCupon].ver += numInteraccionF;
+        } else if (tipo === 'canje') {
+            acc[fidCupon].canjear += numInteraccionF;
+        } else if (tipo === 'uso') {
+            acc[fidCupon].utilizar += numInteraccionF;
+        }
+        return acc;
+    }, {});
+
+    // 3. Calcular la calificación final del cupón
+    const calificacionesFinales = Object.keys(sumatorias).map(fidCupon => {
+        const { ver, canjear, utilizar } = sumatorias[fidCupon];
+        const calificacionFinal = (1 * ver + 2 * canjear + 3 * utilizar) / 6;
+        return { fidCupon, calificacionFinal };
+    });
+
+    // 4. Determinar el cupón con la calificación más alta
+    const cuponFavorito = calificacionesFinales.reduce((max, cupon) => cupon.calificacionFinal > max.calificacionFinal ? cupon : max, calificacionesFinales[0]);
+    console.log("favorito funcion: " + cuponFavorito.fidCupon)
+    return cuponFavorito;
+};
 
 const cuponesRecomendadosGeneral = async (req, res) => {
     try {
@@ -952,28 +993,27 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         const tablaRecomendacionGeneral = db.recomendacionGeneral;
         const tablaCupon = db.cupones;
 
-        // 1. Obtener el cupón "favorito" de un cliente
-        let favorito = await tablaInteracciones.findOne({
-            attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
-            where: { activo: true, fidCliente: idCliente },
-            order: [
-                ['numInteracciones', 'DESC'],
-                ['updatedAt', 'DESC']
-            ]
+        // 1. Obtener las interacciones del cliente
+        const interacciones = await tablaInteracciones.findAll({
+            attributes: ['fidCupon', 'numInteracciones', 'dia', 'tipo'],
+            where: { activo: true, fidCliente: idCliente }
         });
 
-        if (!favorito) {
+        let favorito;
+        if (!interacciones.length) {
             favorito = await tablaInteracciones.findOne({
-                attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+                attributes: ['fidCupon', 'numInteracciones', 'dia'],
                 where: { activo: true },
                 order: [
                     ['numInteracciones', 'DESC'],
-                    ['updatedAt', 'DESC']
+                    ['dia', 'DESC']
                 ]
             });
             if (!favorito) {
                 return res.status(404).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
-            }
+            };
+        }else{
+            favorito = calcularCuponFavorito(interacciones);
         }
 
         const cuponFavoritoId = favorito.fidCupon;
