@@ -13,6 +13,7 @@ const fs = require('fs')
 const nodemailer = require('nodemailer');
 const router = require('./routes/indexRoute');
 const scripts = require('./scripts/index.scripts')
+const scriptsIA = require('./scripts/ia.index')
 var options = {
   customCss: fs.readFileSync(("./swagger.css"), 'utf8')
 };

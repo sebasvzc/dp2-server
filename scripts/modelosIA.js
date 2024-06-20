@@ -31,11 +31,13 @@ const getAllInteracciones = async () => {
 const callCollaborativeFilteringAPI = async (todos) => {
     try {
         const payload = { todos };
-        const response = await axios.post(`${FASTAPI_BASE_URL}/collaborative_filtering`, payload);
+        const url = `http://${FASTAPI_BASE_URL}/ia/collaborative_filtering`;
+        console.log("LLAMANDO A: "+url)
+        const response = await axios.post(url, payload);
         console.log('Collaborative Filtering Response:', response.data);
         return response.data;
     } catch (error) {
-        console.error('Error calling collaborative_filtering API:', error);
+        console.error('Error calling collaborative_filtering API:');
         throw error;
     }
 };
@@ -44,11 +46,13 @@ const callCollaborativeFilteringAPI = async (todos) => {
 const callContentBasedFilteringAPI = async (todos) => {
     try {
         const payload = { cupones: todos }; // Ajusta esto según el formato esperado por la API
-        const response = await axios.post(`${FASTAPI_BASE_URL}/content_based_filtering`, payload);
+        const url = `http://${FASTAPI_BASE_URL}/ia/content_based_filtering`
+        console.log("LLAMANDO A: "+ url)
+        const response = await axios.post(url, payload);
         console.log('Content-Based Filtering Response:', response.data);
         return response.data;
     } catch (error) {
-        console.error('Error calling content_based_filtering API:', error);
+        console.error('Error calling content_based_filtering API:');
         throw error;
     }
 };
