@@ -10,23 +10,23 @@ const moment = require("moment");
 
 const pool = mysql.createPool({
     host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
-      port: 3306,
-      user: 'administrador',
-      password: 'contrasenia',
-      database: 'plaza',
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      connectTimeout: 600000
-      
-      });
+    port: 3306,
+    user: 'administrador',
+    password: 'contrasenia',
+    database: 'plaza',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    connectTimeout: 600000
+
+});
 const {
     S3Client,
     PutObjectCommand,
     GetObjectCommand,
     DeleteObjectCommand
 } = require("@aws-sdk/client-s3");
-const {getSignUrlForFile} = require("../config/s3");
+const { getSignUrlForFile } = require("../config/s3");
 
 var s3Config;
 s3Config = {
@@ -47,7 +47,7 @@ AWS.config.update({
     secretAccessKey: AWS_ACCESS_SECRET,
     sessionToken: AWS_SESSION_TOKEN,
     region: 'us-east-1' // La región donde está tu bucket
-  });
+});
 
 const s3 = new AWS.S3();
 
@@ -69,25 +69,25 @@ const detalleCuponCompleto = async (req, res) => {
                 {
                     model: db.locatarios,
                     as: 'locatario',
-                    attributes: ['id','nombre'],
+                    attributes: ['id', 'nombre'],
                 },
                 {
                     model: db.tipoCupons,
                     as: 'tipoCupon',
-                    attributes: ['id','nombre'],
+                    attributes: ['id', 'nombre'],
                 }
             ]
         });
 
         if (detalleCupon) {
             const objectKey = `cupon${detalleCupon.id}.jpg`;
-            const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
+            const url = await getSignUrlForFile(objectKey, "defaultCupon.png");
             console.log(detalleCupon.id)
             console.log(url)
             console.log(`Attempting to retrieve object with key: ${objectKey} from bucket:`, AWS_S3_BUCKET_NAME);
-            res.status(200).json({ success: true, detalles: detalleCupon, image:url});
+            res.status(200).json({ success: true, detalles: detalleCupon, image: url });
         } else {
-            res.status(404).json({ success: false, message: 'Cupón no encontrado'});
+            res.status(404).json({ success: false, message: 'Cupón no encontrado' });
         }
     } catch (error) {
         console.error("Error:", error);
@@ -98,16 +98,16 @@ const detalleCuponCompleto = async (req, res) => {
 // arreglar
 const detalleCupon = async (req, res) => {
     try {
-        let { idCupon,  idCliente = 1} = req.body;
+        let { idCupon, idCliente = 1 } = req.body;
         await nuevaInteraccion(idCupon, idCliente, "detalle");
-        
+
         const detalles = await db.cupones.findOne({
             where: { id: idCupon },
             attributes: ['codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 'costoPuntos', 'rutaFoto'],
             include: [{
                 model: db.locatarios,
                 as: 'locatario',
-                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto','id'],
+                attributes: ['nombre', 'descripcion', 'locacion', 'rutaFoto', 'id'],
                 include: [{
                     model: db.categoriaTiendas,
                     as: 'categoriaTienda',
@@ -116,42 +116,42 @@ const detalleCupon = async (req, res) => {
             }]
         });
 
-       /* const locatarioId = detalles.locatario.id;
-        const keyLocatario = `tienda${locatarioId}.jpg`;
-
-        const url = await getSignUrlForFile('getObject', {
-            Bucket: 'appdp2',
-            Key: keyLocatario,
-            Expires: 8600 // Tiempo de expiración en segundos
-        });
-
-        const cuponId = detalles.id;
-        const keyCupon = `cupon${cuponId}.jpg`;
-        const url2 = await getSignUrlForFile('getObject', {
-            Bucket: 'appdp2',
-            Key: keyCupon,
-            Expires: 8600 // Tiempo de expiración en segundos
-        });*/
+        /* const locatarioId = detalles.locatario.id;
+         const keyLocatario = `tienda${locatarioId}.jpg`;
+ 
+         const url = await getSignUrlForFile('getObject', {
+             Bucket: 'appdp2',
+             Key: keyLocatario,
+             Expires: 8600 // Tiempo de expiración en segundos
+         });
+ 
+         const cuponId = detalles.id;
+         const keyCupon = `cupon${cuponId}.jpg`;
+         const url2 = await getSignUrlForFile('getObject', {
+             Bucket: 'appdp2',
+             Key: keyCupon,
+             Expires: 8600 // Tiempo de expiración en segundos
+         });*/
 
         if (detalles) {
 
             const keyCupon = `cupon${idCupon}.jpg`;
 
-                // Genera la URL firmada para el objeto en el bucket appdp2
-                const urlCupon = s3.getSignedUrl('getObject', {
-                    Bucket: 'appdp2',
-                    Key: keyCupon,
-                    Expires: 8600 // Tiempo de expiración en segundos
-                });
+            // Genera la URL firmada para el objeto en el bucket appdp2
+            const urlCupon = s3.getSignedUrl('getObject', {
+                Bucket: 'appdp2',
+                Key: keyCupon,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
 
             const keyLocatario = `tienda${detalles.locatario.id}.jpg`;
 
-                // Genera la URL firmada para el objeto en el bucket appdp2
+            // Genera la URL firmada para el objeto en el bucket appdp2
             const urlTienda = s3.getSignedUrl('getObject', {
-                    Bucket: 'appdp2',
-                    Key: keyLocatario,
-                    Expires: 8600 // Tiempo de expiración en segundos
-                });
+                Bucket: 'appdp2',
+                Key: keyLocatario,
+                Expires: 8600 // Tiempo de expiración en segundos
+            });
 
 
             const formattedCupon = {
@@ -191,7 +191,7 @@ const getCupones = async (req, res) => {
         return res.status(409).send("?query=xxxx is required! NB: xxxx is all / email");
     }
     let where = {};
-    console.log("RequUSer es ",req.user)
+    console.log("RequUSer es ", req.user)
     if (req.user.fidLocatario !== null) {
         where.fidLocatario = req.user.fidLocatario;
     }
@@ -203,17 +203,17 @@ const getCupones = async (req, res) => {
                     offset: offset,
                     limit: pageSize
                 }),
-                Cupon.count({where})
+                Cupon.count({ where })
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
+                    const url = await getSignUrlForFile(objectKey, "defaultCupon.png");
                     // Agregar la URL firmada al objeto del cupón
                     return { ...cupon.dataValues, rutaFoto: url };
                 }));
-                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
+                return res.status(200).json({ cupones: updatedCupones, newToken: req.newToken, totalCupones: totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
@@ -239,11 +239,11 @@ const getCupones = async (req, res) => {
                 // console.log(users)
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
+                    const url = await getSignUrlForFile(objectKey, "defaultCupon.png");
                     // Agregar la URL firmada al objeto del cupón
                     return { ...cupon.dataValues, rutaFoto: url };
                 }));
-                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
+                return res.status(200).json({ cupones: updatedCupones, newToken: req.newToken, totalCupones: totalCount });
             } else {
                 return res.status(200).send("Cupones no encontrados con esa busqueda");
             }
@@ -274,20 +274,20 @@ const getCuponesClientes = async (req, res) => {
                 Cupon.findAll({
                     offset: offset,
                     limit: pageSize,
-                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    include: [{ model: Locatario, as: 'locatario', attributes: [] }],
                     where: {
-                        activo:1,
+                        activo: 1,
                         '$locatario.fidCategoriaTienda$': { [Op.or]: categoria }
 
                     },
-                    attributes:["id","cantidadDisponible","costoPuntos","esLimitado","sumilla","fidLocatario"]
+                    attributes: ["id", "cantidadDisponible", "costoPuntos", "esLimitado", "sumilla", "fidLocatario"]
                 }),
                 Cupon.count({
-                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    include: [{ model: Locatario, as: 'locatario', attributes: [] }],
 
                     where: {
                         '$locatario.fidCategoriaTienda$': { [Op.or]: categoria },
-                        activo:1
+                        activo: 1
                     }
                 })
             ]);
@@ -296,17 +296,17 @@ const getCuponesClientes = async (req, res) => {
                 // Iterar sobre los cupones y realizar una acción asíncrona con cada uno
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
+                    const url = await getSignUrlForFile(objectKey, "defaultCupon.png");
                     console.log("cupon.fidLocatario")
                     console.log(cupon.fidLocatario)
                     const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
-                    const urlTienda = await getSignUrlForFile(objectKey2,"defaultStore.png");
+                    const urlTienda = await getSignUrlForFile(objectKey2, "defaultStore.png");
 
 
                     // Agregar la URL firmada al objeto del cupón
                     return { ...cupon.dataValues, rutaFoto: url, rutaTienda: urlTienda };
                 }));
-                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
+                return res.status(200).json({ cupones: updatedCupones, newToken: req.newToken, totalCupones: totalCount });
             } else {
                 return res.status(400).send("Invalid request body");
             }
@@ -321,7 +321,7 @@ const getCuponesClientes = async (req, res) => {
                         ]
                     },
                     {
-                        activo:1
+                        activo: 1
                     }
                 ]
             };
@@ -334,14 +334,14 @@ const getCuponesClientes = async (req, res) => {
             const cuponesAndCount = await Promise.all([
                 Cupon.findAll({
                     where: whereCondition,
-                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    include: [{ model: Locatario, as: 'locatario', attributes: [] }],
                     offset: offset,
                     limit: pageSize,
-                    attributes:["id","cantidadDisponible","costoPuntos","esLimitado","sumilla","fidLocatario"]
+                    attributes: ["id", "cantidadDisponible", "costoPuntos", "esLimitado", "sumilla", "fidLocatario"]
                 }),
                 Cupon.count({
                     where: whereCondition,
-                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    include: [{ model: Locatario, as: 'locatario', attributes: [] }],
                 })
             ]);
             const [cupones, totalCount] = cuponesAndCount;
@@ -349,11 +349,11 @@ const getCuponesClientes = async (req, res) => {
 
                 const updatedCupones = await Promise.all(cupones.map(async (cupon) => {
                     const objectKey = `cupon${cupon.id}.jpg`;
-                    const url = await getSignUrlForFile(objectKey,"defaultCupon.png");
+                    const url = await getSignUrlForFile(objectKey, "defaultCupon.png");
                     console.log("cupon.fidLocatario")
                     console.log(cupon.fidLocatario)
                     const objectKey2 = `tienda${cupon.fidLocatario}.jpg`;
-                    const urlTienda = await getSignUrlForFile(objectKey2,"defaultStore.png");
+                    const urlTienda = await getSignUrlForFile(objectKey2, "defaultStore.png");
 
 
                     // Agregar la URL firmada al objeto del cupón
@@ -361,7 +361,7 @@ const getCuponesClientes = async (req, res) => {
                 }));
                 // console.log(users)
                 // console.log(users)
-                return res.status(200).json({ cupones:updatedCupones, newToken: req.newToken,totalCupones:totalCount });
+                return res.status(200).json({ cupones: updatedCupones, newToken: req.newToken, totalCupones: totalCount });
             } else {
                 return res.status(200).send("Cupones no encontrados con esa busqueda");
             }
@@ -396,7 +396,7 @@ const getClientesXCupon = async (req, res) => {
                         {
                             model: Cliente,
                             as: 'cliente',
-                            attributes: ["nombre","apellidoPaterno","email","telefono"]  // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["nombre", "apellidoPaterno", "email", "telefono"]  // No necesitamos otros atributos del locatario para esta consulta
                         }
                     ]
                 }),
@@ -408,7 +408,7 @@ const getClientesXCupon = async (req, res) => {
                 })
             ]);
             const [clientesXCupon, totalCount] = cuponesAndCount;
-            return res.status(200).json({ clientesxCupon:clientesXCupon, newToken: req.newToken,totalClientes:totalCount });
+            return res.status(200).json({ clientesxCupon: clientesXCupon, newToken: req.newToken, totalClientes: totalCount });
         } else {
             console.log("Estoy viendo algo que no es all")
             const whereCondition = {
@@ -427,20 +427,20 @@ const getClientesXCupon = async (req, res) => {
             const cuponesAndCount = await Promise.all([
                 Cupon.findAll({
                     where: whereCondition,
-                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    include: [{ model: Locatario, as: 'locatario', attributes: [] }],
                     offset: offset,
                     limit: pageSize
                 }),
                 Cupon.count({
                     where: whereCondition,
-                    include: [{ model: Locatario, as: 'locatario', attributes: []  }],
+                    include: [{ model: Locatario, as: 'locatario', attributes: [] }],
                 })
             ]);
             const [cupones, totalCount] = cuponesAndCount;
             if (cupones) {
                 // console.log(users)
                 // console.log(users)
-                return res.status(200).json({ cupones, newToken: req.newToken,totalCupones:totalCount });
+                return res.status(200).json({ cupones, newToken: req.newToken, totalCupones: totalCount });
             } else {
                 return res.status(200).send("Clientes no encontrados con esa busqueda para el cupon");
             }
@@ -468,7 +468,7 @@ const getCuponesXDiaCanjeado = async (req, res) => {
                 [db.sequelize.literal(`DATE_FORMAT(fechaCompra, '%b %Y')`), 'fecha'],
                 [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cantidad'] // Contar el número de cupones por fecha
             ],
-            group: [db.sequelize.literal(`DATE_FORMAT(fechaCompra, '%b %Y')`)] ,// Agrupar por la fecha
+            group: [db.sequelize.literal(`DATE_FORMAT(fechaCompra, '%b %Y')`)],// Agrupar por la fecha
             order: [
                 [db.sequelize.fn('DATE', db.sequelize.col('fechaCompra')), 'ASC']
             ]
@@ -499,7 +499,7 @@ const habilitar = async (req, res) => {
                 }
             });
             if (!cupon) {
-                return res.status(409).send("El id del cupon  "+selectedItem+" no se encontro en la bd");
+                return res.status(409).send("El id del cupon  " + selectedItem + " no se encontro en la bd");
             }
             await Cupon.update(
                 {
@@ -510,7 +510,7 @@ const habilitar = async (req, res) => {
                 }
             );
         }
-        return res.status(200).send({message:"Cupones habilitados correctamente", code:0});
+        return res.status(200).send({ message: "Cupones habilitados correctamente", code: 0 });
     } catch (error) {
         console.log('updateCupon - updateItem:', updateItem, ' - [Error]: ', error)
     }
@@ -528,7 +528,7 @@ const deshabilitar = async (req, res) => {
                 }
             });
             if (!cupon) {
-                return res.status(409).send("El id del cupon "+selectedItem+" no se encontro en la bd");
+                return res.status(409).send("El id del cupon " + selectedItem + " no se encontro en la bd");
             }
             await Cupon.update(
                 {
@@ -539,7 +539,7 @@ const deshabilitar = async (req, res) => {
                 }
             );
         }
-        return res.status(200).send({message:"Cupones deshabilitados correctamente", code:0});
+        return res.status(200).send({ message: "Cupones deshabilitados correctamente", code: 0 });
     } catch (error) {
         console.log('updateCupon- updateItem:', updateItem, ' - [Error]: ', error)
     }
@@ -549,7 +549,7 @@ const crear = async (req, res) => {
         console.log("entre a registrar nuevo cupon");
 
 
-        const { codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,ordenPriorizacion } = req.body;
+        const { codigo, fidLocatario, fidTipoCupon, sumilla, descripcionCompleta, fechaExpiracion, terminosCondiciones, esLimitado, costoPuntos, cantidadInicial, ordenPriorizacion } = req.body;
 
         const checkCupon = await Cupon.findOne({
             where: {
@@ -557,8 +557,8 @@ const crear = async (req, res) => {
             }
         });
         if (checkCupon) {
-            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
-            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+            console.log("Requested " + codigo + " esta duplicado, por favor no colocar un codigo de cupon ya existente")
+            return res.status(409).send("Requested " + codigo + " esta duplicado, por favor no colocar un codigo de cupon ya existente");
         }
         const data = {
             codigo,
@@ -571,10 +571,10 @@ const crear = async (req, res) => {
             esLimitado,
             costoPuntos,
             cantidadInicial,
-            cantidadDisponible:cantidadInicial,
+            cantidadDisponible: cantidadInicial,
             ordenPriorizacion,
             rutaFoto: codigo,
-            activo:1
+            activo: 1
         };
         //saving the user
         const cupon = await Cupon.create(data);
@@ -604,7 +604,7 @@ const crear = async (req, res) => {
 
             //send users details
             //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send({message:"Cupon "+ cupon.id+ " creado correctamente"});
+            return res.status(200).send({ message: "Cupon " + cupon.id + " creado correctamente" });
         }
         else {
             return res.status(400).send("Invalid request body");
@@ -618,7 +618,7 @@ const crear = async (req, res) => {
 const modificar = async (req, res) => {
 
     console.log("viendo modificar cupon")
-    const {id, codigo,fidLocatario, fidTipoCupon,sumilla, descripcionCompleta, fechaExpiracion,terminosCondiciones,esLimitado,costoPuntos,cantidadInicial,cantidadDisponible,ordenPriorizacion,rutaFoto } = req.body;
+    const { id, codigo, fidLocatario, fidTipoCupon, sumilla, descripcionCompleta, fechaExpiracion, terminosCondiciones, esLimitado, costoPuntos, cantidadInicial, cantidadDisponible, ordenPriorizacion, rutaFoto } = req.body;
     try {
         const cupon = await Cupon.findOne({
             where: {
@@ -626,21 +626,21 @@ const modificar = async (req, res) => {
             }
         });
         if (!cupon) {
-            console.log("Cupon "+updateItem+" no fue encontrado")
-            return res.status(409).send("Cupon "+updateItem+" no fue encontrado");
+            console.log("Cupon " + updateItem + " no fue encontrado")
+            return res.status(409).send("Cupon " + updateItem + " no fue encontrado");
         }
         const checkCupon = await Cupon.findOne({
             where: {
                 codigo: codigo
             }
         });
-        if (checkCupon && parseInt(id,10)!== checkCupon.id) {
+        if (checkCupon && parseInt(id, 10) !== checkCupon.id) {
 
-            console.log("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente")
-            return res.status(409).send("Requested "+codigo+" esta duplicado, por favor no colocar un codigo de cupon ya existente");
+            console.log("Requested " + codigo + " esta duplicado, por favor no colocar un codigo de cupon ya existente")
+            return res.status(409).send("Requested " + codigo + " esta duplicado, por favor no colocar un codigo de cupon ya existente");
         }
         const file = req.files[0];
-        if(file){
+        if (file) {
             const existingFileKey = `cupon${checkCupon.id}.jpg`; // Asumiendo que el archivo existente tiene el mismo código y extensión .jpg
             const newFileKey = `cupon${id}.jpg`;
 
@@ -670,7 +670,7 @@ const modificar = async (req, res) => {
                     message: "Se encontró un error durante la subida del archivo, pero sí se creó el cupón. Edítalo posteriormente."
                 });
             }
-        }else{
+        } else {
             console.log("no has enviado ningun archivo")
         }
         await Cupon.update(
@@ -693,7 +693,7 @@ const modificar = async (req, res) => {
                 where: { id: id }
             }
         );
-        return res.status(200).send({message:"Cupon modificado correctametne"});
+        return res.status(200).send({ message: "Cupon modificado correctametne" });
     } catch (error) {
         console.log('updateUser - updateItem:', updateItem, ' - [Error]: ', error)
     }
@@ -706,7 +706,7 @@ const cuponesFiltradosGeneral = async (req, res) => {
     var options = {
         limit: +size,
         offset: (+page) * (+size),
-        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones',
             'costoPuntos', 'rutaFoto', 'esLimitado', 'cantidadDisponible'],
         required: true,
         include: [
@@ -736,7 +736,7 @@ const cuponesFiltradosGeneral = async (req, res) => {
         }
     }
 
-    if(busqueda != ""){
+    if (busqueda != "") {
         options.where[Op.or] = [
             {
                 sumilla: {
@@ -754,10 +754,10 @@ const cuponesFiltradosGeneral = async (req, res) => {
     if (!categorias || categorias.length === 0) {
         options.include[0].include[0].where = {}; // Vaciar el objeto where
     } else {
-        options.include[0].include[0].where = {id: categorias};
+        options.include[0].include[0].where = { id: categorias };
     }
 
-    if(orden !== "ASC" && orden != "DESC"){
+    if (orden !== "ASC" && orden != "DESC") {
         orden = "ASC";
     }
 
@@ -813,7 +813,7 @@ const cuponesFiltradosGeneral = async (req, res) => {
     });
 
     console.log('data conseguida');
-    res.json({total: count, cupones: formattedCupones})
+    res.json({ total: count, cupones: formattedCupones })
 };
 
 const cuponesFavoritos = async (req, res) => {
@@ -894,12 +894,12 @@ const cuponesFavoritos = async (req, res) => {
 };
 
 const allInteracciones = async (req, res) => {
-    try{
+    try {
         const tablaInteracciones = db.interaccionesCupon;
 
         const todos = await tablaInteracciones.findAll({
-            attributes: ['fidCliente','fidCupon','numInteracciones', 'tipo', 'dia'],
-            where: { activo: true},
+            attributes: ['fidCliente', 'fidCupon', 'numInteracciones', 'tipo', 'dia'],
+            where: { activo: true },
             order: [
                 ['numInteracciones', 'DESC'],
                 ['dia', 'DESC']
@@ -908,17 +908,17 @@ const allInteracciones = async (req, res) => {
         res.status(200).json({
             todos
         })
-    }catch (error) {
+    } catch (error) {
         console.error('Error al obtener los cupones favoritos:', error);
         res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
     }
-    
+
 
 }
 
 const nuevasRecomendaciones = async (req, res) => {
     try {
-        const { cuponFavorito, cuponRecomendado, prioridad, tipoAlgoritmo=1 } = req.body;
+        const { cuponFavorito, cuponRecomendado, prioridad, tipoAlgoritmo = 1 } = req.body;
 
         // Validar que los campos requeridos están presentes
         if (!cuponFavorito || !cuponRecomendado || !prioridad) {
@@ -942,42 +942,83 @@ const nuevasRecomendaciones = async (req, res) => {
     }
 };
 
+const calcularCuponFavorito = (interacciones) => {
+    // 1. Calcular las interacciones ponderadas
+    const hoy = moment();
+    const interaccionesPonderadas = interacciones.map(interaccion => {
+        const diasTranscurridos = hoy.diff(moment(interaccion.dia), 'days');
+        const numInteraccionF = interaccion.numInteracciones * (180 - (diasTranscurridos / 180));
+        return {
+            fidCupon: interaccion.fidCupon,
+            tipo: interaccion.tipo,
+            numInteraccionF
+        };
+    });
+
+    // 2. Calcular la sumatoria de las interacciones ponderadas por tipo de interacción
+    const sumatorias = interaccionesPonderadas.reduce((acc, interaccion) => {
+        const { fidCupon, tipo, numInteraccionF } = interaccion;
+        if (!acc[fidCupon]) {
+            acc[fidCupon] = { ver: 0, canjear: 0, utilizar: 0 };
+        }
+        if (tipo === 'detalle') {
+            acc[fidCupon].ver += numInteraccionF;
+        } else if (tipo === 'canje') {
+            acc[fidCupon].canjear += numInteraccionF;
+        } else if (tipo === 'uso') {
+            acc[fidCupon].utilizar += numInteraccionF;
+        }
+        return acc;
+    }, {});
+
+    // 3. Calcular la calificación final del cupón
+    const calificacionesFinales = Object.keys(sumatorias).map(fidCupon => {
+        const { ver, canjear, utilizar } = sumatorias[fidCupon];
+        const calificacionFinal = (1 * ver + 2 * canjear + 3 * utilizar) / 6;
+        return { fidCupon, calificacionFinal };
+    });
+
+    // 4. Determinar el cupón con la calificación más alta
+    const cuponFavorito = calificacionesFinales.reduce((max, cupon) => cupon.calificacionFinal > max.calificacionFinal ? cupon : max, calificacionesFinales[0]);
+    console.log("favorito funcion: " + cuponFavorito.fidCupon)
+    return cuponFavorito;
+};
 
 const cuponesRecomendadosGeneral = async (req, res) => {
-    try{
+    try {
         const { idCliente } = req.body;
         //console.log("acaaaaaaaaaaaaaaaaaa "+idCliente)
         //devolver el id el cupon y su sumilla
         const tablaInteracciones = db.interaccionesCupon;
         const tablaRecomendacionGeneral = db.recomendacionGeneral;
         const tablaCupon = db.cupones;
-        
-        // 1. Obtener el cupón "favorito" de un cliente
-        let favorito = await tablaInteracciones.findOne({
-            attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
-            where: { activo: true, fidCliente: idCliente },
-            order: [
-                ['numInteracciones', 'DESC'],
-                ['updatedAt', 'DESC']
-            ]
+
+        // 1. Obtener las interacciones del cliente
+        const interacciones = await tablaInteracciones.findAll({
+            attributes: ['fidCupon', 'numInteracciones', 'dia', 'tipo'],
+            where: { activo: true, fidCliente: idCliente }
         });
 
-        if (!favorito) {
+        let favorito;
+        if (!interacciones.length) {
             favorito = await tablaInteracciones.findOne({
-                attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
+                attributes: ['fidCupon', 'numInteracciones', 'dia'],
                 where: { activo: true },
                 order: [
                     ['numInteracciones', 'DESC'],
-                    ['updatedAt', 'DESC']
+                    ['dia', 'DESC']
                 ]
             });
             if (!favorito) {
-                return res.status(200).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
-            }
+
+                return res.status(404).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
+            };
+        }else{
+            favorito = calcularCuponFavorito(interacciones);
         }
 
         const cuponFavoritoId = favorito.fidCupon;
-        console.log("fav: "+ cuponFavoritoId)
+        console.log("fav: " + cuponFavoritoId)
         // 2. Buscar en la tabla recomendacionGenerals por la fecha de hoy y el cuponFavorito
         const today = moment().startOf('day');
         const tomorrow = moment().endOf('day');
@@ -1007,8 +1048,10 @@ const cuponesRecomendadosGeneral = async (req, res) => {
                 ],
                 limit: 4
             });
+
             if (!recomendaciones.length){
                 return res.status(200).json({ message: 'No se encontraron recomendaciones para el cupón favorito en la fecha actual, tampoco buscando entre los ultimos de la tabla' });
+
             }
         }
 
@@ -1017,7 +1060,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
 
         const cuponesRecomendados = await tablaCupon.findAll({
             where: { id: cuponRecomendadoIds },
-            attributes: ['id', 'sumilla', 'costoPuntos','esLimitado','cantidadDisponible'],
+            attributes: ['id', 'sumilla', 'costoPuntos', 'esLimitado', 'cantidadDisponible'],
             include: [
                 {
                     model: db.locatarios,
@@ -1063,44 +1106,44 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         // Devolver los datos formateados
         res.status(200).json({ cupones: cuponesConImagenes });
 
-    }catch (error) {
+    } catch (error) {
         console.error('Error al obtener los cupones favoritos:', error);
         res.status(500).json({ message: 'Error al obtener los cupones favoritos' });
     }
-    
+
 
 }
 
-const comprarCuponCliente = async (req, res,next) => {
+const comprarCuponCliente = async (req, res, next) => {
     let connection;
     const idCliente = parseInt(req.body.idCliente)
-    const idCupon = parseInt (req.body.idCupon)
+    const idCupon = parseInt(req.body.idCupon)
 
     await nuevaInteraccion(idCupon, idCliente, "canje");
 
-    const intentosMax =3;
-    let intentos=0;
+    const intentosMax = 3;
+    let intentos = 0;
     let exito = false;
-    while(intentos <= intentosMax && !exito){
-    try{
-        connection = await pool.getConnection();
-        const [result] = await connection.query(`CALL comprarCupon(?,?,@resultado,@mensaje)`,[idCliente,idCupon])
-        
-        const [row] = await connection.query ('Select @resultado AS resultado, @mensaje AS mensaje')
-        const resultado = row[0]
-        res.status(200).json(resultado);
-        exito=true;
-    }catch(error){
-        intentos++;
-        if(intentos>intentosMax){
-            next(error);
-        }else{
-            console.error(`Intento ${intentos} fallido. Reviviendo...`, error)
-        }
-        
-    }finally {
-        if (connection){
-            connection.release();
+    while (intentos <= intentosMax && !exito) {
+        try {
+            connection = await pool.getConnection();
+            const [result] = await connection.query(`CALL comprarCupon(?,?,@resultado,@mensaje)`, [idCliente, idCupon])
+
+            const [row] = await connection.query('Select @resultado AS resultado, @mensaje AS mensaje')
+            const resultado = row[0]
+            res.status(200).json(resultado);
+            exito = true;
+        } catch (error) {
+            intentos++;
+            if (intentos > intentosMax) {
+                next(error);
+            } else {
+                console.error(`Intento ${intentos} fallido. Reviviendo...`, error)
+            }
+
+        } finally {
+            if (connection) {
+                connection.release();
             }
         }
     }
@@ -1130,7 +1173,7 @@ const nuevaInteraccion = async (idCupon, idCliente, tipo) => {
                 fidCliente: idCliente,
                 numInteracciones: 1,
                 tipo: tipo,
-                dia: new Date(), 
+                dia: new Date(),
                 activo: true,
                 //usuarioCreacion: 'system', // Ajusta según sea necesario
                 //usuarioActualizacion: 'system' // Ajusta según sea necesario
@@ -1143,11 +1186,11 @@ const nuevaInteraccion = async (idCupon, idCliente, tipo) => {
 };
 
 
-const cuponesParaIA= async (req, res) => {
+const cuponesParaIA = async (req, res) => {
     //console.log("Req ", req.query, req.body)
 
     var options = {
-        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones', 
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones',
             'costoPuntos', 'esLimitado', 'cantidadDisponible'],
         required: true,
         include: [
@@ -1161,7 +1204,7 @@ const cuponesParaIA= async (req, res) => {
                         model: db.categoriaTiendas,
                         association: 'categoriaTienda',
                         required: true,
-                        attributes: ['id','nombre'], // Opcional: si no necesitas atributos específicos de la categoría
+                        attributes: ['id', 'nombre'], // Opcional: si no necesitas atributos específicos de la categoría
                     }
                 ]
             }
@@ -1201,7 +1244,7 @@ const cuponesParaIA= async (req, res) => {
     });
 
     console.log('data conseguida');
-    res.json({cupones: formattedCupones})
+    res.json({ cupones: formattedCupones })
 };
 
 module.exports = {
