@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         activo: {
             type: DataTypes.BOOLEAN,
             allowNull: false
+        },
+        tipoAlgoritmo: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         }
     }, { timestamps: true });
 

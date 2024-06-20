@@ -918,7 +918,7 @@ const allInteracciones = async (req, res) => {
 
 const nuevasRecomendaciones = async (req, res) => {
     try {
-        const { cuponFavorito, cuponRecomendado, prioridad } = req.body;
+        const { cuponFavorito, cuponRecomendado, prioridad, tipoAlgoritmo=1 } = req.body;
 
         // Validar que los campos requeridos están presentes
         if (!cuponFavorito || !cuponRecomendado || !prioridad) {
@@ -926,11 +926,12 @@ const nuevasRecomendaciones = async (req, res) => {
         }
 
         // Crear un nuevo registro en la tabla recomendacionGenerals
-        const nuevaRecomendacion = await db.recomendacionGeneral.create({
+        await db.recomendacionGeneral.create({
             cuponFavorito,
             cuponRecomendado,
             prioridad,
-            activo: true
+            activo: true,
+            tipoAlgoritmo: tipoAlgoritmo
         });
 
         // Devolver la nueva recomendación creada
@@ -945,7 +946,7 @@ const nuevasRecomendaciones = async (req, res) => {
 const cuponesRecomendadosGeneral = async (req, res) => {
     try{
         const { idCliente } = req.body;
-        console.log("acaaaaaaaaaaaaaaaaaa "+idCliente)
+        //console.log("acaaaaaaaaaaaaaaaaaa "+idCliente)
         //devolver el id el cupon y su sumilla
         const tablaInteracciones = db.interaccionesCupon;
         const tablaRecomendacionGeneral = db.recomendacionGeneral;
@@ -964,7 +965,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         if (!favorito) {
             favorito = await tablaInteracciones.findOne({
                 attributes: ['fidCupon', 'numInteracciones', 'updatedAt'],
-                where: { activo: true},
+                where: { activo: true },
                 order: [
                     ['numInteracciones', 'DESC'],
                     ['updatedAt', 'DESC']
@@ -984,6 +985,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         let recomendaciones = await tablaRecomendacionGeneral.findAll({
             where: {
                 cuponFavorito: cuponFavoritoId,
+                tipoAlgoritmo: 1,
                 createdAt: {
                     [Op.between]: [today.toDate(), tomorrow.toDate()]
                 }
@@ -995,6 +997,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
             recomendaciones = await tablaRecomendacionGeneral.findAll({
                 where: {
                     cuponFavorito: cuponFavoritoId,
+                    tipoAlgoritmo: 1,
                     createdAt: {
                         [Op.between]: [today.toDate(), tomorrow.toDate()]
                     }
