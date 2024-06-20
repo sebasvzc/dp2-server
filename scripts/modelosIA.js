@@ -27,6 +27,58 @@ const getAllInteracciones = async () => {
     }
 };
 
+const obtenerCuponesParaIA = async () => {
+    var options = {
+        attributes: ['id', 'codigo', 'sumilla', 'descripcionCompleta', 'fechaExpiracion', 'terminosCondiciones',
+            'costoPuntos', 'esLimitado', 'cantidadDisponible'],
+        required: true,
+        include: [
+            {
+                model: db.locatarios,
+                association: 'locatario',
+                attributes: ['id', 'nombre', 'descripcion', 'locacion'],
+                required: true,
+                include: [
+                    {
+                        model: db.categoriaTiendas,
+                        association: 'categoriaTienda',
+                        required: true,
+                        attributes: ['id', 'nombre'],
+                    }
+                ]
+            }
+        ],
+        where: {
+            activo: 1,
+            fechaExpiracion: {
+                [Op.gt]: new Date() // Validar que la fecha de expiración sea mayor a la fecha actual
+            },
+            cantidadDisponible: {
+                [Op.gt]: 0 // Validar que la cantidad disponible sea mayor a 0
+            }
+        }
+    }
+
+    const cupones = await db.cupones.findAll(options);
+
+    const formattedCupones = cupones.map(cupon => {
+        return {
+            idCupon: cupon.id,
+            sumilla: cupon.sumilla,
+            descripcionCompleta: cupon.descripcionCompleta,
+            costoPuntos: cupon.costoPuntos,
+            esLimitado: cupon.esLimitado,
+            cantidadDisponible: cupon.cantidadDisponible,
+            idLocatario: cupon.locatario.id,
+            locatarioNombre: cupon.locatario.nombre,
+            categoriaTiendaID: cupon.locatario.categoriaTienda.id,
+            categoriaTiendaNombre: cupon.locatario.categoriaTienda.nombre
+        };
+    });
+
+    return formattedCupones;
+};
+
 // Función para llamar a la API de Collaborative Filtering
 const callCollaborativeFilteringAPI = async (todos) => {
     try {
@@ -44,9 +96,9 @@ const callCollaborativeFilteringAPI = async (todos) => {
 };
 
 // Función para llamar a la API de Content-Based Filtering
-const callContentBasedFilteringAPI = async (todos) => {
+const callContentBasedFilteringAPI = async (cupones) => {
     try {
-        const payload = { cupones: todos }; // Ajusta esto según el formato esperado por la API
+        const payload = { cupones }; // Ajusta esto según el formato esperado por la API
         await vaciarRecomendaciones(2);
         const url = `http://${FASTAPI_BASE_URL}/ia/content_based_filtering`
         console.log("LLAMANDO A: "+ url)
@@ -71,7 +123,7 @@ const collaborativeFilteringTask  = async () => {
 
 const contentBasedFilteringTask = async () => {
     try {
-        const todos = await getAllInteracciones();
+        const todos = await obtenerCuponesParaIA();
         const response = await callContentBasedFilteringAPI(todos);
         console.log('Content-Based Filtering Task executed successfully:', response);
     } catch (error) {
