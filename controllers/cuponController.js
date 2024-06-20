@@ -972,7 +972,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
                 ]
             });
             if (!favorito) {
-                return res.status(404).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
+                return res.status(200).json({ message: 'No se encontraron cupones favoritos para este cliente, incluso buscando en la tabla.' });
             }
         }
 
@@ -1008,7 +1008,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
                 limit: 4
             });
             if (!recomendaciones.length){
-                return res.status(404).json({ message: 'No se encontraron recomendaciones para el cupón favorito en la fecha actual, tampoco buscando entre los ultimos de la tabla' });
+                return res.status(200).json({ message: 'No se encontraron recomendaciones para el cupón favorito en la fecha actual, tampoco buscando entre los ultimos de la tabla' });
             }
         }
 
@@ -1029,7 +1029,7 @@ const cuponesRecomendadosGeneral = async (req, res) => {
         });
 
         if (!cuponesRecomendados.length) {
-            return res.status(404).json({ message: 'No se encontraron detalles para los cupones recomendados.' });
+            return res.status(200).json({ message: 'No se encontraron detalles para los cupones recomendados.' });
         }
 
         // 4. Obtener las imágenes
