@@ -710,11 +710,13 @@ const listarClientesActivos = async (req, res) => {
 
         // Calcular el número total de páginas
         const totalPages = Math.ceil(totalClientes / pageSize);
-
+        console.log("clientes" , clientes);
+        console.log("totalPages",clientes);
         // Enviar la lista de clientes activos junto con la información de paginación como respuesta
         return res.status(200).json({
             clientes,
-            totalPages
+            totalPages,
+            totalClientes
         });
 
     } catch (error) {
