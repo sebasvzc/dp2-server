@@ -1596,7 +1596,7 @@ const jugar = async (req, res) => {
         cliente.puntos += puntos;
         await cliente.save();
 
-        return res.status(200).json({ message: "Puntos actualizados correctamente", cliente });
+        return res.status(200).json({ message: "Puntos actualizados correctamente" });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Ocurrió un error en el servidor" });
