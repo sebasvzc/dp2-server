@@ -38,4 +38,7 @@ clientRouter.post('/verPermisoUsuario/:id_cliente',clienController.verPermisoUsu
 clientRouter.post('/cambiarPermisoUsuario',clienController.cambiarPermisoUsuario);
 clientRouter.post('/IAKNNCompartido',clienController.IAKNNCompartido);
 clientRouter.post('/IARecomendadorPersonalizado',clienController.IARecomendadorPersonalizado);
+
+
+clientRouter.post('/jugarRA',clienController.jugar);
 module.exports = clientRouter;
