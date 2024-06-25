@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
             }
         },
         tipo: {
-            type: DataTypes.ENUM('evento', 'tienda', 'cupon', 'juego', 'compra'),
+            type: DataTypes.ENUM('evento', 'tienda', 'cupon', 'juego 1', 'juego 2', 'juego 3', 'juego 4', 'compra'),
             allowNull: false
         },
         fidReferencia: {
