@@ -3,6 +3,7 @@ const db = require('../models');
 const { AWS_ACCESS_KEY, AWS_ACCESS_SECRET, AWS_S3_BUCKET_NAME, AWS_SESSION_TOKEN, CRYPTO_JS_KEY } = process.env;
 const sharp = require('sharp');
 const fetch = require('node-fetch');
+const { Op } = require('sequelize');
 const crypto = require('crypto-js');
 const {
     S3Client,
