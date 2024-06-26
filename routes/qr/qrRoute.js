@@ -13,5 +13,5 @@ qrRouter.post('/listarQRMarco', qrController.listarMarcos);
 qrRouter.post('/habilitarMarco', qrController.habilitarMarcos);
 qrRouter.post('/deshabilitarMarco', qrController.deshabilitarMarcos);
 qrRouter.post('/modificarMarco', upload.any(), qrController.modificarMarco);
-
+qrRouter.post('/usarCupon', qrController.usarCuponQR);
 module.exports = qrRouter;

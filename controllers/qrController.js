@@ -84,6 +84,90 @@ const generateQr = async (req, res) => {
     }
 };
 
+const usarCuponQR = async (req, res) => {
+    try {
+        const { dataEncriptada, idCliente } = req.body;
+
+        // Desencriptar los datos
+        let decryptedData;
+        try {
+            const bytes = crypto.AES.decrypt(dataEncriptada, CRYPTO_JS_KEY);
+            decryptedData = JSON.parse(bytes.toString(crypto.enc.Utf8));
+        } catch (error) {
+            return res.status(400).json({ message: 'Datos encriptados inválidos' });
+        }
+
+        const { tipo, idReferencia, monto, momento } = decryptedData;
+        console.log("tipo: " + tipo + " - id: " + idReferencia + " - monto: " + monto + " - momento: " + momento);
+
+        // Validar si el tipo es uno de los permitidos
+        if (tipo !== 'cupon') {
+            return res.status(400).json({ message: 'Tipo no válido' });
+        }
+
+        const cuponXCliente = db.cuponXClientes;
+        const cuponTabla = db.cupones;
+
+        // Buscar el cupon en la tabla cuponXClientes
+        const cuponCliente = await cuponXCliente.findOne({
+            where: {
+                fidCupon: idReferencia,
+                fidCliente: idCliente,
+                cantidad: { [Op.gt]: 0 } // Validar que la cantidad sea mayor a 0
+            }
+        });
+
+        if (!cuponCliente) {
+            return res.status(400).json({ message: 'Cupón no válido o ya usado' });
+        }
+
+        // Buscar el cupon en la tabla cupons
+        const cupon = await cuponTabla.findOne({
+            where: {
+                id: idReferencia,
+                fechaExpiracion: { [Op.gt]: new Date() } // Validar que no haya expirado
+            }
+        });
+
+        if (!cupon) {
+            return res.status(400).json({ message: 'Cupón no válido o expirado' });
+        }
+
+        // Generar URL firmada para la foto del cupon
+        const idCupon = cupon.id;
+        const idLocatario = cupon.fidLocatario;
+        const urlFotoCupon = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: `cupon${idCupon}.jpg`,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        // Generar URL firmada para la imagen del locatario
+        const urlFotoLocatario = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: `tienda${idLocatario}.jpg`,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
+
+        // Marcar el cupon como usado y reducir la cantidad
+        cuponCliente.cantidad -= 1;
+        await cuponCliente.save();
+
+        // Responder con éxito y las URLs firmadas
+        res.status(200).json({
+            message: 'Cupón canjeado con éxito',
+            urlFotoCupon,
+            urlFotoLocatario
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: 'VALIMOS QUESO' });
+    }
+};
+
+
+
 const scanQr = async (req, res) => {
     try {
         const { dataEncriptada, idCliente } = req.body;
@@ -552,5 +636,7 @@ module.exports = {
     listarMarcos,
     habilitarMarcos,
     deshabilitarMarcos,
-    modificarMarco
+    modificarMarco,
+    usarCuponQR
+
 };

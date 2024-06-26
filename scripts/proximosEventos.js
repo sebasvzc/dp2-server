@@ -60,7 +60,7 @@ const proximoEvento = async () => {
 
             try {
                 const userTokens = await db.notificationToken.findAll({ where: {activo: true } });
-                console.log(userTokens)
+                //console.log(userTokens)
         
                 if (!userTokens.length) {
                     console.log('No tokens found for user');
