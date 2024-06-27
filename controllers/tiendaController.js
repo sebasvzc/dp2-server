@@ -126,9 +126,9 @@ const getPdfManual = async (req, res) => {
 
     try {
 
-        const objectKey = `Guía de Web.jpg`;
+        const objectKey = `guiaweb.pdf`;
         const url = await getSignUrlForFile(objectKey,"defaultStore.png");
-
+        console.log(url)
         return res.status(200).json({ urlPdf:url, newToken: req.newToken});
 
     } catch (error) {
