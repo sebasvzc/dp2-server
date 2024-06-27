@@ -928,6 +928,8 @@ const getPuntosEventosAsitencia = async (req, res) => {
 const getEventosIA = async (req, res) => {
     try {
         const { fidCliente } = req.body;
+        console.log("body: "+req.body)
+        console.log("fidCliente: "+fidCliente)
         const { page = 1, pageSize = 4 } = req.query; // Valores por defecto
 
         const recomendacion = db.eventoIARecomendador;
