@@ -3,6 +3,8 @@ const db = require("../models");
 const Eventos = db.eventos;
 const { Op } = require("sequelize");
 const moment = require("moment");
+require('moment/locale/es');  // Cargar el idioma español
+moment.locale('es');  // Configurar el idioma español
 const admin = require('../firebaseAdmin');
 
 const validateToken = async (token) => {
@@ -54,8 +56,8 @@ const proximoEvento = async () => {
         });
 
         for (let evento of eventos) {
-            const title = "Eventos de mañana";
-            const body = `Evento: ${evento.nombre}, Fecha: ${moment(evento.fechaInicio).format('LLL')}`;
+            const title = "¡Disfruta en Plaza San Miguel!";
+            const body = `${evento.nombre}\nFecha: ${moment(evento.fechaInicio).format('DD/MM [a las] hA')}`;
             
 
             try {
