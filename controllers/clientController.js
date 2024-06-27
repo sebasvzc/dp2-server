@@ -1583,6 +1583,7 @@ const jugar = async (req, res) => {
         for (let i = 0; i < juegosValidos.length; i++) {
             const tipoJuego = juegosValidos[i];
             const puntos = gameScores[i];
+            if(puntos==-1){ continue};
             // Verificar si el puntaje es un número válido
             if (typeof puntos !== 'number' || puntos < 0) {
                 return res.status(400).json({ error: `Puntaje inválido para ${tipoJuego}` });
