@@ -1569,48 +1569,53 @@ const getCuponesXCliente = async (req, res) => {
 const jugar = async (req, res) => {
     const tablaEscaneos = db.escaneos;
     const tablaClientes = db.clients;
-    const {resultado} = req.body;
-    console.log("quev es tipo juego");
-    console.log(resultado);
-    // Verificar si tipoJuego es válido
-    // const juegosValidos = ["juego 1", "juego 2", "juego 3", "juego 4"];
-    // if (!juegosValidos.includes(tipoJuego)) {
-    //     return res.status(400).json({ error: "Tipo de juego inválido" });
-    // }
+    const resultado = req.body;
+    const juegosValidos = ["juego 1", "juego 2", "juego 3", "juego 4"];
+    // Verificar que los datos necesarios estén presentes
+    if (!resultado.message || !resultado.idCliente || !Array.isArray(resultado.gameScores)) {
+        return res.status(400).json({ error: "Datos incompletos" });
+    }
+    const idCliente = resultado.idCliente;
+    const gameScores = resultado.gameScores;
+    try {
+        // Actualizar los puntos del cliente
+        const cliente = await tablaClientes.findOne({ where: { id: idCliente } });
+        if (!cliente) {
+            return res.status(404).json({ error: "Cliente no encontrado" });
+        }
+        
+        for (let i = 0; i < juegosValidos.length; i++) {
+            const tipoJuego = juegosValidos[i];
+            const puntos = gameScores[i];
+            // Verificar si el puntaje es un número válido
+            if (typeof puntos !== 'number' || puntos < 0) {
+                return res.status(400).json({ error: `Puntaje inválido para ${tipoJuego}` });
+            }         
+            // Crear nuevo registro en la tabla escaneos
+            const nuevoEscaneo = await tablaEscaneos.create({
+                fidClient: idCliente,
+                tipo: tipoJuego,
+                fidReferencia: i + 1,  // idReferencia es el índice + 1
+                ultimoEscaneo: new Date(),
+                puntosOtorgados: puntos,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
 
-    // // Determinar idReferencia según tipoJuego
-    // const idReferencia = juegosValidos.indexOf(tipoJuego) + 1;
 
-    // try {
-    //     // Crear nuevo registro en la tabla escaneos
-    //     const nuevoEscaneo = await tablaEscaneos.create({
-    //         fidClient: idCliente,
-    //         tipo: tipoJuego,
-    //         fidReferencia: idReferencia,
-    //         ultimoEscaneo: new Date(),
-    //         puntosOtorgados: puntos,
-    //         createdAt: new Date(),
-    //         updatedAt: new Date()
-    //     });
+            if (!nuevoEscaneo) {
+                return res.status(500).json({ error: `No se pudo crear el registro de escaneo para ${tipoJuego}` });
+            }
 
-    //     if (!nuevoEscaneo) {
-    //         return res.status(500).json({ error: "No se pudo crear el registro de escaneo" });
-    //     }
+            cliente.puntos += puntos;
+        }
+        await cliente.save();
 
-    //     // Actualizar los puntos del cliente
-    //     const cliente = await tablaClientes.findOne({ where: { id: idCliente } });
-    //     if (!cliente) {
-    //         return res.status(404).json({ error: "Cliente no encontrado" });
-    //     }
-
-    //     cliente.puntos += puntos;
-    //     await cliente.save();
-
-    //     return res.status(200).json({ message: "Puntos actualizados correctamente" });
-    // } catch (error) {
-    //     console.error(error);
-    //     return res.status(500).json({ error: "Ocurrió un error en el servidor" });
-    // }
+        return res.status(200).json({ message: "Puntos actualizados correctamente" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Ocurrió un error en el servidor" });
+    }
 }
 
 module.exports = {
