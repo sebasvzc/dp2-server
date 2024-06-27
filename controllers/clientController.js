@@ -1160,13 +1160,20 @@ const IAKNNCompartido = async (req, res, next) =>{
     // en base a su id se buscara si tiene eventos a los que ha asistido para clasificar de forma mas particular
     // el recomendador
 
-    const genero = req.body.genero || 'M'; // Enviame una M si es masculino, F si es femenino y una A si no es ninguno de esos casos
-    const edad = parseInt(req.body.edad) || 27; // enviame la edad de la persona
+    let genero = req.body.genero || 'M'; // Enviame una M si es masculino, F si es femenino y una A si no es ninguno de esos casos
+    let edad = parseInt(req.body.edad) || 27; // enviame la edad de la persona
     //const idUsuario = parseInt(req.body.idUsuario)|| 1; // mandame ID del usuario para analizar sus evento recien inscritos, por ahora irving es el especifico
     let connection;
 
     try{
       connection = await pool.getConnection();
+
+    const [resultClient] = await connection.query(`CALL clientesActivos()`)
+    const clientsGeneral = resultClient[0];
+
+    
+
+
      const [result] = await connection.query(`CALL eventosHistoricosIA()`)
      const eventosHist = result[0];
      if(eventosHist.length== 0){
@@ -1195,7 +1202,18 @@ const IAKNNCompartido = async (req, res, next) =>{
       const etiquetas = eventosHist.map(evento => tipoEventoEncoder[evento.tipoEvento]);
    
     // Se viene clasificador
-    const knn = new KNN(datos, etiquetas, { k: 3 });
+    const knn = new KNN(datos, etiquetas, { k: 5 });
+
+    for ( const cliente of clientsGeneral){
+        if (cliente.genero=="Masculino"){
+            genero='M';
+        }else if (cliente.genero=="Femenino"){
+            genero='F'
+        }else{
+            genero='A'
+        }
+        edad = cliente.edad;
+
     const edadPromedioNuevo = (edad - edadMin) / (edadMax - edadMin);
     let generoPromedioNuevo = generoEncoder[genero]; 
     let generoPromedioNuevoExt = generoEncoder['A'];
@@ -1221,52 +1239,16 @@ const IAKNNCompartido = async (req, res, next) =>{
     console.log("Predicción de tipo de evento Adicional", tipoEventoPredichoExt);
     const [resultIA] = await connection.query(`CALL eventoRecomendadorIA(?)`,[tipoEventoPredicho])
     const eventoIA = resultIA[0][0];
-
-    const keyIA = `evento${eventoIA.idEvento}.jpg`;
-
-                // Genera la URL firmada para el objeto en el bucket appdp2
-                const urlEvento = s3.getSignedUrl('getObject', {
-                    Bucket: 'appdp2',
-                    Key: keyIA,
-                    Expires: 8600 // Tiempo de expiración en segundos
-                });
-
-                eventoIA.urlEvento =  urlEvento 
-                eventoIA.fechaInicio= eventoIA.fechaInicio.toISOString().split('T')[0];
-                eventoIA.fechaFin=eventoIA.fechaFin.toISOString().split('T')[0];
-                eventoIA.fechaInicio=`${eventoIA.fechaInicio.split('-')[2]}-${eventoIA.fechaInicio.split('-')[1]}-${eventoIA.fechaInicio.split('-')[0]}`;
-                eventoIA.fechaFin=`${eventoIA.fechaFin.split('-')[2]}-${eventoIA.fechaFin.split('-')[1]}-${eventoIA.fechaFin.split('-')[0]}`;
-
-
-
     const [resultIAExt] = await connection.query(`CALL eventoRecomendadorIA(?)`,[tipoEventoPredichoExt])
     const eventoIAExt = resultIAExt[0][0];
 
-    const keyIAExt = `evento${eventoIAExt.idEvento}.jpg`;
-
-                // Genera la URL firmada para el objeto en el bucket appdp2
-                const urlEventoExt = s3.getSignedUrl('getObject', {
-                    Bucket: 'appdp2',
-                    Key: keyIAExt,
-                    Expires: 8600 // Tiempo de expiración en segundos
-                });
-
-                eventoIAExt.urlEvento =  urlEventoExt 
-                eventoIAExt.fechaInicio= eventoIAExt.fechaInicio.toISOString().split('T')[0];
-                eventoIAExt.fechaFin=eventoIAExt.fechaFin.toISOString().split('T')[0];
-                eventoIAExt.fechaInicio=`${eventoIAExt.fechaInicio.split('-')[2]}-${eventoIAExt.fechaInicio.split('-')[1]}-${eventoIAExt.fechaInicio.split('-')[0]}`;
-                eventoIAExt.fechaFin=`${eventoIAExt.fechaFin.split('-')[2]}-${eventoIAExt.fechaFin.split('-')[1]}-${eventoIAExt.fechaFin.split('-')[0]}`;
-
+    const [insertarIA] = await connection.query(`CALL insertarValoresIAEvento(?,?,?,?)`,[eventoIA.idEvento,cliente.idCliente,"basado en genero y edad",1])
    
-    const eventoPredictorCompleto = {
-        
-        eventoIA: tipoEventoPredicho,
-        InfoEventoIA: eventoIA,
-        eventoIAExtra: tipoEventoPredichoExt,
-        InfoEventoIAExtra: eventoIAExt
-        
-    };
-    res.status(200).json(eventoPredictorCompleto);
+};
+   
+
+    
+    res.status(200).json("Todo OK");
 }
   }catch(error){
      next(error)
@@ -1293,8 +1275,12 @@ const IARecomendadorPersonalizado = async (req, res, next) =>{
     try{
       connection = await pool.getConnection();
       // Me da los ultimos 5 eventos a los que se ha inscrito
-     const [result] = await connection.query(`CALL IAUltimosEventosCumplidos(?)`,[idUsuario])
-     const eventosUsuario = result[0];
+
+    const [resultClient] = await connection.query(`CALL clientesActivos()`)
+    const clientsGeneral = resultClient[0];
+
+
+    
         // me da los eventos disponibles
      const [resultProximos] = await connection.query(`CALL OpcionesIAProxEventos()`)
      const eventosProximos = resultProximos[0];
@@ -1302,6 +1288,11 @@ const IARecomendadorPersonalizado = async (req, res, next) =>{
      const [resultListaTipoEventos] = await connection.query(`CALL listaTiposEventos()`)
      const listaTipoEventos = resultListaTipoEventos[0];
      const listaArrayTipoEventos = listaTipoEventos.map(categoria => categoria.nombre);
+
+     for ( const cliente of clientsGeneral){
+     
+     const [result] = await connection.query(`CALL IAUltimosEventosCumplidos(?)`,[cliente.idCliente])
+     const eventosUsuario = result[0];
      console.log("Eventos al que inscribio usuario")
      console.log(eventosUsuario);
 
@@ -1362,13 +1353,18 @@ const IARecomendadorPersonalizado = async (req, res, next) =>{
         });
         similitudes.push({ ...eventoProx, similitud: maxSimilitud });
     });
-
+    let numero=2;
     // Ordenar los eventos por similitud de mayor a menor
     similitudes.sort((a, b) => b.similitud - a.similitud);
+    const top3Similitudes = similitudes.slice(0, 3);
+    for ( const similitud of top3Similitudes){
+        const [insertarIA] = await connection.query(`CALL insertarValoresIAEvento(?,?,?,?)`,[similitud.idEvento,cliente.idCliente,"basado en gustos personales",numero])
+        numero++;
+    }
 
-    console.log(similitudes);
+}
 
-    res.status(200).json(similitudes);
+    res.status(200).json("Todo OK");
   }catch(error){
      next(error)
   }finally {
@@ -1569,46 +1565,48 @@ const getCuponesXCliente = async (req, res) => {
 const jugar = async (req, res) => {
     const tablaEscaneos = db.escaneos;
     const tablaClientes = db.clients;
-    const {tipoJuego, idCliente, puntos} = req.body;
+    const {resultado} = req.body;
+    console.log("quev es tipo juego");
+    console.log(resultado);
     // Verificar si tipoJuego es válido
-    const juegosValidos = ["juego 1", "juego 2", "juego 3", "juego 4"];
-    if (!juegosValidos.includes(tipoJuego)) {
-        return res.status(400).json({ error: "Tipo de juego inválido" });
-    }
+    // const juegosValidos = ["juego 1", "juego 2", "juego 3", "juego 4"];
+    // if (!juegosValidos.includes(tipoJuego)) {
+    //     return res.status(400).json({ error: "Tipo de juego inválido" });
+    // }
 
-    // Determinar idReferencia según tipoJuego
-    const idReferencia = juegosValidos.indexOf(tipoJuego) + 1;
+    // // Determinar idReferencia según tipoJuego
+    // const idReferencia = juegosValidos.indexOf(tipoJuego) + 1;
 
-    try {
-        // Crear nuevo registro en la tabla escaneos
-        const nuevoEscaneo = await tablaEscaneos.create({
-            fidClient: idCliente,
-            tipo: tipoJuego,
-            fidReferencia: idReferencia,
-            ultimoEscaneo: new Date(),
-            puntosOtorgados: puntos,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+    // try {
+    //     // Crear nuevo registro en la tabla escaneos
+    //     const nuevoEscaneo = await tablaEscaneos.create({
+    //         fidClient: idCliente,
+    //         tipo: tipoJuego,
+    //         fidReferencia: idReferencia,
+    //         ultimoEscaneo: new Date(),
+    //         puntosOtorgados: puntos,
+    //         createdAt: new Date(),
+    //         updatedAt: new Date()
+    //     });
 
-        if (!nuevoEscaneo) {
-            return res.status(500).json({ error: "No se pudo crear el registro de escaneo" });
-        }
+    //     if (!nuevoEscaneo) {
+    //         return res.status(500).json({ error: "No se pudo crear el registro de escaneo" });
+    //     }
 
-        // Actualizar los puntos del cliente
-        const cliente = await tablaClientes.findOne({ where: { id: idCliente } });
-        if (!cliente) {
-            return res.status(404).json({ error: "Cliente no encontrado" });
-        }
+    //     // Actualizar los puntos del cliente
+    //     const cliente = await tablaClientes.findOne({ where: { id: idCliente } });
+    //     if (!cliente) {
+    //         return res.status(404).json({ error: "Cliente no encontrado" });
+    //     }
 
-        cliente.puntos += puntos;
-        await cliente.save();
+    //     cliente.puntos += puntos;
+    //     await cliente.save();
 
-        return res.status(200).json({ message: "Puntos actualizados correctamente" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Ocurrió un error en el servidor" });
-    }
+    //     return res.status(200).json({ message: "Puntos actualizados correctamente" });
+    // } catch (error) {
+    //     console.error(error);
+    //     return res.status(500).json({ error: "Ocurrió un error en el servidor" });
+    // }
 }
 
 module.exports = {
