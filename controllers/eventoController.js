@@ -928,6 +928,8 @@ const getPuntosEventosAsitencia = async (req, res) => {
 const getEventosIA = async (req, res) => {
     try {
         const { fidCliente } = req.body;
+        console.log("body: "+req.body)
+        console.log("fidCliente: "+fidCliente)
         const { page = 1, pageSize = 4 } = req.query; // Valores por defecto
 
         const recomendacion = db.eventoIARecomendador;
@@ -970,31 +972,32 @@ const getEventosIA = async (req, res) => {
                 evento.fechaFin = `${evento.fechaFin.split('-')[2]}-${evento.fechaFin.split('-')[1]}-${evento.fechaFin.split('-')[0]}`;*/
 
                 return {
-                    idEvento: evento.idEvento,
-                    nombreEvento: evento.nombreEvento,
+                    idEvento: evento.id,
+                    nombreEvento: evento.nombre,
                     fechaInicio: evento.fechaInicio,
                     fechaFin: evento.fechaFin,
                     horarioInicio: evento.horaInicio,
                     horaFin: evento.horaFin,
-                    descripcion: evento.descripcionEvento,
+                    descripcion: evento.descripciono,
                     puntos: evento.puntosOtorgados,
                     ubicacion: evento.ubicacion,
                     aforo: evento.aforo,
                     nombreTienda: evento.nombreTienda,
                     urlEvento: urlEvento,
+                    prioridad: rec.prioridad
                 };
             }
             return null;
         }));
 
         // Filtrar los eventos nulos (en caso de que alguna recomendación no tenga un evento válido)
-        const eventosFiltrados = eventos.filter(evento => evento !== null);
+        //const eventosFiltrados = eventos.filter(evento => evento !== null);
 
         res.status(200).json({
             page: parseInt(page),
             pageSize: parseInt(pageSize),
             total: recomendaciones.length,
-            eventos: eventosFiltrados
+            eventos: eventos
         });
 
     } catch (error) {
