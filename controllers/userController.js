@@ -656,11 +656,32 @@ const getJuegosRAPorc = async (req, res) => {
 
         console.log(usuariosGenRa);
 
-        // Formatear la respuesta
-        const resultados = usuariosGenRa.map(entrada => ({
-            tipo: entrada.tipo,
-            cantidad: entrada.get('count')
-        }));
+        // Formatear la respuesta y agregar la columna adicional
+        const resultados = usuariosGenRa.map(entrada => {
+            let nombreJuego;
+            switch (entrada.tipo) {
+                case 'juego 1':
+                    nombreJuego = "Enfría al Yeti";
+                    break;
+                case 'juego 2':
+                    nombreJuego = "Encesta y Gana";
+                    break;
+                case 'juego 3':
+                    nombreJuego = "Mi amix migue";
+                    break;
+                case 'juego 4':
+                    nombreJuego = "Bloques caóticos";
+                    break;
+                default:
+                    nombreJuego = "Nombre desconocido";
+            }
+
+            return {
+                tipo: entrada.tipo,
+                cantidad: entrada.get('count'),
+                nombreJuego: nombreJuego
+            };
+        });
 
         return res.status(200).json({ rango: resultados });
     } catch (error) {
@@ -668,7 +689,6 @@ const getJuegosRAPorc = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 };
-
 module.exports = {
     login,
     signup,
