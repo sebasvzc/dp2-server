@@ -972,13 +972,13 @@ const getEventosIA = async (req, res) => {
                 evento.fechaFin = `${evento.fechaFin.split('-')[2]}-${evento.fechaFin.split('-')[1]}-${evento.fechaFin.split('-')[0]}`;*/
 
                 return {
-                    idEvento: evento.idEvento,
-                    nombreEvento: evento.nombreEvento,
+                    idEvento: evento.id,
+                    nombreEvento: evento.nombre,
                     fechaInicio: evento.fechaInicio,
                     fechaFin: evento.fechaFin,
                     horarioInicio: evento.horaInicio,
                     horaFin: evento.horaFin,
-                    descripcion: evento.descripcionEvento,
+                    descripcion: evento.descripciono,
                     puntos: evento.puntosOtorgados,
                     ubicacion: evento.ubicacion,
                     aforo: evento.aforo,
@@ -990,13 +990,13 @@ const getEventosIA = async (req, res) => {
         }));
 
         // Filtrar los eventos nulos (en caso de que alguna recomendación no tenga un evento válido)
-        const eventosFiltrados = eventos.filter(evento => evento !== null);
+        //const eventosFiltrados = eventos.filter(evento => evento !== null);
 
         res.status(200).json({
             page: parseInt(page),
             pageSize: parseInt(pageSize),
             total: recomendaciones.length,
-            eventos: eventosFiltrados
+            eventos: eventos
         });
 
     } catch (error) {
