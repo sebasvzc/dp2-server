@@ -924,6 +924,84 @@ const getPuntosEventosAsitencia = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+
+const getEventosIA = async (req, res) => {
+    try {
+        const { fidCliente } = req.body;
+        const { page = 1, pageSize = 4 } = req.query; // Valores por defecto
+
+        const recomendacion = db.eventoIARecomendador;
+        const tablaEvento = db.eventos;
+
+        // Obtener las recomendaciones del cliente
+        const recomendaciones = await recomendacion.findAll({
+            where: {
+                fidIDCliente: fidCliente,
+                activo: 1
+            },
+            order: [['prioridad', 'ASC']],
+            offset: (page - 1) * pageSize,
+            limit: parseInt(pageSize)
+        });
+
+        if (!recomendaciones.length) {
+            return res.status(404).json({ message: 'No hay recomendaciones para este cliente' });
+        }
+
+        // Obtener los eventos recomendados
+        const eventos = await Promise.all(recomendaciones.map(async (rec) => {
+            const evento = await tablaEvento.findOne({
+                where: {
+                    id: rec.fidEvento
+                }
+            });
+
+            if (evento) {
+                const key = `evento${evento.idEvento}.jpg`;
+                const urlEvento = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+
+                /*evento.fechaInicio = evento.fechaInicio.toISOString().split('T')[0];
+                evento.fechaFin = evento.fechaFin.toISOString().split('T')[0];
+                evento.fechaInicio = `${evento.fechaInicio.split('-')[2]}-${evento.fechaInicio.split('-')[1]}-${evento.fechaInicio.split('-')[0]}`;
+                evento.fechaFin = `${evento.fechaFin.split('-')[2]}-${evento.fechaFin.split('-')[1]}-${evento.fechaFin.split('-')[0]}`;*/
+
+                return {
+                    idEvento: evento.idEvento,
+                    nombreEvento: evento.nombreEvento,
+                    fechaInicio: evento.fechaInicio,
+                    fechaFin: evento.fechaFin,
+                    horarioInicio: evento.horaInicio,
+                    horaFin: evento.horaFin,
+                    descripcion: evento.descripcionEvento,
+                    puntos: evento.puntosOtorgados,
+                    ubicacion: evento.ubicacion,
+                    aforo: evento.aforo,
+                    nombreTienda: evento.nombreTienda,
+                    urlEvento: urlEvento,
+                };
+            }
+            return null;
+        }));
+
+        // Filtrar los eventos nulos (en caso de que alguna recomendación no tenga un evento válido)
+        const eventosFiltrados = eventos.filter(evento => evento !== null);
+
+        res.status(200).json({
+            page: parseInt(page),
+            pageSize: parseInt(pageSize),
+            total: recomendaciones.length,
+            eventos: eventosFiltrados
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener las recomendaciones' });
+    }
+};
 module.exports = {
     getEventosConAsistentesYCategoria,
     getEventosProximos,
@@ -939,5 +1017,6 @@ module.exports = {
     getPersonasAsistente,
     getPuntosEventosAsitencia,
     getGeneroPorcEventos,
-    getEdadPorcEventos
+    getEdadPorcEventos,
+    getEventosIA
 }
