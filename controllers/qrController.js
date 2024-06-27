@@ -67,9 +67,9 @@ const generateQr = async (req, res) => {
         
         // Si el tipo es 'compra', agregar monto y momento
         //if (tipo === 'compra') {
-            const momento = new Date().toISOString(); // Formato ISO para JSON
-            qrData.monto = monto;
-            qrData.momento = momento;
+        const momento = new Date().toISOString(); // Formato ISO para JSON
+        qrData.monto = monto;
+        qrData.momento = momento;
         //}
 
         // Cifrar los datos

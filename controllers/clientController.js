@@ -1465,6 +1465,7 @@ const getCuponesXCliente = async (req, res) => {
                     offset: offset,
                     limit: pageSize,
                     where: {
+                        activo: true,
                         fidCliente: idParam,
                         fechaCompra: {
                             [db.Sequelize.Op.between]: [startDate, endDate]
@@ -1474,7 +1475,7 @@ const getCuponesXCliente = async (req, res) => {
                         {
                             model: Cupon,
                             as: 'cupon',
-                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["codigo","fechaExpiracion","usado"] , // No necesitamos otros atributos del locatario para esta consulta
                             where: {
                                 ...(startDateExp && endDateExp && {
                                     fechaExpiracion: {
@@ -1508,6 +1509,7 @@ const getCuponesXCliente = async (req, res) => {
                 }),
                 CuponXCliente.count({
                     where: {
+                        activo: true,
                         fidCliente: idParam,
                         fechaCompra: {
                             [db.Sequelize.Op.between]: [startDate, endDate]
@@ -1517,7 +1519,7 @@ const getCuponesXCliente = async (req, res) => {
                         {
                             model: Cupon,
                             as: 'cupon',
-                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["codigo","fechaExpiracion","usado"] , // No necesitamos otros atributos del locatario para esta consulta
                             where: {
                                 ...(startDateExp && endDateExp && {
                                     fechaExpiracion: {
