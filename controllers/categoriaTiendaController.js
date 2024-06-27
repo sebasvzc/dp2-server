@@ -48,9 +48,15 @@ const getCategoriaTiendasWeb = async (req, res) => {
             const categoriatiendasAndCount = await Promise.all([
                 CategoriaTienda.findAll({
                     offset: offset,
-                    limit: pageSize
+                    limit: pageSize,
+                    where: {
+                        activo: true
+                    }
                 }),
                 CategoriaTienda.count({
+                    where: {
+                        activo: true
+                    }
                 })
             ]);
             const [cattiendas, totalCount] = categoriatiendasAndCount;
@@ -67,7 +73,7 @@ const getCategoriaTiendasWeb = async (req, res) => {
                 CategoriaTienda.findAll({
 
                     where: {
-                        activo: 1,
+                        activo: true,
                         nombre: { [Op.like]: `%${queryType}%` }
                     },
                     offset: offset,
@@ -75,7 +81,7 @@ const getCategoriaTiendasWeb = async (req, res) => {
                 }),
                 CategoriaTienda.count({
                     where: {
-                        activo: 1,
+                        activo: true,
                         nombre: { [Op.like]: `%${queryType}%` }
                     }
                 })
