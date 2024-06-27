@@ -185,17 +185,23 @@ const signup = async (req, res) => {
         //generate token with the user's id and the secretKey in the env file
         // set cookie with the token generated
         if (client) {
-            let token = jwt.sign(
-                { id: client.id},
+
+            const accessToken = jwt.sign(
+                { email: client.email,id: client.id  },
+                ACCESS_TOKEN_SECRET,
+                { expiresIn: ACCESS_TOKEN_EXPIRY }
+            );
+            const refreshToken = jwt.sign(
+                {email: client.email,id: client.id },
                 REFRESH_TOKEN_SECRET,
                 { expiresIn: REFRESH_TOKEN_EXPIRY }
             );
-
             console.log("client", JSON.stringify(client, null, 2));
-            console.log(token);
+
             //send users details
             //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send(client);
+
+            return res.status(200).json({ client: client, token: accessToken, refreshToken:refreshToken});
         } else {
             return res.status(400).send("Invalid request body");
         }
