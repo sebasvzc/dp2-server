@@ -607,8 +607,11 @@ const getUsersPlayRA = async (req, res) => {
                 ultimoEscaneo: {
                     [Op.between]: [startDate, endDate]
                 },
-                tipo: 'juego'
+                tipo: {
+                    [Op.like]: '%juego%'
+                }
             },
+            order: [['tipo', 'ASC']],
             group: ['fidClient']
         });
 
@@ -620,6 +623,52 @@ const getUsersPlayRA = async (req, res) => {
         return res.status(500).send('Internal Server Error');
     }
 }
+const getJuegosRAPorc = async (req, res) => {
+    const startDate = req.query.startDate ? parseDate(req.query.startDate) : null;
+    const endDate = req.query.endDate ? parseDate(req.query.endDate) : null;
+
+    console.log('getJuegosRango - query: ');
+
+    if (!startDate || !endDate) {
+        return res.status(400).send("startDate y endDate son requeridos!");
+    }
+    console.log(startDate);
+    console.log(endDate);
+
+    try {
+        // Obtener todos los tipos de juegos y su conteo por clientes únicos
+        const usuariosGenRa = await Escaneo.findAll({
+            attributes: [
+                'tipo',
+                [db.sequelize.fn('COUNT', db.sequelize.fn('DISTINCT', db.sequelize.col('fidClient'))), 'count']
+            ],
+            where: {
+                ultimoEscaneo: {
+                    [Op.between]: [startDate, endDate]
+                },
+                tipo: {
+                    [Op.like]: '%juego%'
+                }
+            },
+
+            group: ['tipo']
+        });
+
+        console.log(usuariosGenRa);
+
+        // Formatear la respuesta
+        const resultados = usuariosGenRa.map(entrada => ({
+            tipo: entrada.tipo,
+            cantidad: entrada.get('count')
+        }));
+
+        return res.status(200).json({ rango: resultados });
+    } catch (error) {
+        console.log('getJuegosRango - queryType: - [Error]: ', error);
+        return res.status(500).send('Internal Server Error');
+    }
+};
+
 module.exports = {
     login,
     signup,
@@ -630,5 +679,6 @@ module.exports = {
     deshabilitar,
     habilitar,
     modificar,getUserData,getUserPerms,
-    getUsersPlayRA
+    getUsersPlayRA,
+    getJuegosRAPorc
 };
