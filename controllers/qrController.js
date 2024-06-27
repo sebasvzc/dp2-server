@@ -192,7 +192,7 @@ const scanQr = async (req, res) => {
 
         if(tipo=='cupon'){
             //la logica:
-
+            console.log("LOGICA DE TIPO CUPON")
 
             const cuponXCliente = db.cuponXClientes;
         const cuponTabla = db.cupones;
@@ -253,7 +253,7 @@ const scanQr = async (req, res) => {
         });
 
         const nombreLocatario = locatario.nombre
-
+        console.log("responder")
         // Responder con éxito y las URLs firmadas
         res.status(200).json({
             message: 'Cupón canjeado con éxito',
@@ -262,7 +262,7 @@ const scanQr = async (req, res) => {
             urlFoto: urlFotoLocatario,
             tipo: "cupon"
         });
-
+        
         }else{
             
             // Obtener el modelo apropiado según el tipo

@@ -26,5 +26,6 @@ eventoRouter.post('/crear',upload.any(), authenticateToken,crear);
 eventoRouter.post('/modificar',upload.any(), authenticateToken,modificar);
 eventoRouter.post('/deshabilitar', authenticateToken,deshabilitar);
 eventoRouter.post('/habilitar', authenticateToken,habilitar);
+eventoRouter.get('/getEventoIA', eventoController.getEventosIA);
 
 module.exports = eventoRouter;
