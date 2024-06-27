@@ -241,7 +241,7 @@ const scanQr = async (req, res) => {
         // Marcar el cupon como usado y reducir la cantidad
         cuponCliente.cantidad -= 1;
         if(cuponCliente.cantidad==0){
-            cuponCliente.usado = 0;
+            cuponCliente.usado = 1;
         }
         await cuponCliente.save();
 
