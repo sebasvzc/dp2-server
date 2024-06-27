@@ -953,6 +953,13 @@ const getEventosIA = async (req, res) => {
         // Obtener los eventos recomendados
         const eventos = await Promise.all(recomendaciones.map(async (rec) => {
             const evento = await tablaEvento.findOne({
+                include: [
+                    {
+                        model: Locatario,
+                        as: 'locatario',
+                        attributes: ['nombre']  // No necesitamos otros atributos del locatario para esta consulta
+                    }
+                ],
                 where: {
                     id: rec.fidEvento
                 }
@@ -982,7 +989,7 @@ const getEventosIA = async (req, res) => {
                     puntos: evento.puntosOtorgados,
                     ubicacion: evento.ubicacion,
                     aforo: evento.aforo,
-                    nombreTienda: evento.nombreTienda,
+                    nombreTienda: evento.locatario.nombre,
                     urlEvento: urlEvento,
                     prioridad: rec.prioridad
                 };
