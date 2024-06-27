@@ -1561,46 +1561,48 @@ const getCuponesXCliente = async (req, res) => {
 const jugar = async (req, res) => {
     const tablaEscaneos = db.escaneos;
     const tablaClientes = db.clients;
-    const {tipoJuego, idCliente, puntos} = req.body;
+    const {resultado} = req.body;
+    console.log("quev es tipo juego");
+    console.log(resultado);
     // Verificar si tipoJuego es válido
-    const juegosValidos = ["juego 1", "juego 2", "juego 3", "juego 4"];
-    if (!juegosValidos.includes(tipoJuego)) {
-        return res.status(400).json({ error: "Tipo de juego inválido" });
-    }
+    // const juegosValidos = ["juego 1", "juego 2", "juego 3", "juego 4"];
+    // if (!juegosValidos.includes(tipoJuego)) {
+    //     return res.status(400).json({ error: "Tipo de juego inválido" });
+    // }
 
-    // Determinar idReferencia según tipoJuego
-    const idReferencia = juegosValidos.indexOf(tipoJuego) + 1;
+    // // Determinar idReferencia según tipoJuego
+    // const idReferencia = juegosValidos.indexOf(tipoJuego) + 1;
 
-    try {
-        // Crear nuevo registro en la tabla escaneos
-        const nuevoEscaneo = await tablaEscaneos.create({
-            fidClient: idCliente,
-            tipo: tipoJuego,
-            fidReferencia: idReferencia,
-            ultimoEscaneo: new Date(),
-            puntosOtorgados: puntos,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+    // try {
+    //     // Crear nuevo registro en la tabla escaneos
+    //     const nuevoEscaneo = await tablaEscaneos.create({
+    //         fidClient: idCliente,
+    //         tipo: tipoJuego,
+    //         fidReferencia: idReferencia,
+    //         ultimoEscaneo: new Date(),
+    //         puntosOtorgados: puntos,
+    //         createdAt: new Date(),
+    //         updatedAt: new Date()
+    //     });
 
-        if (!nuevoEscaneo) {
-            return res.status(500).json({ error: "No se pudo crear el registro de escaneo" });
-        }
+    //     if (!nuevoEscaneo) {
+    //         return res.status(500).json({ error: "No se pudo crear el registro de escaneo" });
+    //     }
 
-        // Actualizar los puntos del cliente
-        const cliente = await tablaClientes.findOne({ where: { id: idCliente } });
-        if (!cliente) {
-            return res.status(404).json({ error: "Cliente no encontrado" });
-        }
+    //     // Actualizar los puntos del cliente
+    //     const cliente = await tablaClientes.findOne({ where: { id: idCliente } });
+    //     if (!cliente) {
+    //         return res.status(404).json({ error: "Cliente no encontrado" });
+    //     }
 
-        cliente.puntos += puntos;
-        await cliente.save();
+    //     cliente.puntos += puntos;
+    //     await cliente.save();
 
-        return res.status(200).json({ message: "Puntos actualizados correctamente" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Ocurrió un error en el servidor" });
-    }
+    //     return res.status(200).json({ message: "Puntos actualizados correctamente" });
+    // } catch (error) {
+    //     console.error(error);
+    //     return res.status(500).json({ error: "Ocurrió un error en el servidor" });
+    // }
 }
 
 module.exports = {
