@@ -959,7 +959,7 @@ const getEventosIA = async (req, res) => {
             });
 
             if (evento) {
-                const key = `evento${evento.idEvento}.jpg`;
+                const key = `evento${evento.id}.jpg`;
                 const urlEvento = s3.getSignedUrl('getObject', {
                     Bucket: 'appdp2',
                     Key: key,
