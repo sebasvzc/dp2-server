@@ -76,8 +76,14 @@ db.interaccionesCupon = require('./interaccionesCuponModel') (sequelize, DataTyp
 
 db.recomendacionGeneral = require('./recomenacionesGeneralesModel') (sequelize, DataTypes) 
 db.tareas = require('./notificacionesModel') (sequelize, DataTypes) 
+
+db.eventoIARecomendador = require('./eventoIArecomendador') (sequelize, DataTypes) 
+
 //relaciones
 //VOLVER A PONER TODAS LAS ASOCIACIONES AQUÍ
+db.eventoIARecomendador.belongsTo(db.clients,{foreignKey: "fidIDCliente", as: 'clienteEVEIA'});
+db.eventoIARecomendador.belongsTo(db.eventos,{foreignKey: "fidEvento", as: 'eventoIA'});
+
 
 db.rolePermission.belongsTo(db.rol,{foreignKey: "fidRol", as: 'rol'});
 db.rol.hasMany(db.rolePermission,{foreignKey: "fidRol", as: 'rol'});
@@ -113,13 +119,15 @@ db.categoriaTiendas.hasMany(db.locatarios, {foreignKey: 'fidCategoriaTienda', as
 db.eventos.belongsTo(db.lugares,{foreignKey: "fidLugar", as: 'lugar'});
 db.eventos.belongsTo(db.tipoEventos,{foreignKey: "fidTipoEvento", as: 'tipoEvento'});
 db.eventos.belongsTo(db.locatarios,{foreignKey: "fidTienda", as: 'locatario'});
-
+db.eventos.hasMany(db.eventoIARecomendador,{foreignKey: "fidEvento", as: 'eventoIA'});
 
 db.eventoXClientes.belongsTo(db.eventos,{foreignKey: "fidEvento", as: 'eventocli'});
 db.eventoXClientes.belongsTo(db.clients,{foreignKey: "fidCliente", as: 'clienteeve'});
 
 db.eventos.hasMany(db.eventoXClientes,{foreignKey: "fidEvento", as:'eventocli'});
 db.clients.hasMany(db.eventoXClientes,{foreignKey: "fidCliente", as:'clienteeve'});
+
+db.clients.hasMany(db.eventoIARecomendador,{foreignKey: "fidIDCliente", as: 'clienteEVEIA'});
 
 db.cupones.belongsTo(db.locatarios,{foreignKey: "fidLocatario", as: 'locatario'});
 db.cupones.belongsTo(db.tipoCupons,{foreignKey: "fidTipoCupon", as: 'tipoCupon'});
