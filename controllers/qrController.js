@@ -67,9 +67,9 @@ const generateQr = async (req, res) => {
         
         // Si el tipo es 'compra', agregar monto y momento
         //if (tipo === 'compra') {
-            const momento = new Date().toISOString(); // Formato ISO para JSON
-            qrData.monto = monto;
-            qrData.momento = momento;
+        const momento = new Date().toISOString(); // Formato ISO para JSON
+        qrData.monto = monto;
+        qrData.momento = momento;
         //}
 
         // Cifrar los datos
@@ -190,130 +190,207 @@ const scanQr = async (req, res) => {
             return res.status(400).json({ message: 'Tipo no válido' });
         }
 
-        // Obtener el modelo apropiado según el tipo
-        let model;
-        switch (tipo) {
-            case 'evento':
-                model = db.eventos;
-                break;
-            case 'tienda':
-                model = db.locatarios;
-                break;
-            case 'compra':
-                model = db.locatarios;
-                break;
-            case 'cupon':
-                model = db.cuponXClientes;
-                break;
+        if(tipo=='cupon'){
+            //la logica:
+
+
+            const cuponXCliente = db.cuponXClientes;
+        const cuponTabla = db.cupones;
+
+        // Buscar el cupon en la tabla cuponXClientes
+        const cuponCliente = await cuponXCliente.findOne({
+            where: {
+                fidCupon: idReferencia,
+                fidCliente: idCliente,
+                cantidad: { [Op.gt]: 0 } // Validar que la cantidad sea mayor a 0
+            }
+        });
+
+        if (!cuponCliente) {
+            return res.status(400).json({ message: 'Cupón no válido o ya usado' });
         }
 
-        // Buscar la referencia para asegurar que existe y está activa
-        const referencia = await model.findOne({
+        // Buscar el cupon en la tabla cupons
+        const cupon = await cuponTabla.findOne({
             where: {
                 id: idReferencia,
-                activo: 1
+                fechaExpiracion: { [Op.gt]: new Date() } // Validar que no haya expirado
             }
         });
-        if (!referencia) {
-            return res.status(404).json({ message: `${tipo} no encontrado o no está activo` ,  puntosOtorgados:-1});
+
+        if (!cupon) {
+            return res.status(400).json({ message: 'Cupón no válido o expirado' });
         }
 
-        // Consultar si ya existe un escaneo previo
-        const whereClause = {
-            fidClient: idCliente,
-            tipo: tipo,
-            fidReferencia: idReferencia
-        };
+        // Generar URL firmada para la foto del cupon
+        const idCupon = cupon.id;
+        const idLocatario = cupon.fidLocatario;
+        const urlFotoCupon = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: `cupon${idCupon}.jpg`,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
 
-        if (tipo === 'tienda') {
-            // Añadir verificación de fecha para las tiendas
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
+        // Generar URL firmada para la imagen del locatario
+        const urlFotoLocatario = s3.getSignedUrl('getObject', {
+            Bucket: 'appdp2',
+            Key: `tienda${idLocatario}.jpg`,
+            Expires: 8600 // Tiempo de expiración en segundos
+        });
 
-            whereClause.ultimoEscaneo = {
-                [db.Sequelize.Op.gt]: yesterday
+        // Marcar el cupon como usado y reducir la cantidad
+        cuponCliente.cantidad -= 1;
+        if(cuponCliente.cantidad==0){
+            cuponCliente.usado = 1;
+        }
+        await cuponCliente.save();
+
+        const locatario = await db.locatarios.findOne({
+
+            where: {
+                id: idLocatario,
+            }
+        });
+
+        const nombreLocatario = locatario.nombre
+
+        // Responder con éxito y las URLs firmadas
+        res.status(200).json({
+            message: 'Cupón canjeado con éxito',
+            nombre: nombreLocatario,
+            //urlFotoCupon,
+            urlFoto: urlFotoLocatario,
+            tipo: "cupon"
+        });
+
+        }else{
+            
+            // Obtener el modelo apropiado según el tipo
+            let model;
+            switch (tipo) {
+                case 'evento':
+                    model = db.eventos;
+                    break;
+                case 'tienda':
+                    model = db.locatarios;
+                    break;
+                case 'compra':
+                    model = db.locatarios;
+                    break;
+                case 'cupon':
+                    model = db.cuponXClientes;
+                    break;
+            }
+
+            // Buscar la referencia para asegurar que existe y está activa
+            const referencia = await model.findOne({
+                where: {
+                    id: idReferencia,
+                    activo: 1
+                }
+            });
+            if (!referencia) {
+                return res.status(404).json({ message: `${tipo} no encontrado o no está activo` ,  puntosOtorgados:-1});
+            }
+
+            // Consultar si ya existe un escaneo previo
+            const whereClause = {
+                fidClient: idCliente,
+                tipo: tipo,
+                fidReferencia: idReferencia
             };
-        }
 
-        const existingScan = await db.escaneos.findOne({
-            where: whereClause
-        });
+            if (tipo === 'tienda') {
+                // Añadir verificación de fecha para las tiendas
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
 
-        // Verificar si el escaneo ya existe según las reglas dadas
-        if (existingScan) {
-            if (tipo === 'tienda' && existingScan.ultimoEscaneo.toDateString() === new Date().toDateString()) {
-                return res.status(400).json({ message: 'Este QR de tienda ya fue escaneado hoy.' ,  puntosOtorgados:-1});
+                whereClause.ultimoEscaneo = {
+                    [db.Sequelize.Op.gt]: yesterday
+                };
             }
-            return res.status(400).json({ message: 'Este QR ya ha sido escaneado.',  puntosOtorgados:-1 });
+
+            const existingScan = await db.escaneos.findOne({
+                where: whereClause
+            });
+
+            // Verificar si el escaneo ya existe según las reglas dadas
+            if (existingScan) {
+                if (tipo === 'tienda' && existingScan.ultimoEscaneo.toDateString() === new Date().toDateString()) {
+                    return res.status(400).json({ message: 'Este QR de tienda ya fue escaneado hoy.' ,  puntosOtorgados:-1});
+                }
+                return res.status(400).json({ message: 'Este QR ya ha sido escaneado.',  puntosOtorgados:-1 });
+            }
+
+
+            // Si el tipo es 'evento' o 'tienda', obtener información adicional y sumar puntos
+            let puntosOtorgados = 0;
+            let nombre = '';
+            let rutaFoto = '';
+            let urlFoto = '';
+
+            if (tipo === 'evento') {
+                const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
+                    replacements: { tipo: 1, idCliente: idCliente, idReferencia: idReferencia }
+                });
+
+                // Obtener el valor de la variable de salida
+                const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
+                puntosOtorgados = output.puntosOtorgados;
+
+                // Obtener nombre y rutaFoto del evento
+                nombre = referencia.nombre;
+                rutaFoto = referencia.rutaFoto;
+
+                // Generar URL firmada para la imagen del evento
+                const key = `evento${idReferencia}.jpg`;
+                urlFoto = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+            } else if (tipo === 'tienda') {
+                const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
+                    replacements: { tipo: 2, idCliente: idCliente, idReferencia: idReferencia }
+                });
+
+                // Obtener el valor de la variable de salida
+                const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
+                puntosOtorgados = output.puntosOtorgados;
+
+                // Obtener nombre y rutaFoto del locatario
+                nombre = referencia.nombre;
+                rutaFoto = referencia.rutaFoto;
+
+                // Generar URL firmada para la imagen del locatario
+                const key = `tienda${idReferencia}.jpg`;
+                urlFoto = s3.getSignedUrl('getObject', {
+                    Bucket: 'appdp2',
+                    Key: key,
+                    Expires: 8600 // Tiempo de expiración en segundos
+                });
+            }
+
+            // Registrar el nuevo escaneo
+            //esto debe de ser al final
+            //cuando ya tenga mis puntos otorgados
+            await db.escaneos.create({
+                fidClient: idCliente,
+                tipo,
+                fidReferencia: idReferencia,
+                ultimoEscaneo: new Date(),  // Registra la fecha actual del escaneo
+                puntosOtorgados:puntosOtorgados 
+            });
+
+            res.json({
+                message: 'QR escaneado con éxito, puntos asignados.',
+                puntosOtorgados: puntosOtorgados,
+                nombre: nombre,
+                urlFoto: urlFoto,
+                tipo: tipo
+            });
         }
 
-
-        // Si el tipo es 'evento' o 'tienda', obtener información adicional y sumar puntos
-        let puntosOtorgados = 0;
-        let nombre = '';
-        let rutaFoto = '';
-        let urlFoto = '';
-
-        if (tipo === 'evento') {
-            const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
-                replacements: { tipo: 1, idCliente: idCliente, idReferencia: idReferencia }
-            });
-
-            // Obtener el valor de la variable de salida
-            const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
-            puntosOtorgados = output.puntosOtorgados;
-
-            // Obtener nombre y rutaFoto del evento
-            nombre = referencia.nombre;
-            rutaFoto = referencia.rutaFoto;
-
-            // Generar URL firmada para la imagen del evento
-            const key = `evento${idReferencia}.jpg`;
-            urlFoto = s3.getSignedUrl('getObject', {
-                Bucket: 'appdp2',
-                Key: key,
-                Expires: 8600 // Tiempo de expiración en segundos
-            });
-        } else if (tipo === 'tienda') {
-            const result = await db.sequelize.query('CALL SumarPuntos(:tipo, :idCliente, :idReferencia, @puntosOtorgados)', {
-                replacements: { tipo: 2, idCliente: idCliente, idReferencia: idReferencia }
-            });
-
-            // Obtener el valor de la variable de salida
-            const [[output]] = await db.sequelize.query('SELECT @puntosOtorgados AS puntosOtorgados');
-            puntosOtorgados = output.puntosOtorgados;
-
-            // Obtener nombre y rutaFoto del locatario
-            nombre = referencia.nombre;
-            rutaFoto = referencia.rutaFoto;
-
-            // Generar URL firmada para la imagen del locatario
-            const key = `tienda${idReferencia}.jpg`;
-            urlFoto = s3.getSignedUrl('getObject', {
-                Bucket: 'appdp2',
-                Key: key,
-                Expires: 8600 // Tiempo de expiración en segundos
-            });
-        }
-
-        // Registrar el nuevo escaneo
-        //esto debe de ser al final
-        //cuando ya tenga mis puntos otorgados
-        await db.escaneos.create({
-            fidClient: idCliente,
-            tipo,
-            fidReferencia: idReferencia,
-            ultimoEscaneo: new Date(),  // Registra la fecha actual del escaneo
-            puntosOtorgados:puntosOtorgados 
-        });
-
-        res.json({
-            message: 'QR escaneado con éxito, puntos asignados.',
-            puntosOtorgados: puntosOtorgados,
-            nombre: nombre,
-            urlFoto: urlFoto,
-            tipo: tipo
-        });
     } catch (error) {
         console.error('Error al escanear QR:', error);
         res.status(500).json({ message: error.message,  puntosOtorgados:-1});

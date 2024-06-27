@@ -185,17 +185,23 @@ const signup = async (req, res) => {
         //generate token with the user's id and the secretKey in the env file
         // set cookie with the token generated
         if (client) {
-            let token = jwt.sign(
-                { id: client.id},
+
+            const accessToken = jwt.sign(
+                { email: client.email,id: client.id  },
+                ACCESS_TOKEN_SECRET,
+                { expiresIn: ACCESS_TOKEN_EXPIRY }
+            );
+            const refreshToken = jwt.sign(
+                {email: client.email,id: client.id },
                 REFRESH_TOKEN_SECRET,
                 { expiresIn: REFRESH_TOKEN_EXPIRY }
             );
-
             console.log("client", JSON.stringify(client, null, 2));
-            console.log(token);
+
             //send users details
             //broadcast(req.app.locals.clients, 'signup', user);
-            return res.status(200).send(client);
+
+            return res.status(200).json({ client: client, token: accessToken, refreshToken:refreshToken});
         } else {
             return res.status(400).send("Invalid request body");
         }
@@ -1465,6 +1471,7 @@ const getCuponesXCliente = async (req, res) => {
                     offset: offset,
                     limit: pageSize,
                     where: {
+                        activo: true,
                         fidCliente: idParam,
                         fechaCompra: {
                             [db.Sequelize.Op.between]: [startDate, endDate]
@@ -1474,7 +1481,7 @@ const getCuponesXCliente = async (req, res) => {
                         {
                             model: Cupon,
                             as: 'cupon',
-                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["codigo","fechaExpiracion","usado"] , // No necesitamos otros atributos del locatario para esta consulta
                             where: {
                                 ...(startDateExp && endDateExp && {
                                     fechaExpiracion: {
@@ -1508,6 +1515,7 @@ const getCuponesXCliente = async (req, res) => {
                 }),
                 CuponXCliente.count({
                     where: {
+                        activo: true,
                         fidCliente: idParam,
                         fechaCompra: {
                             [db.Sequelize.Op.between]: [startDate, endDate]
@@ -1517,7 +1525,7 @@ const getCuponesXCliente = async (req, res) => {
                         {
                             model: Cupon,
                             as: 'cupon',
-                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["codigo","fechaExpiracion","usado"] , // No necesitamos otros atributos del locatario para esta consulta
                             where: {
                                 ...(startDateExp && endDateExp && {
                                     fechaExpiracion: {
