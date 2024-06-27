@@ -7,7 +7,7 @@ const Sequelize = require("sequelize");
 const {QueryTypes} = require("sequelize");
 const Op = Sequelize.Op;
 const pool = mysql.createPool({
-    host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
+      host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
       port: 3306,
       user: 'administrador',
       password: 'contrasenia',

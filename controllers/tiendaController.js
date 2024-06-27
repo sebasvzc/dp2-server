@@ -121,6 +121,21 @@ const getTiendas = async (req, res) => {
         console.log('getTiendas - queryType:', queryType, ' - [Error]: ', error);
     }
 }
+
+const getPdfManual = async (req, res) => {
+
+    try {
+
+        const objectKey = `Guía de Web.jpg`;
+        const url = await getSignUrlForFile(objectKey,"defaultStore.png");
+
+        return res.status(200).json({ urlPdf:url, newToken: req.newToken});
+
+    } catch (error) {
+        console.log('getPdfManual - queryType:', queryType, ' - [Error]: ', error);
+        return res.status(404);
+    }
+}
 const habilitar = async (req, res) => {
     console.log(req.body)
     try {
@@ -704,5 +719,6 @@ module.exports = {
     getCuponesXTienda,
     getTopTiendasAsist,
     getBottomTiendasAsist,
-    getPuntosTiendasAsitencia
+    getPuntosTiendasAsitencia,
+    getPdfManual
 };
