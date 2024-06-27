@@ -1481,7 +1481,7 @@ const getCuponesXCliente = async (req, res) => {
                         {
                             model: Cupon,
                             as: 'cupon',
-                            attributes: ["codigo","fechaExpiracion","usado"] , // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
                             where: {
                                 ...(startDateExp && endDateExp && {
                                     fechaExpiracion: {
@@ -1525,7 +1525,7 @@ const getCuponesXCliente = async (req, res) => {
                         {
                             model: Cupon,
                             as: 'cupon',
-                            attributes: ["codigo","fechaExpiracion","usado"] , // No necesitamos otros atributos del locatario para esta consulta
+                            attributes: ["codigo","fechaExpiracion"] , // No necesitamos otros atributos del locatario para esta consulta
                             where: {
                                 ...(startDateExp && endDateExp && {
                                     fechaExpiracion: {
