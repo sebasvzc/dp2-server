@@ -984,6 +984,7 @@ const getEventosIA = async (req, res) => {
                     aforo: evento.aforo,
                     nombreTienda: evento.nombreTienda,
                     urlEvento: urlEvento,
+                    prioridad: rec.prioridad
                 };
             }
             return null;
