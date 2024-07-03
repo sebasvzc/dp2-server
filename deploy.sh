@@ -21,5 +21,6 @@ echo "The parameter provided is: $PARAMETER"
 sed -i 's|http://localhost:3000|$PARAMETER/api|g' example/web-socket.html
 sed -i 's|localhost:3000|$processed_url/api|g' example/web-socket.html
 sed -i 's|http://localhost:3030|$PARAMETER|g' routes/user/userRoutes.js
+sed -i 's|3.218.68.113|$processed_url|g' .env
 
 npm start
