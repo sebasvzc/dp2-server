@@ -8,7 +8,6 @@ const userAuth = require('../../middlewares/userAuth')
 const authenticateToken  = require('../../middlewares/authenticateToken')
 const {sign} = require("jsonwebtoken");
 const router = express.Router()
-const host = process.env.FASTAPI_BASE_URL;
 const db = require("../../models");
 const envioCorreo = require('../../config/mailConfig');
 const UserInv = db.usersInv;
@@ -23,7 +22,7 @@ module.exports = (transporter,crypto) => {
             expiresIn: Date.now() + (60 * 60 * 1000), // 5 minutos en milisegundos
         };
         const token = sign(tokenData, 'secretKey');
-        const link = `http://` + host + `/register?token=${token}`;
+        const link = `http://localhost:3030/register?token=${token}`;
 
 
 
