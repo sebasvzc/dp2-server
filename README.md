@@ -1,21 +1,21 @@
-# Node.js Example Application - develop a CRUD REST API  
-  
-[Getting Started with Node](https://geekswithlatitude.readme.io/docs/getting-started-with-node)  
-  
-Node.js ORM tool: [Sequelize](https://sequelize.org/docs/v6/getting-started/)  
-Database: [postgresql](https://www.postgresql.org/download/linux/ubuntu/)  
-Test API tool:[Postman](https://www.postman.com/downloads/)  
-Simplify API development:[Swagger](https://swagger.io/)  
-[HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)  
-![tools](tools.png)  
-  
-### how to use  
-$ npm install  
-$ npm start  
+# dp2-server
 
-### Demo: 
-Node.js REST API using Swagger
-![nodejs_demo_swaggerui](nodejs_demo_swaggerui.gif)  
-  
-Node.js REST API using Postman 
-![nodejs_demo](nodejs_demo.gif)  
+Este es el backend de la app web que desarrollamos.
+
+## Despliegue
+
+Primero hay que clonar el repositorio.
+
+```sh
+git clone https://github.com/sebasvzc/dp2-server.git
+cd dp2-server
+```
+
+Para desplegar el sistema se debe correr el siguiente script, introduciendo la direccion url base a la cual se deplegará el sitio web. Por ejemplo:
+
+```sh
+chmod +x deploy.sh
+./deploy.sh http://3.218.68.113
+```
+
+El script de bash manejará toda la logica necesaria de despliegue.
