@@ -10,12 +10,13 @@ const crypto = require("crypto");
 const mysql = require('mysql2/promise');
 const natural = require('natural');
 const TfIdf = natural.TfIdf;
+const { DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_DAILECT, DB_PORT } = process.env;
 const pool = mysql.createPool({
-    host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
-      port: 3306,
-      user: 'administrador',
-      password: 'contrasenia',
-      database: 'plaza',
+    host: DB_HOST,
+      port: DB_PORT,
+      user: DB_USERNAME,
+      password: DB_PASSWORD,
+      database: DB_DATABASE,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
