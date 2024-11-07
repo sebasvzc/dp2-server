@@ -5,13 +5,14 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 const Sequelize = require("sequelize");
 const {QueryTypes} = require("sequelize");
+const { DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_DAILECT, DB_PORT } = process.env;
 const Op = Sequelize.Op;
 const pool = mysql.createPool({
-      host: 'dp2-database.cvezha58bpsj.us-east-1.rds.amazonaws.com',
-      port: 3306,
-      user: 'administrador',
-      password: 'contrasenia',
-      database: 'plaza'
+      host: DB_HOST,
+      port: DB_PORT,
+      user: DB_USERNAME,
+      password: DB_PASSWORD,
+      database: DB_DATABASE,
       });
 const CategoriaTienda = db.categoriaTiendas;
 function parseDate(dateString) {
